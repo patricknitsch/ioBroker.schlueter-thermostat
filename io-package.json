@@ -1,0 +1,121 @@
+{
+	"common": {
+		"name": "schlueter-thermostat",
+		"version": "0.0.1",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"uk": "Початкова версія",
+				"zh-cn": "首次出版"
+			}
+		},
+		"titleLang": {
+			"en": "Schlueter Ditra Heat Thermostat",
+			"de": "Schlüter Ditra Wärmethermostat",
+			"ru": "Тепловой термостат Schlueter Ditra",
+			"pt": "Termostato de calor Schlueter Ditra",
+			"nl": "Schlueter Ditra Heat-thermostaat",
+			"fr": "Thermostat de chaleur Schlueter Ditra",
+			"it": "Termostato termico Schlueter Ditra",
+			"es": "Termostato Schlueter Ditra Heat",
+			"pl": "Termostat grzewczy Schlueter Ditra",
+			"uk": "Тепловий термостат Schlueter Ditra",
+			"zh-cn": "Schlueter Ditra 热恒温器"
+		},
+		"desc": {
+			"en": "Floor heating controlled with Ditra Heat Thermostat",
+			"de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
+			"ru": "Подогрев пола контролируется термостатом Ditra Heat.",
+			"pt": "Aquecimento de piso controlado com termostato Ditra Heat",
+			"nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
+			"fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
+			"it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
+			"es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
+			"pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
+			"uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
+			"zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
+		},
+		"authors": [
+			"patricknitsch <patricknitsch@web.de>"
+		],
+		"keywords": [
+			"ditra heat",
+			"climate",
+			"cloud"
+		],
+		"licenseInformation": {
+			"type": "free",
+			"license": "MIT"
+		},
+		"platform": "Javascript/Node.js",
+		"icon": "schlueter-thermostat.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
+		"readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
+		"loglevel": "info",
+		"tier": 3,
+		"mode": "daemon",
+		"type": "climate-control",
+		"compact": true,
+		"connectionType": "cloud",
+		"dataSource": "poll",
+		"adminUI": {
+			"config": "json"
+		},
+		"dependencies": [
+			{
+				"js-controller": ">=6.0.11"
+			}
+		],
+		"globalDependencies": [
+			{
+				"admin": ">=7.0.23"
+			}
+		]
+	},
+	"native": {
+		"username": "",
+		"password": "",
+		"swversion": "",
+		"apikey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
+		"customerid": "",
+		"encrypted": [
+			"password",
+			"sessionToken"
+		],
+		"energy": false,
+		"schedule": false
+	},
+	"objects": [],
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": "Information"
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"role": "indicator.connected",
+				"name": "Device or service connected",
+				"type": "boolean",
+				"read": true,
+				"write": false,
+				"def": false
+			},
+			"native": {}
+		}
+	]
+}

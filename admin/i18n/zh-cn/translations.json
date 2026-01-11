@@ -1,0 +1,19 @@
+{
+    "API Key": "API密钥",
+    "Activate Energy Data": "激活能源数据",
+    "Activate Schedule Data": "激活计划数据",
+    "Customer ID": "客户编号",
+    "Enable fetching of energy consumption data (may increase data usage and fetch time)": "启用能源消耗数据的获取（可能会增加数据使用量和获取时间）",
+    "Enable fetching of schedule data (may increase data usage and fetch time)": "启用计划数据的获取（可能会增加数据使用量和获取时间）",
+    "Energy": "活力",
+    "Options": "选项",
+    "Password": "密码",
+    "Schedule": "日程",
+    "Software Version": "软件版本",
+    "Username": "用户名",
+    "Your OJ Microline API key, default is provided": "您的 OJ Microline API 密钥，默认已提供",
+    "Your OJ Microline account password (set in App": "您的OJ Microline账户密码（在App中设置）",
+    "Your OJ Microline account username (set in App)": "您的 OJ Microline 帐户用户名（在应用程序中设置）",
+    "Your OJ Microline customer ID (find in your device information)": "您的 OJ Microline 客户 ID（在您的设备信息中查找）",
+    "Your OJ Microline software version (find in your device information)": "您的 OJ Microline 软件版本（在您的设备信息中查找）"
+}

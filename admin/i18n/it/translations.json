@@ -1,0 +1,19 @@
+{
+    "API Key": "Chiave API",
+    "Activate Energy Data": "Attiva i dati energetici",
+    "Activate Schedule Data": "Attiva i dati di pianificazione",
+    "Customer ID": "ID cliente",
+    "Enable fetching of energy consumption data (may increase data usage and fetch time)": "Abilita il recupero dei dati sul consumo energetico (può aumentare l'utilizzo dei dati e il tempo di recupero)",
+    "Enable fetching of schedule data (may increase data usage and fetch time)": "Abilita il recupero dei dati di pianificazione (potrebbe aumentare l'utilizzo dei dati e il tempo di recupero)",
+    "Energy": "Energia",
+    "Options": "Opzioni",
+    "Password": "Password",
+    "Schedule": "Programma",
+    "Software Version": "Versione del software",
+    "Username": "Nome utente",
+    "Your OJ Microline API key, default is provided": "Viene fornita la chiave API OJ Microline predefinita",
+    "Your OJ Microline account password (set in App": "La password del tuo account OJ Microline (impostata nell'app)",
+    "Your OJ Microline account username (set in App)": "Il nome utente del tuo account OJ Microline (impostato nell'app)",
+    "Your OJ Microline customer ID (find in your device information)": "Il tuo ID cliente OJ Microline (trovalo nelle informazioni del tuo dispositivo)",
+    "Your OJ Microline software version (find in your device information)": "La tua versione del software OJ Microline (trova nelle informazioni del tuo dispositivo)"
+}

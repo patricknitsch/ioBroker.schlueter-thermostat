@@ -1,0 +1,19 @@
+{
+    "API Key": "API-sleutel",
+    "Activate Energy Data": "Activeer Energiegegevens",
+    "Activate Schedule Data": "Activeer planningsgegevens",
+    "Customer ID": "Klant-ID",
+    "Enable fetching of energy consumption data (may increase data usage and fetch time)": "Ophalen van energieverbruiksgegevens inschakelen (kan het datagebruik en de ophaaltijd verhogen)",
+    "Enable fetching of schedule data (may increase data usage and fetch time)": "Ophalen van planningsgegevens inschakelen (kan het datagebruik en de ophaaltijd verhogen)",
+    "Energy": "Energie",
+    "Options": "Opties",
+    "Password": "Wachtwoord",
+    "Schedule": "Schema",
+    "Software Version": "Softwareversie",
+    "Username": "Gebruikersnaam",
+    "Your OJ Microline API key, default is provided": "Uw OJ Microline API-sleutel, standaard wordt meegeleverd",
+    "Your OJ Microline account password (set in App": "Het wachtwoord van uw OJ Microline-account (ingesteld in de app)",
+    "Your OJ Microline account username (set in App)": "De gebruikersnaam van uw OJ Microline-account (ingesteld in de app)",
+    "Your OJ Microline customer ID (find in your device information)": "Uw OJ Microline-klant-ID (te vinden in uw apparaatinformatie)",
+    "Your OJ Microline software version (find in your device information)": "Uw OJ Microline-softwareversie (te vinden in uw apparaatinformatie)"
+}

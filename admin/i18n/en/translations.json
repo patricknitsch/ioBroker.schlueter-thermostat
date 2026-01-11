@@ -1,0 +1,19 @@
+{
+    "Options": "Options",
+    "Username": "Username",
+    "Password": "Password",
+    "Software Version": "Software Version",
+    "Customer ID": "Customer ID",
+    "API Key": "API Key",
+    "Energy": "Energy",
+    "Schedule": "Schedule",
+    "Activate Schedule Data": "Activate Schedule Data",
+    "Activate Energy Data": "Activate Energy Data",
+    "Your OJ Microline account username (set in App)": "Your OJ Microline account username (set in App)",
+    "Your OJ Microline account password (set in App": "Your OJ Microline account password (set in App)",
+    "Your OJ Microline software version (find in your device information)": "Your OJ Microline software version (find in your device information)",
+    "Your OJ Microline customer ID (find in your device information)": "Your OJ Microline customer ID (find in your device information)",
+    "Your OJ Microline API key, default is provided": "Your OJ Microline API key, default is provided",
+    "Enable fetching of energy consumption data (may increase data usage and fetch time)": "Enable fetching of energy consumption data (may increase data usage and fetch time)",
+    "Enable fetching of schedule data (may increase data usage and fetch time)": "Enable fetching of schedule data (may increase data usage and fetch time)"
+}

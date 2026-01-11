@@ -1,0 +1,89 @@
+{
+	"i18n": true,
+	"type": "tabs",
+	"items": {
+		"_options": {
+			"type": "panel",
+			"label": "Options",
+			"items": {
+				"username": {
+					"type": "text",
+					"label": "Username",
+					"help": "Your OJ Microline account username (set in App)",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"password": {
+					"type": "text",
+					"label": "Password",
+					"help": "Your OJ Microline account password (set in App",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"swversion": {
+					"type": "number",
+					"label": "Software Version",
+					"help": "Your OJ Microline software version (find in your device information)",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"customerid": {
+					"type": "number",
+					"label": "Customer ID",
+					"min": 1,
+					"max": 10,
+					"help": "Your OJ Microline customer ID (find in your device information)",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"apikey": {
+					"type": "text",
+					"label": "API Key",
+					"help": "Your OJ Microline API key, default is provided",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"energy": {
+					"type": "checkbox",
+					"label": "Activate Energy Data",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
+					"help": "Enable fetching of energy consumption data (may increase data usage and fetch time)"
+				},
+				"schedule": {
+					"type": "checkbox",
+					"label": "Activate Schedule Data",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
+					"help": "Enable fetching of schedule data (may increase data usage and fetch time)"
+				}
+			}
+		}
+	}
+}

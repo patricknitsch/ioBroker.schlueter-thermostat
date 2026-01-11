@@ -1,0 +1,19 @@
+{
+    "API Key": "Ключ API",
+    "Activate Energy Data": "Активувати енергодані",
+    "Activate Schedule Data": "Активувати дані розкладу",
+    "Customer ID": "ID клієнта",
+    "Enable fetching of energy consumption data (may increase data usage and fetch time)": "Увімкнути отримання даних про споживання енергії (може збільшити використання даних і час отримання)",
+    "Enable fetching of schedule data (may increase data usage and fetch time)": "Увімкнути отримання даних розкладу (може збільшити використання даних і час отримання)",
+    "Energy": "Енергія",
+    "Options": "Опції",
+    "Password": "Пароль",
+    "Schedule": "розклад",
+    "Software Version": "Версія програмного забезпечення",
+    "Username": "Ім'я користувача",
+    "Your OJ Microline API key, default is provided": "Ваш ключ API OJ Microline, надається за умовчанням",
+    "Your OJ Microline account password (set in App": "Пароль вашого облікового запису OJ Microline (установлюється в додатку)",
+    "Your OJ Microline account username (set in App)": "Ім’я користувача облікового запису OJ Microline (установлюється в програмі)",
+    "Your OJ Microline customer ID (find in your device information)": "Ваш ідентифікатор клієнта OJ Microline (знайти в інформації про пристрій)",
+    "Your OJ Microline software version (find in your device information)": "Ваша версія програмного забезпечення OJ Microline (знайдіть в інформації про пристрій)"
+}
