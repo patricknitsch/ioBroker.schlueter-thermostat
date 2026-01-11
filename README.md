@@ -16,17 +16,17 @@ Floor heating controlled with Ditra Heat Thermostat
 
 ### Installation
 
-Download the app "Schlueter-HEAT-CONTROL from the App-Store, create an account by entering a username and a password. Note down username and password
-In the app, add/connect your thermostat per Thermostat ID or QR-Code
-In the app, identify your customer id
+1) Download the app "Schlueter-HEAT-CONTROL from the App-Store, create an account by entering a username and a password. Note down username and password
+2) In the app, add/connect your thermostat per Thermostat ID or QR-Code
+3) In the app, identify your customer id under
 Menu > Thermostat data > [Thermostat Name] > Customer ID
 (mine was “3”)
-In the app, identify your customer id
+4) In the app, identify your customer id under
 Menu > Thermostat data > [Thermostat Name] > Softwareversion
-Install the adapter in IOBroker
-Fill in username, password, Customer ID and Softwareversion. API-Key is given.
+5) Install the adapter in IOBroker
+6) Fill in username, password, Customer ID and Softwareversion. API-Key is given.
 
-Optionally you can fetch the Schedule and Energy Consumption for the device.
+7) Optionally you can fetch the Schedule and Energy Consumption for the device.
 Therefore active the checkboxes.
 
 The API and the values can be checked under the following address.
