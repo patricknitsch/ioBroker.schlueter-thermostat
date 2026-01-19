@@ -23,6 +23,10 @@ class SchlueterThermostat extends utils.Adapter {
 
 		this.pollTimer = null;
 
+		this.unloading = false;
+		this.pollInFlight = false;
+		this.pollPromise = null;
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
@@ -56,12 +60,14 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		await this.setObjectNotExistsAsync('thermostats', { type: 'channel', common: { name: 'Groups' }, native: {} });
-		this.subscribeStates('thermostats.*.setpoint.manualSet');
-		this.subscribeStates('thermostats.*.setpoint.comfortSet');
-		this.subscribeStates('thermostats.*.regulationModeSet');
 
 		const intervalSec = Math.max(15, Number(this.config.pollIntervalSec) || 60);
 		await this.pollOnce();
+
+		// Subscribe writable states
+		this.subscribeStates('thermostats.*.setpoint.manualSet');
+		this.subscribeStates('thermostats.*.setpoint.comfortSet');
+		this.subscribeStates('thermostats.*.regulationModeSet');
 
 		this.pollTimer = setInterval(() => {
 			this.pollOnce().catch(err => this.log.warn(`Poll error: ${err?.message || err}`));
@@ -69,17 +75,38 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	async pollOnce() {
+		if (this.unloading || this.pollInFlight) {
+			return;
+		}
+
 		const client = this.client;
 		if (!client) {
 			return;
 		}
 
-		const groups = await client.getAllGroups();
-		this.setState('info.connection', true, true);
+		this.pollInFlight = true;
 
-		for (const g of groups) {
-			await this.upsertGroup(g);
-		}
+		this.pollPromise = (async () => {
+			const groups = await client.getAllGroups();
+			this.setState('info.connection', true, true);
+
+			for (const g of groups) {
+				if (this.unloading) {
+					break;
+				}
+				await this.upsertGroup(g);
+			}
+		})()
+			.catch(err => {
+				if (!this.unloading) {
+					this.log.warn(`Poll error: ${err?.message || err}`);
+				}
+			})
+			.finally(() => {
+				this.pollInFlight = false;
+			});
+
+		return this.pollPromise;
 	}
 
 	async upsertGroup(g) {
@@ -412,9 +439,17 @@ class SchlueterThermostat extends utils.Adapter {
 
 	async onUnload(callback) {
 		try {
+			this.unloading = true;
 			if (this.pollTimer) {
 				clearInterval(this.pollTimer);
 			}
+
+			// Wait for an in-flight poll to finish (best effort)
+			const p = this.pollPromise;
+			if (p) {
+				await Promise.race([p, new Promise(res => setTimeout(res, 5000))]);
+			}
+
 			callback();
 		} catch {
 			callback();
