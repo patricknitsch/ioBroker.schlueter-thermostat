@@ -15,6 +15,10 @@ class SchlueterThermostat extends utils.Adapter {
 	constructor(options) {
 		super({ ...options, name: 'schlueter-thermostat' });
 
+		// Keep original adapter-core methods (avoid wrapper recursion)
+		this._origSetObjectNotExistsAsync = this.setObjectNotExistsAsync.bind(this);
+		this._origSetState = this.setState.bind(this);
+
 		/** @type {OJClient|null} */
 		this.client = null;
 
@@ -49,7 +53,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 	async safeSetObjectNotExists(id, obj) {
 		try {
-			await this.safeSetObjectNotExists(id, obj);
+			await this._origSetObjectNotExistsAsync(id, obj);
 		} catch (e) {
 			if (this.unloading || this._isConnClosed(e)) {
 				return;
@@ -60,7 +64,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 	safeSetState(id, val, ack = true) {
 		try {
-			this.setState(id, val, ack);
+			this._origSetState(id, val, ack);
 		} catch (e) {
 			if (this.unloading || this._isConnClosed(e)) {
 				return;
