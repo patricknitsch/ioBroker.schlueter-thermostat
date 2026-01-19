@@ -1,477 +1,326 @@
 'use strict';
 
-/*
- * Created with @iobroker/create-adapter v3.1.2
- */
-
-// The adapter-core module gives you access to the core ioBroker functions
-// you need to create an adapter
 const utils = require('@iobroker/adapter-core');
-const axios = require('axios');
+const { OJClient } = require('./lib/oj-client');
+const { safeId, numToC, cToNum } = require('./lib/util');
 
-// Load your modules here, e.g.:
-// const fs = require('fs');
-
-class SchlueterThermostat extends utils.Adapter {
-	/**
-	 * @param {Partial<utils.AdapterOptions>} [options] - Adapter options
-	 */
+class OjMicroline extends utils.Adapter {
 	constructor(options) {
-		super({
-			...options,
-			name: 'schlueter-thermostat',
-		});
+		super({ ...options, name: 'ojmicroline' });
 
-		this.sessionToken = null; // Token im Speicher halten
-		this.pollingTimer = null;
-		this.cloudConnected = false;
+		this.client = null;
+		this.pollTimer = null;
 
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
-		// this.on('objectChange', this.onObjectChange.bind(this));
-		// this.on('message', this.onMessage.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 	}
 
-	/**
-	 * Is called when databases are connected and adapter received configuration.
-	 */
 	async onReady() {
+		this.setState('info.connection', false, true);
+
+		const provider = 'owd5';
 		if (!this.config.username || !this.config.password) {
-			this.log.error(`username and/or password empty - please check instance configuration of ${this.namespace}`);
+			this.log.error('Missing username/password in adapter config.');
+			return;
+		}
+		if (provider === 'owd5' && (!this.config.apiKey || !this.config.customerId)) {
+			this.log.error('Provider=owd5 requires apiKey and customerId.');
 			return;
 		}
 
-		if (!this.config.swversion || !this.config.customerid) {
-			this.log.error(
-				`swversion and/or customerid empty - please check instance configuration of ${this.namespace}`,
-			);
+		this.client = new OJClient({
+			log: this.log,
+			provider,
+			baseUrlOwd5: this.config.baseUrlOwd5,
+			username: this.config.username,
+			password: this.config.password,
+			apiKey: this.config.apiKey,
+			customerId: Number(this.config.customerId),
+		});
+
+		try {
+			await this.client.login();
+			this.setState('info.connection', true, true);
+		} catch (e) {
+			this.log.error(`Login failed: ${e?.message || e}`);
+			this.setState('info.connection', false, true);
 			return;
 		}
 
-		// Subscribe to changes of certain states
-		this.subscribeStates('*.RegulationMode');
-		this.subscribeStates('*.ManualModeSetpoint');
-		this.subscribeStates('*.ComfortSetpoint');
-		// Set connection state to false
-		await this._setCloudConnection(false);
-		// Poll Main Data
-		await this.pollMainData();
+		await this.setObjectNotExistsAsync('thermostats', {
+			type: 'channel',
+			common: { name: 'Thermostats / Groups' },
+			native: {},
+		});
+
+		const intervalSec = Math.max(15, Number(this.config.pollIntervalSec) || 60);
+
+		await this.pollOnce();
+
+		this.pollTimer = setInterval(() => {
+			this.pollOnce().catch(err => this.log.warn(`Poll error: ${err?.message || err}`));
+		}, intervalSec * 1000);
 	}
 
-	/**
-	 * Login and save Token
-	 */
-	async _login() {
-		const urlMain = 'https://ocd5.azurewebsites.net/api/UserProfile/SignIn';
-		const payload = {
-			APIKEY: this.config.apikey,
-			UserName: this.config.username,
-			Password: this.config.password,
-			CustomerId: this.config.customerid,
-			ClientSWVersion: this.config.swversion,
+	async pollOnce() {
+		const client = this.client;
+		if (!client) {
+			return;
+		} // <- TS/VSCode ist jetzt zufrieden
+		const data = await client.getAllThermostats();
+		this.setState('info.connection', true, true);
+
+		for (const t of data.thermostats || []) {
+			await this.upsertThermostat(t);
+		}
+	}
+
+	async upsertThermostat(t) {
+		// For OWD5 we treat each GroupId as the controllable entity (UpdateGroup).
+		// Energy endpoint uses thermostatId (t.thermostatId).
+		const groupId = String(t.groupId);
+		if (!groupId) {
+			return;
+		}
+		const client = this.client;
+		if (!client) {
+			return;
+		} // <- TS/VSCode ist jetzt zufrieden
+
+		const devId = `thermostats.${safeId(groupId)}`;
+
+		await this.setObjectNotExistsAsync(devId, {
+			type: 'device',
+			common: { name: t.groupName || t.name || `Group ${groupId}` },
+			native: {
+				groupId,
+				thermostatId: t.thermostatId ? String(t.thermostatId) : '',
+				serialNumber: t.serialNumber || '',
+			},
+		});
+
+		const ensureState = async (id, common) => {
+			await this.setObjectNotExistsAsync(id, { type: 'state', common, native: {} });
 		};
 
-		try {
-			this.log.debug('Try Login...');
-			const fetching = await axios.post(urlMain, payload, { timeout: 5000 });
+		// Read-only indicators
+		await ensureState(`${devId}.online`, {
+			name: 'Online',
+			type: 'boolean',
+			role: 'indicator.reachable',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.heating`, {
+			name: 'Heating active',
+			type: 'boolean',
+			role: 'indicator.working',
+			read: true,
+			write: false,
+		});
 
-			if (fetching.data && fetching.data.SessionId) {
-				this.sessionToken = fetching.data.SessionId;
-				this.log.debug(`Login successful, got Session-Token: ${this.sessionToken}`);
-				await this._setCloudConnection(true);
-				return true;
-			}
-			return false;
-		} catch (error) {
-			this.log.error(`Error Login: ${error.message}`);
-			await this._setCloudConnection(false);
-			return false;
+		// Temperatures
+		await ensureState(`${devId}.temperature.room`, {
+			name: 'Room temperature (°C)',
+			type: 'number',
+			role: 'value.temperature',
+			unit: '°C',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.temperature.floor`, {
+			name: 'Floor temperature (°C)',
+			type: 'number',
+			role: 'value.temperature',
+			unit: '°C',
+			read: true,
+			write: false,
+		});
+
+		// Setpoints + modes (read)
+		await ensureState(`${devId}.setpoint.manual`, {
+			name: 'Manual setpoint (°C)',
+			type: 'number',
+			role: 'value.temperature',
+			unit: '°C',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.setpoint.comfort`, {
+			name: 'Comfort setpoint (°C)',
+			type: 'number',
+			role: 'value.temperature',
+			unit: '°C',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.regulationMode`, {
+			name: 'Regulation mode (read)',
+			type: 'number',
+			role: 'value',
+			read: true,
+			write: false,
+		});
+
+		// Writeable controls
+		await ensureState(`${devId}.setpoint.manualSet`, {
+			name: 'Set manual setpoint (°C)',
+			type: 'number',
+			role: 'level.temperature',
+			unit: '°C',
+			read: true,
+			write: true,
+		});
+		await ensureState(`${devId}.setpoint.comfortSet`, {
+			name: 'Set comfort setpoint (°C)',
+			type: 'number',
+			role: 'level.temperature',
+			unit: '°C',
+			read: true,
+			write: true,
+		});
+		await ensureState(`${devId}.regulationModeSet`, {
+			name: 'Set regulation mode',
+			type: 'number',
+			role: 'level',
+			read: true,
+			write: true,
+		});
+
+		// Schedule raw JSON
+		await ensureState(`${devId}.schedule.json`, {
+			name: 'Schedule (raw JSON)',
+			type: 'string',
+			role: 'json',
+			read: true,
+			write: false,
+		});
+
+		// Energy
+		await this.setObjectNotExistsAsync(`${devId}.energy`, {
+			type: 'channel',
+			common: { name: 'Energy' },
+			native: {},
+		});
+		await ensureState(`${devId}.energy.current.json`, {
+			name: 'Energy usage (raw JSON)',
+			type: 'string',
+			role: 'json',
+			read: true,
+			write: false,
+		});
+
+		// ---- Values from your observed OWD5 structure ----
+		const online = Boolean(t.online);
+		const heating = Boolean(t.heating);
+
+		const room = numToC(t.roomTemperature);
+		const floor = numToC(t.floorTemperature);
+
+		const manualSetpoint = numToC(t.manualModeSetpoint);
+		const comfortSetpoint = numToC(t.comfortSetpoint);
+
+		const regulationMode = Number(t.regulationMode ?? 0);
+
+		await this.setState(`${devId}.online`, { val: online, ack: true });
+		await this.setState(`${devId}.heating`, { val: heating, ack: true });
+
+		if (room !== null) {
+			await this.setState(`${devId}.temperature.room`, { val: room, ack: true });
 		}
-	}
-
-	/**
-	 * Main polling function
-	 */
-	async pollMainData() {
-		// Check if we have a valid token
-		if (!this.sessionToken) {
-			const success = await this._login();
-			if (!success) {
-				this._scheduleNext(30000); // Retry in 30 seconds
-				return;
-			}
+		if (floor !== null) {
+			await this.setState(`${devId}.temperature.floor`, { val: floor, ack: true });
 		}
-		try {
-			// Fetch Main Data
-			const dataUrlMain = `https://ocd5.azurewebsites.net/api/Group/GroupContents?APIKEY=${this.config.apikey}&sessionid=${this.sessionToken}`;
-			const fetchingMain = await axios.get(dataUrlMain);
 
-			if (this.cloudConnected && fetchingMain && fetchingMain.status === 200) {
-				// Handle Datapoints
-				this.log.debug(`Got Data: ${JSON.stringify(fetchingMain.data)}`);
-				await this.handleDatapoints(fetchingMain.data);
+		if (manualSetpoint !== null) {
+			await this.setState(`${devId}.setpoint.manual`, { val: manualSetpoint, ack: true });
+			await this.setState(`${devId}.setpoint.manualSet`, { val: manualSetpoint, ack: true });
+		}
+		if (comfortSetpoint !== null) {
+			await this.setState(`${devId}.setpoint.comfort`, { val: comfortSetpoint, ack: true });
+			await this.setState(`${devId}.setpoint.comfortSet`, { val: comfortSetpoint, ack: true });
+		}
 
-				// Fetch Energy Data if enabled
-				if (this.config.energy) {
-					await this.pollEnergyData(fetchingMain.data);
+		await this.setState(`${devId}.regulationMode`, { val: regulationMode, ack: true });
+		await this.setState(`${devId}.regulationModeSet`, { val: regulationMode, ack: true });
+
+		if (t.schedule) {
+			await this.setState(`${devId}.schedule.json`, { val: JSON.stringify(t.schedule), ack: true });
+		}
+
+		// Energy usage uses thermostatId (t.thermostatId = Thermostats[].Id)
+		if (t.thermostatId) {
+			try {
+				const energy = await client.getEnergyUsageForThermostat(String(t.thermostatId), {
+					history: Number(this.config.energyHistory) || 0,
+					viewType: Number(this.config.energyViewType) || 2,
+				});
+				if (energy) {
+					await this.setState(`${devId}.energy.current.json`, {
+						val: JSON.stringify(energy),
+						ack: true,
+					});
 				}
-			} else {
-				this.log.warn(`Cloud connection failed. Response status: ${fetchingMain.status}`);
-			}
-		} catch (error) {
-			if (error.fetchingMain && error.fetchingMain.status === 401) {
-				this.log.warn('Token expired, resetting...');
-				this.sessionToken = null; // Delete token to force re-login
-			} else {
-				this.log.error(`Error fetching Main data: ${error.message}`);
+			} catch (e) {
+				this.log.debug(`Energy not available for group ${groupId}: ${e?.message || e}`);
 			}
 		}
-
-		this._scheduleNext(60000); // Poll every 60 seconds
 	}
 
-	/**
-	 * Energy polling function
-	 *
-	 * @param {any} mainData - Main data for reference
-	 */
-	async pollEnergyData(mainData) {
-		// Check if we have a valid token
-		if (!this.sessionToken) {
-			const success = await this._login();
-			if (!success) {
-				this._scheduleNext(30000); // Retry in 30 seconds
-				return;
-			}
+	async onStateChange(id, state) {
+		if (!state || state.ack) {
+			return;
 		}
+		if (!this.client) {
+			return;
+		}
+
+		const parts = id.split('.');
+		const idx = parts.indexOf('thermostats');
+		if (idx === -1 || parts.length < idx + 2) {
+			return;
+		}
+
+		const groupId = parts[idx + 1]; // our ioBroker device id equals GroupId
+		const sub = parts.slice(idx + 2).join('.');
+
 		try {
-			// Fetch Energy Data
-			const dataUrlEnergy = `https://ocd5.azurewebsites.net/api/EnergyUsage/GetEnergyUsage?sessionid=${this.sessionToken}`;
-			const dateTomorrow = new Date();
-			dateTomorrow.setDate(dateTomorrow.getDate() + 1);
-			const payload = {
-				APIKEY: this.config.apikey,
-				ThermostatID: this.config.swversion,
-				ViewType: 2,
-				DateTime: dateTomorrow,
-				History: 0,
-			};
-			const fetchingMain = mainData;
-			// Fetch Energy Data must run with a separate Post
-			const fetchingEnergy = await axios.post(dataUrlEnergy, payload, { timeout: 5000 });
-
-			if (this.cloudConnected && fetchingEnergy && fetchingEnergy.status === 200) {
-				// Handle Datapoints
-				// Actually not sure, how it looks like with multiple thermostats and Energy Data
-				// So far, just handling the first one, needs to be extended later
-				this.log.debug(`Got Energy Data: ${JSON.stringify(fetchingEnergy.data)}`);
-				const _SerialNumber = fetchingMain.GroupContents[0].Thermostats[0].SerialNumber;
-				const _GroupName = fetchingMain.GroupContents[0].GroupName;
-				this.log.debug(`Energy Data for Thermostat ${_SerialNumber} in Group ${_GroupName}`);
-				const _energyKey = Object.keys(fetchingEnergy.data.EnergyUsage[0].Usage[0])[0];
-				const _energyValue = Object.values(fetchingEnergy.data.EnergyUsage[0].Usage[0])[0];
-				const _typeValue = typeof _energyValue;
-				this.log.debug(`${_energyKey}: ${_energyValue} (Type: ${_typeValue})`);
-				const path = `${_GroupName}.${_SerialNumber}`;
-				const fullPath = `${path}.${_energyKey}`;
-				this.log.debug(`Path: ${fullPath}`);
-				// Create object if not exists
-				await this._setDatapoints(
-					fullPath,
-					'state',
-					_energyKey,
-					_typeValue,
-					'value',
-					_energyValue,
-					true,
-					false,
-				);
+			if (sub === 'setpoint.manualSet') {
+				const tempC = Number(state.val);
+				await this.client.setManualSetpointByGroup(groupId, cToNum(tempC));
+				await this.setState(id, { val: tempC, ack: true });
+			} else if (sub === 'setpoint.comfortSet') {
+				const tempC = Number(state.val);
+				await this.client.setComfortSetpointByGroup(groupId, cToNum(tempC));
+				await this.setState(id, { val: tempC, ack: true });
+			} else if (sub === 'regulationModeSet') {
+				const mode = Number(state.val);
+				await this.client.setRegulationModeByGroup(groupId, mode);
+				await this.setState(id, { val: mode, ack: true });
 			} else {
-				this.log.warn(`Cloud connection failed. Response status: ${fetchingEnergy.status}`);
+				this.log.debug(`Unhandled writable state: ${id}`);
+				await this.setState(id, { val: state.val, ack: true });
 			}
-		} catch (error) {
-			if (error.response && error.response.status === 401) {
-				this.log.warn('Token expired, resetting...');
-				this.sessionToken = null; // Delete token to force re-login
-			} else {
-				this.log.error(`Error fetching Energy data: ${error.message}`);
-			}
-		}
-
-		this._scheduleNext(60000); // Poll every 60 seconds
-	}
-
-	/**
-	 * Set connection state
-	 *
-	 * @param {boolean} status - Connection status
-	 */
-	async _setCloudConnection(status) {
-		this.cloudConnected = status;
-		await this.setStateChangedAsync('info.connection', { val: status, ack: true });
-	}
-
-	/**
-	 * Delay function
-	 *
-	 * @param {number} ms - Delay in milliseconds
-	 */
-	_scheduleNext(ms) {
-		this.pollingTimer = this.setTimeout(() => this.pollMainData(), ms);
-	}
-
-	/**
-	 * Handle Datapoints
-	 *
-	 * @param {object} response - The response data containing GroupContents
-	 *
-	 * Structure:
-	 * {
-	 *   "GroupContents": [
-	 *     {
-	 *       "GroupName": "LivingRoom",
-	 *       "Thermostats": [
-	 *         {
-	 *           "SerialNumber": "123456",
-	 *           "CurrentTemp": 2150,
-	 *           "SetTemp": 2200,
-	 * 			 "ThermostatName": "Living Room Thermostat",
-	 *           "Schedule": {
-	 * 				"Days": [
-	 * 					{
-	 * 						"WeekDayGrpNo": 1,
-	 * 						"Events": [
-	 * 							{
-	 * 								"Time": "06:00",
-	 * 								"SetTemp": 2200,
-	 *
-	 * 							},
-	 *         }
-	 *       ]
-	 *     }
-	 *   ]
-	 * }
-	 */
-	async handleDatapoints(response) {
-		const MainData = response;
-		try {
-			// 1. Area: GroupContents Array
-			for (let i = 0; i < MainData['GroupContents'].length; i++) {
-				const _groupContents = MainData['GroupContents'][i];
-				const _groupName = _groupContents['GroupName'];
-
-				// 2. Area: Thermostats Array
-				const _Thermostats = _groupContents['Thermostats'];
-				for (let j = 0; j < _Thermostats.length; j++) {
-					const _ThermostatName = _Thermostats[j];
-					const _SerialNumber = _ThermostatName['SerialNumber'];
-					const path = `${_groupName}.${_SerialNumber}`;
-
-					// 3. Area: Running through keys of the thermostat object
-					for (let _thermostatKey in _ThermostatName) {
-						let _thermostatValue = _ThermostatName[_thermostatKey];
-						const fullPath = `${path}.${_thermostatKey}`;
-
-						// Only create states for primitive types
-						if (typeof _thermostatValue !== 'object') {
-							const _typeValue = typeof _thermostatValue;
-
-							// Write value to state
-							if (_thermostatKey.includes('Temp') || _thermostatKey.includes('Set')) {
-								_thermostatValue = _thermostatValue / 100; // Convert to Celsius
-							}
-							this.log.debug(`${_thermostatKey}: ${_thermostatValue} (Type: ${_typeValue})`);
-							// Create object if not exists
-							await this._setDatapoints(
-								fullPath,
-								'state',
-								_thermostatKey,
-								_typeValue,
-								'value',
-								_thermostatValue,
-								true,
-								false,
-							);
-							// Create schedule states if enabled
-						} else if (
-							typeof _thermostatValue === 'object' &&
-							_thermostatValue !== null &&
-							this.config.schedule
-						) {
-							let _scheduleDays = _thermostatValue.Days;
-
-							// 4. Area: Loop through days
-							for (let k = 0; k < _scheduleDays.length; k++) {
-								const _scheduleWeekday = _scheduleDays[k];
-								const _scheduleEvent = _scheduleWeekday.Events;
-								this.log.debug(`--- Day Group Nr: ${_scheduleWeekday.WeekDayGrpNo} ---`);
-
-								// 5. Area: Loop through events
-								for (let l = 0; l < _scheduleEvent.length; l++) {
-									const __scheduleEvent = _scheduleEvent[l];
-									this.log.debug(`  Result ${l + 0}:`);
-
-									// 6. Area: Loop through event keys
-									for (let _eventKey in __scheduleEvent) {
-										let _eventValue = __scheduleEvent[_eventKey];
-
-										// Map JavaScript types to ioBroker common types
-										const _typeValue = typeof _eventValue;
-										const path = `${_groupName}.Schedule.${_scheduleWeekday.WeekDayGrpNo}.Event_${l + 0}`;
-										const fullPath = `${path}.${_eventKey}`;
-
-										// Write value to state
-										if (_eventKey.includes('Temp') || _eventKey.includes('Set')) {
-											_eventValue = _eventValue / 100; // Convert to Celsius
-										}
-										// Create object if not exists
-										await this._setDatapoints(
-											fullPath,
-											'state',
-											_eventKey,
-											_typeValue,
-											'value',
-											_eventValue,
-											true,
-											false,
-										);
-										this.log.debug(`    - ${_eventKey}: ${_eventValue}`);
-									}
-								}
-								this.log.debug('\n');
-							}
-						}
-					}
-				}
-			}
-			this.log.debug('JSON successfully processed and datapoints updated.');
 		} catch (e) {
-			this.log.error(`Error at handling: ${e}`);
+			this.log.error(`Write failed for ${id}: ${e?.message || e}`);
 		}
 	}
 
-	/**
-	 * Function Datapoint Handler
-	 *
-	 * @param {string} id - State ID
-	 * @param {'state'} type - Object type
-	 * @param {string} _name - State name
-	 * @param {any} _type - State type
-	 * @param {string} _role - State role
-	 * @param {*} _state - State value
-	 * @param {boolean} _read - Read permission
-	 * @param {boolean} _write - Write permission
-	 */
-	async _setDatapoints(id, type, _name, _type, _role, _state, _read, _write) {
+	async onUnload(callback) {
 		try {
-			const writeableDP = ['RegulationMode', 'ManualModeSetpoint', 'ComfortSetpoint'];
-
-			if (writeableDP.includes(_name)) {
-				_write = true;
+			if (this.pollTimer) {
+				clearInterval(this.pollTimer);
 			}
-			await this.setObjectNotExistsAsync(id, {
-				type: type,
-				common: {
-					name: _name,
-					type: _type,
-					role: _role,
-					read: _read,
-					write: _write,
-				},
-				native: {},
-			});
-			await this.setStateChangedAsync(id, _state, true);
-		} catch (e) {
-			this.log.error(`Error at Handling Datapoint ${id}: ${e.message}`);
-		}
-	}
-
-	/**
-	 * Is called when adapter shuts down - callback has to be called under any circumstances!
-	 *
-	 * @param {() => void} callback - Callback function
-	 */
-	onUnload(callback) {
-		try {
-			this.sessionToken = null; // Token im Speicher halten
-			this.pollingTimer = null;
-			this._setCloudConnection(false);
-
+			if (this.client) {
+				await this.client.close();
+			}
 			callback();
-		} catch (error) {
-			this.log.error(`Error during unloading: ${error.message}`);
+		} catch (e) {
+			this.log.error(`Write failed for ${e?.message || e}`);
 			callback();
 		}
 	}
-
-	// If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-	// You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-	// /**
-	//  * Is called if a subscribed object changes
-	//  * @param {string} id
-	//  * @param {ioBroker.Object | null | undefined} obj
-	//  */
-	// onObjectChange(id, obj) {
-	// 	if (obj) {
-	// 		// The object was changed
-	// 		this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-	// 	} else {
-	// 		// The object was deleted
-	// 		this.log.info(`object ${id} deleted`);
-	// 	}
-	// }
-
-	/**
-	 * Is called if a subscribed state changes
-	 *
-	 * @param {string} id - State ID
-	 * @param {ioBroker.State | null | undefined} state - State object
-	 */
-	onStateChange(id, state) {
-		if (state) {
-			// The state was changed
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-
-			if (state.ack === false) {
-				// This is a command from the user (e.g., from the UI or other adapter)
-				// and should be processed by the adapter
-				this.log.info(`User command received for ${id}: ${state.val}`);
-
-				// TODO: Add your control logic here
-			}
-		} else {
-			// The object was deleted or the state value has expired
-			this.log.info(`state ${id} deleted`);
-		}
-	}
-
-	// If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-	// /**
-	//  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-	//  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-	//  * @param {ioBroker.Message} obj
-	//  */
-	// onMessage(obj) {
-	// 	if (typeof obj === 'object' && obj.message) {
-	// 		if (obj.command === 'send') {
-	// 			// e.g. send email or pushover or whatever
-	// 			this.log.info('send command');
-
-	// 			// Send response in callback if required
-	// 			if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
-	// 		}
-	// 	}
-	// }
 }
 
-if (require.main !== module) {
-	// Export the constructor in compact mode
-	/**
-	 * @param {Partial<utils.AdapterOptions>} [options] - Adapter options
-	 */
-	module.exports = options => new SchlueterThermostat(options);
-} else {
-	// otherwise start the instance directly
-	new SchlueterThermostat();
-}
+module.exports = options => new OjMicroline(options);

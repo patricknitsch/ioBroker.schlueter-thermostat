@@ -43,14 +43,8 @@
 			"uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
 			"zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
 		},
-		"authors": [
-			"patricknitsch <patricknitsch@web.de>"
-		],
-		"keywords": [
-			"ditra heat",
-			"climate",
-			"cloud"
-		],
+		"authors": ["patricknitsch <patricknitsch@web.de>"],
+		"keywords": ["ditra heat", "climate", "cloud"],
 		"licenseInformation": {
 			"type": "free",
 			"license": "MIT"
@@ -82,17 +76,15 @@
 		]
 	},
 	"native": {
+		"provider": "owd5",
+		"baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
 		"username": "",
 		"password": "",
-		"swversion": "",
-		"apikey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
-		"customerid": "",
-		"encrypted": [
-			"password",
-			"sessionToken"
-		],
-		"energy": false,
-		"schedule": false
+		"apiKey": "",
+		"customerId": 111,
+		"pollIntervalSec": 60,
+		"energyHistory": 0,
+		"energyViewType": 2
 	},
 	"objects": [],
 	"instanceObjects": [

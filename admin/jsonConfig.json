@@ -1,87 +1,59 @@
 {
-	"i18n": true,
 	"type": "tabs",
+	"i18n": true,
 	"items": {
-		"_options": {
+		"tabMain": {
 			"type": "panel",
-			"label": "Options",
+			"label": "Main",
 			"items": {
+				"baseUrlOwd5": {
+					"type": "text",
+					"label": "OWD5 Base URL",
+					"default": "https://owd5-mh015-app.ojelectronics.com"
+				},
 				"username": {
 					"type": "text",
-					"label": "Username",
-					"help": "Your OJ Microline account username (set in App)",
-					"newLine": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"label": "Username / Email",
+					"sm": 6
 				},
 				"password": {
-					"type": "text",
+					"type": "password",
 					"label": "Password",
-					"help": "Your OJ Microline account password (set in App",
-					"newLine": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
+					"sm": 6
 				},
-				"swversion": {
-					"type": "number",
-					"label": "Software Version",
-					"help": "Your OJ Microline software version (find in your device information)",
-					"newLine": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
-				},
-				"customerid": {
-					"type": "number",
-					"label": "Customer ID",
-					"min": 1,
-					"max": 10,
-					"help": "Your OJ Microline customer ID (find in your device information)",
-					"newLine": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
-				},
-				"apikey": {
+				"apiKey": {
 					"type": "text",
 					"label": "API Key",
-					"help": "Your OJ Microline API key, default is provided",
+					"sm": 8
+				},
+				"customerId": {
+					"type": "number",
+					"label": "Customer ID",
+					"default": 111,
+					"sm": 4
+				},
+				"pollIntervalSec": {
+					"type": "number",
+					"label": "Poll interval (seconds)",
+					"default": 60,
+					"sm": 4
+				},
+				"energyHistory": {
+					"type": "number",
+					"label": "Energy History (0=current)",
+					"default": 0,
+					"sm": 4
+				},
+				"energyViewType": {
+					"type": "number",
+					"label": "Energy ViewType (2=week,3=month,4=year)",
+					"default": 2,
+					"sm": 4
+				},
+				"_help": {
+					"type": "staticText",
 					"newLine": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
-				},
-				"energy": {
-					"type": "checkbox",
-					"label": "Activate Energy Data",
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4,
-					"help": "Enable fetching of energy consumption data (may increase data usage and fetch time)"
-				},
-				"schedule": {
-					"type": "checkbox",
-					"label": "Activate Schedule Data",
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4,
-					"help": "Enable fetching of schedule data (may increase data usage and fetch time)"
+					"text": "OWD5 cloud only. Devices are created per GroupId. Writeback uses Group/UpdateGroup. Energy uses EnergyUsage/GetEnergyUsage with ThermostatID (Thermostats[].Id)."
 				}
 			}
 		}
