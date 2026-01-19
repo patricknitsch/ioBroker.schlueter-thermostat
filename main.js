@@ -1,5 +1,12 @@
 'use strict';
 
+// ============================================================================
+// schlueter-thermostat
+// - Reads:   OWD5 GroupContents + EnergyUsage
+// - Writes:  OCD5 UpdateThermostat
+// - Exposes: schedule + energy as individual states
+// ============================================================================
+
 const utils = require('@iobroker/adapter-core');
 const { OJClient } = require('./lib/oj-client');
 const { safeId, numToC, cToNum } = require('./lib/util');
@@ -32,8 +39,43 @@ class SchlueterThermostat extends utils.Adapter {
 		this.on('unload', this.onUnload.bind(this));
 	}
 
+	// ============================================================================
+	// Helpers (safe DB calls)
+	// ============================================================================
+
+	_isConnClosed(err) {
+		return String(err?.message || err).includes('Connection is closed');
+	}
+
+	async safeSetObjectNotExists(id, obj) {
+		try {
+			await this.safeSetObjectNotExists(id, obj);
+		} catch (e) {
+			if (this.unloading || this._isConnClosed(e)) {
+				return;
+			}
+			throw e;
+		}
+	}
+
+	safeSetState(id, val, ack = true) {
+		try {
+			this.setState(id, val, ack);
+		} catch (e) {
+			if (this.unloading || this._isConnClosed(e)) {
+				return;
+			}
+			throw e;
+		}
+	}
+
+	// ============================================================================
+	// ON READY
+	// ============================================================================
+
 	async onReady() {
-		this.setState('info.connection', false, true);
+		this.log.debug('onReady(): starting adapter');
+		this.safeSetState('info.connection', false, true);
 
 		if (!this.config.username || !this.config.password || !this.config.apiKey || !this.config.customerId) {
 			this.log.error('Missing config (username/password/apiKey/customerId).');
@@ -52,14 +94,16 @@ class SchlueterThermostat extends utils.Adapter {
 		});
 
 		try {
+			this.log.debug('Login: calling OWD5 SignIn');
 			await this.client.login();
-			this.setState('info.connection', true, true);
+			this.log.debug('Login successful');
+			this.safeSetState('info.connection', true, true);
 		} catch (e) {
 			this.log.error(`Login failed: ${e?.message || e}`);
 			return;
 		}
 
-		await this.setObjectNotExistsAsync('thermostats', { type: 'channel', common: { name: 'Groups' }, native: {} });
+		await this.safeSetObjectNotExists('thermostats', { type: 'channel', common: { name: 'Groups' }, native: {} });
 
 		const intervalSec = Math.max(15, Number(this.config.pollIntervalSec) || 60);
 		await this.pollOnce();
@@ -74,7 +118,12 @@ class SchlueterThermostat extends utils.Adapter {
 		}, intervalSec * 1000);
 	}
 
+	// ============================================================================
+	// FUNCTIONS
+	// ============================================================================
+
 	async pollOnce() {
+		this.log.debug('pollOnce(): polling groups from cloud');
 		if (this.unloading || this.pollInFlight) {
 			return;
 		}
@@ -87,8 +136,10 @@ class SchlueterThermostat extends utils.Adapter {
 		this.pollInFlight = true;
 
 		this.pollPromise = (async () => {
+			this.log.debug('Reading groups: OWD5 GroupContents');
 			const groups = await client.getAllGroups();
-			this.setState('info.connection', true, true);
+			this.log.debug(`Reading groups done: count=${groups.length}`);
+			this.safeSetState('info.connection', true, true);
 
 			for (const g of groups) {
 				if (this.unloading) {
@@ -110,6 +161,9 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	async upsertGroup(g) {
+		this.log.debug(
+			`upsertGroup(): GroupId=${g.groupId}, SerialNumber=${g.serialNumber || ''}, ThermostatId=${g.thermostatId || ''}`,
+		);
 		const groupId = String(g.groupId);
 		if (!groupId) {
 			return;
@@ -131,14 +185,14 @@ class SchlueterThermostat extends utils.Adapter {
 			this.groupComfortEnd[groupId] = String(g.comfortEndTime);
 		}
 
-		await this.setObjectNotExistsAsync(devId, {
+		await this.safeSetObjectNotExists(devId, {
 			type: 'device',
 			common: { name: g.groupName || `Group ${groupId}` },
 			native: { groupId, serialNumber: g.serialNumber || '', thermostatId: g.thermostatId || '' },
 		});
 
 		const ensureState = async (id, common) => {
-			await this.setObjectNotExistsAsync(id, { type: 'state', common, native: {} });
+			await this.safeSetObjectNotExists(id, { type: 'state', common, native: {} });
 		};
 
 		await ensureState(`${devId}.online`, {
@@ -224,44 +278,44 @@ class SchlueterThermostat extends utils.Adapter {
 		});
 
 		// Schedule & Energy channels
-		await this.setObjectNotExistsAsync(`${devId}.schedule`, {
+		await this.safeSetObjectNotExists(`${devId}.schedule`, {
 			type: 'channel',
 			common: { name: 'Schedule' },
 			native: {},
 		});
-		await this.setObjectNotExistsAsync(`${devId}.energy`, {
+		await this.safeSetObjectNotExists(`${devId}.energy`, {
 			type: 'channel',
 			common: { name: 'Energy' },
 			native: {},
 		});
 
 		// set values
-		this.setState(`${devId}.online`, { val: Boolean(g.online), ack: true });
-		this.setState(`${devId}.heating`, { val: Boolean(g.heating), ack: true });
+		this.safeSetState(`${devId}.online`, { val: Boolean(g.online), ack: true });
+		this.safeSetState(`${devId}.heating`, { val: Boolean(g.heating), ack: true });
 
 		const rt = numToC(g.roomTemperature);
 		const ft = numToC(g.floorTemperature);
 		if (rt !== null) {
-			this.setState(`${devId}.temperature.room`, { val: rt, ack: true });
+			this.safeSetState(`${devId}.temperature.room`, { val: rt, ack: true });
 		}
 		if (ft !== null) {
-			this.setState(`${devId}.temperature.floor`, { val: ft, ack: true });
+			this.safeSetState(`${devId}.temperature.floor`, { val: ft, ack: true });
 		}
 
 		const ms = numToC(g.manualModeSetpoint);
 		const cs = numToC(g.comfortSetpoint);
 		if (ms !== null) {
-			this.setState(`${devId}.setpoint.manual`, { val: ms, ack: true });
-			this.setState(`${devId}.setpoint.manualSet`, { val: ms, ack: true });
+			this.safeSetState(`${devId}.setpoint.manual`, { val: ms, ack: true });
+			this.safeSetState(`${devId}.setpoint.manualSet`, { val: ms, ack: true });
 		}
 		if (cs !== null) {
-			this.setState(`${devId}.setpoint.comfort`, { val: cs, ack: true });
-			this.setState(`${devId}.setpoint.comfortSet`, { val: cs, ack: true });
+			this.safeSetState(`${devId}.setpoint.comfort`, { val: cs, ack: true });
+			this.safeSetState(`${devId}.setpoint.comfortSet`, { val: cs, ack: true });
 		}
 
 		const mode = Number(g.regulationMode ?? 0);
-		this.setState(`${devId}.regulationMode`, { val: mode, ack: true });
-		this.setState(`${devId}.regulationModeSet`, { val: mode, ack: true });
+		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
+		this.safeSetState(`${devId}.regulationModeSet`, { val: mode, ack: true });
 
 		// Schedule as individual states
 		if (g.schedule && Array.isArray(g.schedule.Days)) {
@@ -271,7 +325,7 @@ class SchlueterThermostat extends utils.Adapter {
 					continue;
 				}
 				const dayCh = `${devId}.schedule.day${wd}`;
-				await this.setObjectNotExistsAsync(dayCh, {
+				await this.safeSetObjectNotExists(dayCh, {
 					type: 'channel',
 					common: { name: `Day ${wd}` },
 					native: {},
@@ -281,7 +335,7 @@ class SchlueterThermostat extends utils.Adapter {
 				for (let i = 0; i < events.length; i++) {
 					const ev = events[i];
 					const evCh = `${dayCh}.event${i}`;
-					await this.setObjectNotExistsAsync(evCh, {
+					await this.safeSetObjectNotExists(evCh, {
 						type: 'channel',
 						common: { name: `Event ${i}` },
 						native: {},
@@ -324,14 +378,14 @@ class SchlueterThermostat extends utils.Adapter {
 						write: false,
 					});
 
-					this.setState(`${evCh}.type`, { val: Number(ev.ScheduleType ?? 0), ack: true });
-					this.setState(`${evCh}.time`, { val: String(ev.Clock ?? ''), ack: true });
+					this.safeSetState(`${evCh}.type`, { val: Number(ev.ScheduleType ?? 0), ack: true });
+					this.safeSetState(`${evCh}.time`, { val: String(ev.Clock ?? ''), ack: true });
 					const temp = numToC(ev.Temperature);
 					if (temp !== null) {
-						this.setState(`${evCh}.temperature`, { val: temp, ack: true });
+						this.safeSetState(`${evCh}.temperature`, { val: temp, ack: true });
 					}
-					this.setState(`${evCh}.active`, { val: Boolean(ev.Active), ack: true });
-					this.setState(`${evCh}.nextDay`, { val: Boolean(ev.EventIsOnNextDay), ack: true });
+					this.safeSetState(`${evCh}.active`, { val: Boolean(ev.Active), ack: true });
+					this.safeSetState(`${evCh}.nextDay`, { val: Boolean(ev.EventIsOnNextDay), ack: true });
 				}
 			}
 		}
@@ -341,6 +395,7 @@ class SchlueterThermostat extends utils.Adapter {
 		const tid = g.thermostatId ? String(g.thermostatId) : null;
 		if (client && tid) {
 			try {
+				this.log.debug(`Energy: requesting usage for ThermostatID=${tid}`);
 				const energy = await client.getEnergyUsage(tid, {
 					history: Number(this.config.energyHistory) || 0,
 					viewType: Number(this.config.energyViewType) || 2,
@@ -353,7 +408,7 @@ class SchlueterThermostat extends utils.Adapter {
 					read: true,
 					write: false,
 				});
-				this.setState(`${devId}.energy.count`, { val: usage.length, ack: true });
+				this.safeSetState(`${devId}.energy.count`, { val: usage.length, ack: true });
 
 				for (let i = 0; i < usage.length; i++) {
 					const sid = `${devId}.energy.value${i}`;
@@ -367,7 +422,7 @@ class SchlueterThermostat extends utils.Adapter {
 					});
 					const v = Number(usage[i]?.EnergyKWattHour);
 					if (Number.isFinite(v)) {
-						this.setState(sid, { val: v, ack: true });
+						this.safeSetState(sid, { val: v, ack: true });
 					}
 				}
 			} catch (e) {
@@ -376,7 +431,12 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
+	// ============================================================================
+	// ON STATE CHANGE
+	// ============================================================================
+
 	async onStateChange(id, state) {
+		this.log.debug(`onStateChange(): id=${id} val=${state?.val}`);
 		if (!state || state.ack) {
 			return;
 		}
@@ -405,13 +465,16 @@ class SchlueterThermostat extends utils.Adapter {
 		try {
 			if (sub === 'setpoint.manualSet') {
 				const tempC = Number(state.val);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (manualSetpoint)`);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (comfortSetpoint)`);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (regulationMode)`);
 				await client.updateThermostat(serial, {
 					ThermostatName: thermostatName,
 					ComfortEndTime: comfortEndTime,
 					RegulationMode: 4,
 					ManualModeSetpoint: cToNum(tempC),
 				});
-				this.setState(id, { val: tempC, ack: true });
+				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'setpoint.comfortSet') {
 				const tempC = Number(state.val);
 				await client.updateThermostat(serial, {
@@ -420,7 +483,7 @@ class SchlueterThermostat extends utils.Adapter {
 					ComfortSetpoint: cToNum(tempC),
 				});
 				this.groupComfortEnd[groupId] = comfortEndTime;
-				this.setState(id, { val: tempC, ack: true });
+				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
 				await client.updateThermostat(serial, {
@@ -428,17 +491,22 @@ class SchlueterThermostat extends utils.Adapter {
 					ComfortEndTime: comfortEndTime,
 					RegulationMode: mode,
 				});
-				this.setState(id, { val: mode, ack: true });
+				this.safeSetState(id, { val: mode, ack: true });
 			} else {
-				this.setState(id, { val: state.val, ack: true });
+				this.safeSetState(id, { val: state.val, ack: true });
 			}
 		} catch (e) {
 			this.log.error(`Write failed for ${id}: ${e?.message || e}`);
 		}
 	}
 
+	// ============================================================================
+	// ON UNLOAD
+	// ============================================================================
+
 	async onUnload(callback) {
 		try {
+			this.log.debug('onUnload(): stopping adapter');
 			this.unloading = true;
 			if (this.pollTimer) {
 				clearInterval(this.pollTimer);
@@ -456,6 +524,10 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 }
+
+// ============================================================================
+// START
+// ============================================================================
 
 if (require.main !== module) {
 	module.exports = options => new SchlueterThermostat(options);

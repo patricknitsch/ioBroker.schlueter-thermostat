@@ -39,7 +39,7 @@
 				"customerId": {
 					"type": "number",
 					"label": "Customer ID",
-					"default": 111,
+					"default": 1,
 					"sm": 4
 				},
 				"pollIntervalSec": {
