@@ -323,4 +323,8 @@ class OjMicroline extends utils.Adapter {
 	}
 }
 
-module.exports = options => new OjMicroline(options);
+if (require.main !== module) {
+	module.exports = options => new OjMicroline(options);
+} else {
+	(() => new OjMicroline())();
+}
