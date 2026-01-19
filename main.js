@@ -4,9 +4,9 @@ const utils = require('@iobroker/adapter-core');
 const { OJClient } = require('./lib/oj-client');
 const { safeId, numToC, cToNum } = require('./lib/util');
 
-class OjMicroline extends utils.Adapter {
+class SchlueterThermostat extends utils.Adapter {
 	constructor(options) {
-		super({ ...options, name: 'ojmicroline' });
+		super({ ...options, name: 'schlueter-thermostat' });
 
 		this.client = null;
 		this.pollTimer = null;
@@ -327,7 +327,7 @@ class OjMicroline extends utils.Adapter {
 }
 
 if (require.main !== module) {
-	module.exports = options => new OjMicroline(options);
+	module.exports = options => new SchlueterThermostat(options);
 } else {
-	(() => new OjMicroline())();
+	(() => new SchlueterThermostat())();
 }
