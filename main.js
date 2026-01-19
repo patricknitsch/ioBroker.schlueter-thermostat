@@ -56,6 +56,9 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		await this.setObjectNotExistsAsync('thermostats', { type: 'channel', common: { name: 'Groups' }, native: {} });
+		this.subscribeStates('thermostats.*.setpoint.manualSet');
+		this.subscribeStates('thermostats.*.setpoint.comfortSet');
+		this.subscribeStates('thermostats.*.regulationModeSet');
 
 		const intervalSec = Math.max(15, Number(this.config.pollIntervalSec) || 60);
 		await this.pollOnce();
