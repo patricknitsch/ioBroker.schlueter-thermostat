@@ -78,6 +78,7 @@
 	"native": {
 		"provider": "owd5",
 		"baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
+		"baseUrlOcd5": "https://ocd5.azurewebsites.net",
 		"username": "",
 		"password": "",
 		"apiKey": "",

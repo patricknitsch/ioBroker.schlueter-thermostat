@@ -11,6 +11,11 @@
 					"label": "OWD5 Base URL",
 					"default": "https://owd5-mh015-app.ojelectronics.com"
 				},
+				"baseUrlOcd5": {
+					"type": "text",
+					"label": "OCD5 Base URL",
+					"default": "https://ocd5.azurewebsites.net"
+				},
 				"username": {
 					"type": "text",
 					"label": "Username / Email",
