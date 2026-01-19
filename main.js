@@ -37,6 +37,7 @@ class OjMicroline extends utils.Adapter {
 			password: this.config.password,
 			apiKey: this.config.apiKey,
 			customerId: Number(this.config.customerId),
+			clientSwVersion: Number(this.config.clientSWVersion) || 1,
 		});
 
 		try {
@@ -67,7 +68,8 @@ class OjMicroline extends utils.Adapter {
 		const client = this.client;
 		if (!client) {
 			return;
-		} // <- TS/VSCode ist jetzt zufrieden
+		}
+
 		const data = await client.getAllThermostats();
 		this.setState('info.connection', true, true);
 
@@ -86,7 +88,7 @@ class OjMicroline extends utils.Adapter {
 		const client = this.client;
 		if (!client) {
 			return;
-		} // <- TS/VSCode ist jetzt zufrieden
+		}
 
 		const devId = `thermostats.${safeId(groupId)}`;
 
@@ -272,7 +274,8 @@ class OjMicroline extends utils.Adapter {
 		if (!state || state.ack) {
 			return;
 		}
-		if (!this.client) {
+		const client = this.client;
+		if (!client) {
 			return;
 		}
 
@@ -288,15 +291,15 @@ class OjMicroline extends utils.Adapter {
 		try {
 			if (sub === 'setpoint.manualSet') {
 				const tempC = Number(state.val);
-				await this.client.setManualSetpointByGroup(groupId, cToNum(tempC));
+				await client.setManualSetpointByGroup(groupId, cToNum(tempC));
 				await this.setState(id, { val: tempC, ack: true });
 			} else if (sub === 'setpoint.comfortSet') {
 				const tempC = Number(state.val);
-				await this.client.setComfortSetpointByGroup(groupId, cToNum(tempC));
+				await client.setComfortSetpointByGroup(groupId, cToNum(tempC));
 				await this.setState(id, { val: tempC, ack: true });
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
-				await this.client.setRegulationModeByGroup(groupId, mode);
+				await client.setRegulationModeByGroup(groupId, mode);
 				await this.setState(id, { val: mode, ack: true });
 			} else {
 				this.log.debug(`Unhandled writable state: ${id}`);

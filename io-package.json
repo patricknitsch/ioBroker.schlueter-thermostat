@@ -81,6 +81,7 @@
 		"username": "",
 		"password": "",
 		"apiKey": "",
+		"clientSWVersion": "",
 		"customerId": 111,
 		"pollIntervalSec": 60,
 		"energyHistory": 0,

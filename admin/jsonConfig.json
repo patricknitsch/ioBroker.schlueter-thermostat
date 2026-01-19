@@ -26,6 +26,11 @@
 					"label": "API Key",
 					"sm": 8
 				},
+				"clientSWVersion": {
+					"type": "text",
+					"label": "Software Version",
+					"sm": 4
+				},
 				"customerId": {
 					"type": "number",
 					"label": "Customer ID",
