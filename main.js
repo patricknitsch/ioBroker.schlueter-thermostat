@@ -396,10 +396,10 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Energy as individual kWh values
 		const client = this.client;
-		const tid = g.groupSerial ? String(g.thermostatId) : null;
+		const tid = g.groupSerial ? String(g.groupSerial) : null;
 		if (client && tid) {
 			try {
-				this.log.debug(`Energy: requesting usage for ThermostatID=${tid}`);
+				this.log.debug(`Energy: requesting usage for Serial=${tid}`);
 				const energy = await client.getEnergyUsage(tid, {
 					history: Number(this.config.energyHistory) || 0,
 					viewType: Number(this.config.energyViewType) || 2,
@@ -474,7 +474,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (regulationMode)`);
 				await client.updateThermostat(serial, {
 					ThermostatName: thermostatName,
-					ComfortEndTime: comfortEndTime,
+					//ComfortEndTime: comfortEndTime,
 					RegulationMode: 3,
 					ManualModeSetpoint: cToNum(tempC),
 				});
@@ -493,7 +493,7 @@ class SchlueterThermostat extends utils.Adapter {
 				const mode = Number(state.val);
 				await client.updateThermostat(serial, {
 					ThermostatName: thermostatName,
-					ComfortEndTime: comfortEndTime,
+					//ComfortEndTime: comfortEndTime,
 					RegulationMode: mode,
 				});
 				this.safeSetState(id, { val: mode, ack: true });
