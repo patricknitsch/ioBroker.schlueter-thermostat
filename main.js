@@ -396,7 +396,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Energy as individual kWh values
 		const client = this.client;
-		const tid = g.groupSerial ? String(g.groupSerial) : null;
+		const tid = g.SerialNumber ? String(g.SerialNumber) : null;
 		if (client && tid) {
 			try {
 				this.log.debug(`Energy: requesting usage for Serial=${tid}`);
