@@ -19,29 +19,28 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetObjectNotExistsAsync = this.setObjectNotExistsAsync.bind(this);
 		this._origSetState = this.setState.bind(this);
 
-		/** @type {OJClient|null} */
 		this.client = null;
 
-		/** @type {Record<string,string>} GroupId -> SerialNumber */
+		/** GroupId -> SerialNumber */
 		this.groupSerial = {};
-		/** @type {Record<string,string>} GroupId -> ThermostatId */
+		/** GroupId -> ThermostatId */
 		this.groupThermostatId = {};
 
-		/** @type {Record<string,string>} GroupId -> ThermostatName */
+		/** GroupId -> ThermostatName */
 		this.groupNameCache = {};
-		/** @type {Record<string,string>} GroupId -> ComfortEndTime ISO */
+		/** GroupId -> ComfortEndTime ISO */
 		this.groupComfortEnd = {};
 
-		/** @type {Record<string,string>} GroupId -> BoostEndTime ISO */
+		/** GroupId -> BoostEndTime ISO */
 		this.groupBoostEnd = {};
 
-		/** @type {Record<string,boolean>} GroupId -> VacationEnabled */
+		/** GroupId -> VacationEnabled */
 		this.groupVacationEnabled = {};
-		/** @type {Record<string,string>} GroupId -> VacationBeginDay ISO */
+		/** GroupId -> VacationBeginDay ISO */
 		this.groupVacationBegin = {};
-		/** @type {Record<string,string>} GroupId -> VacationEndDay ISO */
+		/** GroupId -> VacationEndDay ISO */
 		this.groupVacationEnd = {};
-		/** @type {Record<string,number>} GroupId -> VacationTemperature (device units) */
+		/** GroupId -> VacationTemperature (device units) */
 		this.groupVacationTemp = {};
 
 		this.pollTimer = null;
