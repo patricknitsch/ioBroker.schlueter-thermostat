@@ -123,7 +123,7 @@ class SchlueterThermostat extends utils.Adapter {
 			password: this.config.password,
 			apiKey: this.config.apiKey,
 			customerId: Number(this.config.customerId),
-			clientSwVersion: Number(this.config.clientSwVersion) || 1,
+			clientSwVersion: Number(this.config.clientSWVersion) || 1,
 		});
 
 		try {
@@ -557,7 +557,7 @@ class SchlueterThermostat extends utils.Adapter {
 		const tid = g.thermostatId ? String(g.thermostatId) : null;
 		if (client && tid) {
 			try {
-				this.log.debug(`Energy: requesting usage for ThermostatID=${tid}`);
+				this.log.debug(`Energy: requesting usage for ThermostatID=${g.SerialNumber}`);
 				const energy = await client.getEnergyUsage(tid, {
 					history: Number(this.config.energyHistory) || 0,
 					viewType: Number(this.config.energyViewType) || 2,
@@ -632,6 +632,7 @@ class SchlueterThermostat extends utils.Adapter {
 				await client.updateThermostat(serial, {
 					ThermostatName: thermostatName,
 					ComfortEndTime: comfortEndTime,
+					BoostEndTime: boostEndTime,
 					RegulationMode: 4,
 					ManualModeSetpoint: cToNum(tempC),
 				});
@@ -647,9 +648,18 @@ class SchlueterThermostat extends utils.Adapter {
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
+
+				// BOOST is RegulationMode=8 and must set BoostEndTime (now + 1h)
+				let boostToSend = boostEndTime;
+				if (mode === 8) {
+					boostToSend = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+					this.groupBoostEnd[groupId] = boostToSend;
+					this.log.debug(`BOOST enabled: setting BoostEndTime=${boostToSend}`);
+				}
 				await client.updateThermostat(serial, {
 					ThermostatName: thermostatName,
 					ComfortEndTime: comfortEndTime,
+					BoostEndTime: boostToSend,
 					RegulationMode: mode,
 				});
 				this.safeSetState(id, { val: mode, ack: true });
