@@ -19,28 +19,29 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetObjectNotExistsAsync = this.setObjectNotExistsAsync.bind(this);
 		this._origSetState = this.setState.bind(this);
 
+		/** @type {OJClient|null} */
 		this.client = null;
 
-		/** GroupId -> SerialNumber */
+		/** @type {Record<string,string>} GroupId -> SerialNumber */
 		this.groupSerial = {};
-		/** GroupId -> ThermostatId */
+		/** @type {Record<string,string>} GroupId -> ThermostatId */
 		this.groupThermostatId = {};
 
-		/** GroupId -> ThermostatName */
+		/** @type {Record<string,string>} GroupId -> ThermostatName */
 		this.groupNameCache = {};
-		/** GroupId -> ComfortEndTime ISO */
+		/** @type {Record<string,string>} GroupId -> ComfortEndTime ISO */
 		this.groupComfortEnd = {};
 
-		/** GroupId -> BoostEndTime ISO */
+		/** @type {Record<string,string>} GroupId -> BoostEndTime ISO */
 		this.groupBoostEnd = {};
 
-		/** GroupId -> VacationEnabled */
+		/** @type {Record<string,boolean>} GroupId -> VacationEnabled */
 		this.groupVacationEnabled = {};
-		/** GroupId -> VacationBeginDay ISO */
+		/** @type {Record<string,string>} GroupId -> VacationBeginDay ISO */
 		this.groupVacationBegin = {};
-		/** GroupId -> VacationEndDay ISO */
+		/** @type {Record<string,string>} GroupId -> VacationEndDay ISO */
 		this.groupVacationEnd = {};
-		/** GroupId -> VacationTemperature (device units) */
+		/** @type {Record<string,number>} GroupId -> VacationTemperature (device units) */
 		this.groupVacationTemp = {};
 
 		this.pollTimer = null;
@@ -122,7 +123,7 @@ class SchlueterThermostat extends utils.Adapter {
 			password: this.config.password,
 			apiKey: this.config.apiKey,
 			customerId: Number(this.config.customerId),
-			clientSwVersion: Number(this.config.clientSWVersion) || 1,
+			clientSwVersion: Number(this.config.clientSwVersion) || 1,
 		});
 
 		try {
@@ -311,6 +312,107 @@ class SchlueterThermostat extends utils.Adapter {
 			write: true,
 		});
 
+		// ============================================================================
+		// EndTime & Vacation objects (must exist before writing states)
+		// ============================================================================
+		await this.safeSetObjectNotExists(`${devId}.endTime`, {
+			type: 'channel',
+			common: { name: 'End times' },
+			native: {},
+		});
+		await ensureState(`${devId}.endTime.comfort`, {
+			name: 'Comfort end time',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.endTime.comfortSet`, {
+			name: 'Set comfort end time (ISO or minutes)',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: true,
+		});
+		await ensureState(`${devId}.endTime.boost`, {
+			name: 'Boost end time',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.endTime.boostSet`, {
+			name: 'Set boost end time (ISO or minutes)',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: true,
+		});
+
+		await this.safeSetObjectNotExists(`${devId}.vacation`, {
+			type: 'channel',
+			common: { name: 'Vacation' },
+			native: {},
+		});
+		await ensureState(`${devId}.vacation.enabled`, {
+			name: 'Vacation enabled',
+			type: 'boolean',
+			role: 'switch',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.vacation.enabledSet`, {
+			name: 'Set vacation enabled',
+			type: 'boolean',
+			role: 'switch',
+			read: true,
+			write: true,
+		});
+		await ensureState(`${devId}.vacation.begin`, {
+			name: 'Vacation begin day',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.vacation.beginSet`, {
+			name: 'Set vacation begin day (ISO)',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: true,
+		});
+		await ensureState(`${devId}.vacation.end`, {
+			name: 'Vacation end day',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.vacation.endSet`, {
+			name: 'Set vacation end day (ISO)',
+			type: 'string',
+			role: 'date',
+			read: true,
+			write: true,
+		});
+		await ensureState(`${devId}.vacation.temperature`, {
+			name: 'Vacation temperature',
+			type: 'number',
+			role: 'value.temperature',
+			unit: '°C',
+			read: true,
+			write: false,
+		});
+		await ensureState(`${devId}.vacation.temperatureSet`, {
+			name: 'Set vacation temperature',
+			type: 'number',
+			role: 'level.temperature',
+			unit: '°C',
+			read: true,
+			write: true,
+		});
+
 		// Schedule & Energy channels
 		await this.safeSetObjectNotExists(`${devId}.schedule`, {
 			type: 'channel',
@@ -353,10 +455,10 @@ class SchlueterThermostat extends utils.Adapter {
 		// End times
 		const comfortEnd = g.comfortEndTime ? String(g.comfortEndTime) : this.groupComfortEnd[groupId] || '';
 		const boostEnd = g.boostEndTime ? String(g.boostEndTime) : this.groupBoostEnd[groupId] || '';
-		this.safeSetState(`${devId}.endTime.comfort`, { val: comfortEnd, ack: true });
-		this.safeSetState(`${devId}.endTime.comfortSet`, { val: comfortEnd, ack: true });
-		this.safeSetState(`${devId}.endTime.boost`, { val: boostEnd, ack: true });
-		this.safeSetState(`${devId}.endTime.boostSet`, { val: boostEnd, ack: true });
+		this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
+		this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
+		this.safeSetState(`${devId}.endTime.boost`, boostEnd, true);
+		this.safeSetState(`${devId}.endTime.boostSet`, boostEnd, true);
 
 		// Vacation
 		const vEnabled =
@@ -366,15 +468,15 @@ class SchlueterThermostat extends utils.Adapter {
 		const vBegin = g.vacationBeginDay ? String(g.vacationBeginDay) : this.groupVacationBegin[groupId] || '';
 		const vEnd = g.vacationEndDay ? String(g.vacationEndDay) : this.groupVacationEnd[groupId] || '';
 		const vTempC = numToC(g.vacationTemperature ?? this.groupVacationTemp[groupId]);
-		this.safeSetState(`${devId}.vacation.enabled`, { val: vEnabled, ack: true });
-		this.safeSetState(`${devId}.vacation.enabledSet`, { val: vEnabled, ack: true });
-		this.safeSetState(`${devId}.vacation.begin`, { val: vBegin, ack: true });
-		this.safeSetState(`${devId}.vacation.beginSet`, { val: vBegin, ack: true });
-		this.safeSetState(`${devId}.vacation.end`, { val: vEnd, ack: true });
-		this.safeSetState(`${devId}.vacation.endSet`, { val: vEnd, ack: true });
+		this.safeSetState(`${devId}.vacation.enabled`, vEnabled, true);
+		this.safeSetState(`${devId}.vacation.enabledSet`, vEnabled, true);
+		this.safeSetState(`${devId}.vacation.begin`, vBegin, true);
+		this.safeSetState(`${devId}.vacation.beginSet`, vBegin, true);
+		this.safeSetState(`${devId}.vacation.end`, vEnd, true);
+		this.safeSetState(`${devId}.vacation.endSet`, vEnd, true);
 		if (vTempC !== null) {
-			this.safeSetState(`${devId}.vacation.temperature`, { val: vTempC, ack: true });
-			this.safeSetState(`${devId}.vacation.temperatureSet`, { val: vTempC, ack: true });
+			this.safeSetState(`${devId}.vacation.temperature`, vTempC, true);
+			this.safeSetState(`${devId}.vacation.temperatureSet`, vTempC, true);
 		}
 
 		// Schedule as individual states
