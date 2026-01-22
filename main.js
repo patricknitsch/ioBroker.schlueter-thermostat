@@ -558,7 +558,7 @@ class SchlueterThermostat extends utils.Adapter {
 		if (client && tid) {
 			try {
 				this.log.debug(`Energy: requesting usage for ThermostatID=${g.SerialNumber}`);
-				const energy = await client.getEnergyUsage(tid, {
+				const energy = await client.getEnergyUsage(g.SerialNumber, {
 					history: Number(this.config.energyHistory) || 0,
 					viewType: Number(this.config.energyViewType) || 2,
 				});
