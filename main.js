@@ -570,7 +570,6 @@ class SchlueterThermostat extends utils.Adapter {
 					history: Number(this.config.energyHistory) || 0,
 					viewType: Number(this.config.energyViewType) || 2,
 				});
-				this.log.debug(`Energy: received usage ${JSON.stringify(energy)}`);
 				const usage = energy?.EnergyUsage?.[0]?.Usage || [];
 				await ensureState(`${devId}.energy.count`, {
 					name: 'Values count',
