@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "news": {
+      "0.2.2": {
+        "en": "Update setStates for ComfortMode\nMore Debugging",
+        "de": "Update setStates für ComfortMode\nMehr Debugging",
+        "ru": "Обновление setStates для ComfortMode\nБольше отладки",
+        "pt": "Atualizar os estados para o ComfortMode\nMais depuração",
+        "nl": "Update setStates voor ComfortMode\nMeer debuggen",
+        "fr": "Mettre à jour setStates for ComfortMode\nPlus de débogage",
+        "it": "Set di aggiornamentiStati per ComfortMode\nPiù Debug",
+        "es": "Estados de actualización para ComfortMode\nMás Debugging",
+        "pl": "Aktualizacja stanów dla ComfortMode\nWięcej debugowania",
+        "uk": "Оновлення адаптерів для ComfortMode\nБільше пробудження",
+        "zh-cn": "更新舒适模式设置状态\n更多调试"
+      },
       "0.2.1": {
         "en": "Fix JsonConfig",
         "de": "JsonConfig",
