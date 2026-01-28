@@ -114,6 +114,7 @@
 		"energyViewType": 2
 	},
 	"protectedNative": ["password", "apiKey", "customerId"],
+	"encryptedNative": ["password", "apiKey", "customerId"],
 	"objects": [],
 	"instanceObjects": [
 		{
