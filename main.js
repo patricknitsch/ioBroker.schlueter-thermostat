@@ -1071,7 +1071,17 @@ class SchlueterThermostat extends utils.Adapter {
 			// Wait for an in-flight poll to finish (best effort)
 			const p = this.pollPromise;
 			if (p) {
-				await Promise.race([p, new Promise(res => setTimeout(res, 5000))]);
+				let timeoutId = null;
+
+				const timeoutPromise = new Promise(resolve => {
+					timeoutId = setTimeout(resolve, 5000);
+				});
+
+				await Promise.race([p, timeoutPromise]);
+
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+				}
 			}
 
 			callback();
