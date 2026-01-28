@@ -223,10 +223,14 @@ Enable **debug log level** to see cloud communication.
 	### **WORK IN PROGRESS**
 -->
 
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Update setStates for ComfortMode
+- (patricknitsch) More Debugging
+
 ### 0.2.1 (2026-01-28)
 
 - (patricknitsch) Fix JsonConfig
-- (patricknitsch) Update setStates for ComfortMode
 
 ### 0.2.0 (2026-01-28)
 
