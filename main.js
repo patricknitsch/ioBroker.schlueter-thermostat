@@ -41,7 +41,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this.client = null;
 
 		// ------------------------------------------------------------------------
-		// Caches / mappings (NEW: keyed by ThermostatId)
+		// Caches / mappings (keyed by ThermostatId)
 		// ------------------------------------------------------------------------
 
 		/** ThermostatId -> SerialNumber */
@@ -138,13 +138,11 @@ class SchlueterThermostat extends utils.Adapter {
 
 	async safeDelObject(id, options = {}) {
 		try {
-			// delObjectAsync is provided by adapter-core
 			await this.delObjectAsync(id, options);
 		} catch (e) {
 			if (this.unloading || this._isConnClosed(e)) {
 				return;
 			}
-			// Ignore "not exists" style errors safely
 			const msg = String(e?.message || e);
 			if (msg.includes('not exist') || msg.includes('Not exists') || msg.includes('does not exist')) {
 				return;
@@ -154,7 +152,6 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	async legacyCleanup() {
-		// Remove legacy object tree from older adapter versions.
 		// Old root: schlueter-thermostat.0.thermostats.*
 		// New root: schlueter-thermostat.0.groups.*
 		try {
@@ -206,6 +203,7 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		await this.safeSetObjectNotExists('groups', { type: 'channel', common: { name: 'Groups' }, native: {} });
+
 		// Cleanup legacy object tree from old versions
 		await this.legacyCleanup();
 
@@ -275,6 +273,7 @@ class SchlueterThermostat extends utils.Adapter {
 		})()
 			.catch(err => {
 				if (!this.unloading) {
+					this.safeSetState('info.connection', false, true); // NEW
 					this.log.warn(`Poll error: ${err?.message || err}`);
 				}
 			})
@@ -308,14 +307,12 @@ class SchlueterThermostat extends utils.Adapter {
 			native: { groupId },
 		});
 
-		// Ensure thermostats channel
 		await this.safeSetObjectNotExists(`${groupDev}.thermostats`, {
 			type: 'channel',
 			common: { name: 'Thermostats' },
 			native: {},
 		});
 
-		// Update device name if it changed
 		const cur = await this.safeGetObject(groupDev);
 		if (cur && cur.common?.name !== groupName) {
 			await this.safeSetObject(groupDev, {
@@ -339,7 +336,6 @@ class SchlueterThermostat extends utils.Adapter {
 		const groupDev = `groups.${safeId(groupId)}`;
 		const devId = `${groupDev}.thermostats.${safeId(thermostatId)}`;
 
-		// Cache mappings
 		const serial = t?.SerialNumber ? String(t.SerialNumber) : '';
 		if (serial) {
 			this.thermostatSerial[thermostatId] = serial;
@@ -379,7 +375,6 @@ class SchlueterThermostat extends utils.Adapter {
 			native: { groupId, thermostatId, serialNumber: serial },
 		});
 
-		// Update device name if it changed
 		const cur = await this.safeGetObject(devId);
 		if (cur && cur.common?.name !== thermostatName) {
 			await this.safeSetObject(devId, {
@@ -391,10 +386,6 @@ class SchlueterThermostat extends utils.Adapter {
 		const ensureState = async (id, common) => {
 			await this.safeSetObjectNotExists(id, { type: 'state', common, native: {} });
 		};
-
-		// ------------------------------------------------------------------------
-		// Common states
-		// ------------------------------------------------------------------------
 
 		await ensureState(`${devId}.online`, {
 			name: 'Online',
@@ -468,7 +459,6 @@ class SchlueterThermostat extends utils.Adapter {
 			write: false,
 		});
 
-		// Writable
 		await ensureState(`${devId}.setpoint.manualSet`, {
 			name: 'Set manual setpoint',
 			type: 'number',
@@ -494,7 +484,6 @@ class SchlueterThermostat extends utils.Adapter {
 			write: true,
 		});
 
-		// EndTime
 		await this.safeSetObjectNotExists(`${devId}.endTime`, {
 			type: 'channel',
 			common: { name: 'End times' },
@@ -529,7 +518,6 @@ class SchlueterThermostat extends utils.Adapter {
 			write: true,
 		});
 
-		// Vacation
 		await this.safeSetObjectNotExists(`${devId}.vacation`, {
 			type: 'channel',
 			common: { name: 'Vacation' },
@@ -594,7 +582,6 @@ class SchlueterThermostat extends utils.Adapter {
 			write: true,
 		});
 
-		// Schedule & Energy channels
 		await this.safeSetObjectNotExists(`${devId}.schedule`, {
 			type: 'channel',
 			common: { name: 'Schedule' },
@@ -605,10 +592,6 @@ class SchlueterThermostat extends utils.Adapter {
 			common: { name: 'Energy' },
 			native: {},
 		});
-
-		// ------------------------------------------------------------------------
-		// Write values (read-only + mirror to writable states)
-		// ------------------------------------------------------------------------
 
 		this.safeSetState(`${devId}.online`, { val: Boolean(t?.Online), ack: true });
 		this.safeSetState(`${devId}.heating`, { val: Boolean(t?.Heating), ack: true });
@@ -669,10 +652,6 @@ class SchlueterThermostat extends utils.Adapter {
 			this.safeSetState(`${devId}.vacation.temperature`, vTempC, true);
 			this.safeSetState(`${devId}.vacation.temperatureSet`, vTempC, true);
 		}
-
-		// ------------------------------------------------------------------------
-		// Schedule as individual states
-		// ------------------------------------------------------------------------
 
 		const schedule = t?.Schedule;
 		if (schedule && Array.isArray(schedule.Days)) {
@@ -748,10 +727,6 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 		}
 
-		// ------------------------------------------------------------------------
-		// Energy as individual kWh values (serial number)
-		// ------------------------------------------------------------------------
-
 		if (this.client && serial) {
 			try {
 				this.log.debug(`Energy: requesting usage for SerialNumber=${serial}`);
@@ -807,27 +782,23 @@ class SchlueterThermostat extends utils.Adapter {
 			return this._nowPlusMinutesIso(defaultMinutes);
 		}
 
-		// Numeric minutes (e.g. "60")
 		const asNum = Number(v);
 		if (Number.isFinite(asNum) && v.match(/^\d+(\.\d+)?$/)) {
 			return this._nowPlusMinutesIso(asNum);
 		}
 
-		// ISO-like string
 		const d = new Date(v);
 		if (!Number.isNaN(d.getTime())) {
 			return d.toISOString();
 		}
 
-		// Fallback
 		return this._nowPlusMinutesIso(defaultMinutes);
 	}
 
 	async _getSerialFromObject(groupId, thermostatId) {
 		const oid = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 		const obj = await this.safeGetObject(oid);
-		const serial = obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
-		return serial;
+		return obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
 	}
 
 	// ============================================================================
@@ -856,7 +827,6 @@ class SchlueterThermostat extends utils.Adapter {
 		const thermostatId = parts[idxT + 1];
 		const sub = parts.slice(idxT + 2).join('.');
 
-		// SerialNumber for writes
 		let serial = this.thermostatSerial[thermostatId];
 		if (!serial) {
 			serial = await this._getSerialFromObject(groupId, thermostatId);
@@ -886,14 +856,9 @@ class SchlueterThermostat extends utils.Adapter {
 				: {}),
 		};
 
-		// Convenience for state paths
 		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 
 		try {
-			// ----------------------------------------------------------------------
-			// Setpoints
-			// ----------------------------------------------------------------------
-
 			if (sub === 'setpoint.manualSet') {
 				const tempC = Number(state.val);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (ManualModeSetpoint=${tempC}C)`);
@@ -912,14 +877,9 @@ class SchlueterThermostat extends utils.Adapter {
 					ComfortSetpoint: cToNum(tempC),
 				});
 				this.safeSetState(id, { val: tempC, ack: true });
-
-				// ----------------------------------------------------------------------
-				// Regulation mode (boost rule)
-				// ----------------------------------------------------------------------
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
 
-				// Boost is mode 8 and requires BoostEndTime (+1 hour)
 				if (mode === 8) {
 					const boostToSend = this._nowPlusMinutesIso(60);
 					this.log.debug(`Write: Boost mode=8 serial=${serial} BoostEndTime=${boostToSend}`);
@@ -940,10 +900,6 @@ class SchlueterThermostat extends utils.Adapter {
 				}
 
 				this.safeSetState(id, { val: mode, ack: true });
-
-				// ----------------------------------------------------------------------
-				// Thermostat name
-				// ----------------------------------------------------------------------
 			} else if (sub === 'thermostatNameSet') {
 				const newName = String(state.val || '').trim();
 				if (!newName) {
@@ -959,10 +915,6 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatNameCache[thermostatId] = newName;
 				this.safeSetState(id, { val: newName, ack: true });
 				this.safeSetState(`${devPrefix}.thermostatName`, { val: newName, ack: true });
-
-				// ----------------------------------------------------------------------
-				// End times
-				// ----------------------------------------------------------------------
 			} else if (sub === 'endTime.comfortSet') {
 				const comfortToSend = this._parseIsoOrMinutes(state.val, 120);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (ComfortEndTime=${comfortToSend})`);
@@ -988,10 +940,6 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatBoostEnd[thermostatId] = boostToSend;
 				this.safeSetState(id, { val: boostToSend, ack: true });
 				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostToSend, ack: true });
-
-				// ----------------------------------------------------------------------
-				// Vacation
-				// ----------------------------------------------------------------------
 			} else if (sub === 'vacation.enabledSet') {
 				const enabled = Boolean(state.val);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEnabled=${enabled})`);
@@ -1042,10 +990,6 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatVacationTemp[thermostatId] = tempNum;
 				this.safeSetState(id, { val: tempC, ack: true });
 				this.safeSetState(`${devPrefix}.vacation.temperature`, { val: tempC, ack: true });
-
-				// ----------------------------------------------------------------------
-				// Unknown writable state
-				// ----------------------------------------------------------------------
 			} else {
 				this.log.debug(`Write ignored (unknown sub-path): ${sub}`);
 				this.safeSetState(id, { val: state.val, ack: true });
@@ -1068,7 +1012,6 @@ class SchlueterThermostat extends utils.Adapter {
 				clearInterval(this.pollTimer);
 			}
 
-			// Wait for an in-flight poll to finish (best effort)
 			const p = this.pollPromise;
 			if (p) {
 				let timeoutId = null;
