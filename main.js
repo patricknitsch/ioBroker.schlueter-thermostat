@@ -490,6 +490,7 @@ class SchlueterThermostat extends utils.Adapter {
 			type: 'number',
 			role: 'level',
 			read: true,
+			max: 9,
 			write: true,
 		});
 
