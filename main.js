@@ -870,18 +870,20 @@ class SchlueterThermostat extends utils.Adapter {
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'setpoint.comfortSet') {
 				const tempC = Number(state.val);
+				const comfortToSend = this._nowPlusMinutesIso(120);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C)`);
 				await client.updateThermostat(serial, {
 					...baseUpdate,
 					RegulationMode: 2,
 					ComfortSetpoint: cToNum(tempC),
+					ComfortEndTime: comfortToSend,
 				});
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
 
 				if (mode === 8) {
-					const boostToSend = this._nowPlusMinutesIso(60);
+					const boostToSend = this._nowPlusMinutesIso(120);
 					this.log.debug(`Write: Boost mode=8 serial=${serial} BoostEndTime=${boostToSend}`);
 					await client.updateThermostat(serial, {
 						...baseUpdate,
@@ -915,31 +917,6 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatNameCache[thermostatId] = newName;
 				this.safeSetState(id, { val: newName, ack: true });
 				this.safeSetState(`${devPrefix}.thermostatName`, { val: newName, ack: true });
-			} else if (sub === 'endTime.comfortSet') {
-				const comfortToSend = this._parseIsoOrMinutes(state.val, 120);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (ComfortEndTime=${comfortToSend})`);
-
-				await client.updateThermostat(serial, {
-					...baseUpdate,
-					ComfortEndTime: comfortToSend,
-				});
-
-				this.thermostatComfortEnd[thermostatId] = comfortToSend;
-				this.safeSetState(id, { val: comfortToSend, ack: true });
-				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortToSend, ack: true });
-			} else if (sub === 'endTime.boostSet') {
-				const boostToSend = this._parseIsoOrMinutes(state.val, 60);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (BoostEndTime=${boostToSend}, mode=8)`);
-
-				await client.updateThermostat(serial, {
-					...baseUpdate,
-					RegulationMode: 8,
-					BoostEndTime: boostToSend,
-				});
-
-				this.thermostatBoostEnd[thermostatId] = boostToSend;
-				this.safeSetState(id, { val: boostToSend, ack: true });
-				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostToSend, ack: true });
 			} else if (sub === 'vacation.enabledSet') {
 				const enabled = Boolean(state.val);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEnabled=${enabled})`);

@@ -139,6 +139,11 @@ When `regulationModeSet = 2`:
 - Comfort Mode is active for setted Time in h
 - Temperature = setted Temperature
 
+When `regulationModeSet = 3`:
+
+- Manual Mode is active for undefined time
+- Temperature = setted Temperature
+
 When `regulationModeSet = 8`:
 
 - Boost end time = **now + 1 hour**
@@ -217,6 +222,13 @@ Enable **debug log level** to see cloud communication.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) add automatic Refresh of Token after Error 403
+- (patricknitsch) fix max Value of Regulation Mode to 9 for error preventing
+- (patricknitsch) improve Handling of Mode Settings
+
 ### 0.1.1 (2026-01-28)
 
 - (patricknitsch) updated Readme
