@@ -222,6 +222,11 @@ Enable **debug log level** to see cloud communication.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Fix JsonConfig
+
 ### 0.2.0 (2026-01-28)
 
 - (patricknitsch) add automatic Refresh of Token after Error 403
