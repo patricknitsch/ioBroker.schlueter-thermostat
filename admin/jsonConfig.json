@@ -18,7 +18,7 @@
 				},
 				"username": {
 					"type": "text",
-					"label": "Username / Email",
+					"label": "Username",
 					"sm": 6
 				},
 				"password": {
@@ -29,6 +29,7 @@
 				"apiKey": {
 					"type": "text",
 					"label": "API Key",
+					"default": "f219aab4-9ac0-4343-8422-b72203e2fac9",
 					"sm": 8
 				},
 				"clientSWVersion": {

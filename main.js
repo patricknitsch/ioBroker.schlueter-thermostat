@@ -2,9 +2,26 @@
 
 // ============================================================================
 // schlueter-thermostat
-// - Reads:   OWD5 GroupContents + EnergyUsage
-// - Writes:  OCD5 UpdateThermostat
-// - Exposes: schedule + energy as individual states
+// Cloud-only adapter for OJ Microline / Schlüter OWD5/OCD5
+//
+// Object structure (NEW):
+// groups.<GroupId>              (device, name = GroupName)
+//   .thermostats                (channel)
+//     .<ThermostatId>           (device, name = ThermostatName)
+//        .temperature.*
+//        .setpoint.*
+//        .regulationMode*
+//        .endTime.*
+//        .vacation.*
+//        .schedule.*
+//        .energy.*
+//
+// Reads:
+// - OWD5: GroupContents (groups + thermostats + schedules)
+// - OWD5: EnergyUsage  (per thermostat serial number)
+//
+// Writes:
+// - OCD5: UpdateThermostat (per thermostat serial number)
 // ============================================================================
 
 const utils = require('@iobroker/adapter-core');
@@ -17,35 +34,43 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Keep original adapter-core methods (avoid wrapper recursion)
 		this._origSetObjectNotExistsAsync = this.setObjectNotExistsAsync.bind(this);
+		this._origSetObjectAsync = this.setObjectAsync.bind(this);
+		this._origGetObjectAsync = this.getObjectAsync.bind(this);
 		this._origSetState = this.setState.bind(this);
 
-		/** @type {OJClient|null} */
 		this.client = null;
 
-		/** @type {Record<string,string>} GroupId -> SerialNumber */
-		this.groupSerial = {};
-		/** @type {Record<string,string>} GroupId -> ThermostatId */
-		this.groupThermostatId = {};
+		// ------------------------------------------------------------------------
+		// Caches / mappings (NEW: keyed by ThermostatId)
+		// ------------------------------------------------------------------------
 
-		/** @type {Record<string,string>} GroupId -> ThermostatName */
+		/** ThermostatId -> SerialNumber */
+		this.thermostatSerial = {};
+		/** ThermostatId -> GroupId */
+		this.thermostatGroup = {};
+		/** ThermostatId -> ThermostatName */
+		this.thermostatNameCache = {};
+
+		/** ThermostatId -> ComfortEndTime ISO */
+		this.thermostatComfortEnd = {};
+		/** ThermostatId -> BoostEndTime ISO */
+		this.thermostatBoostEnd = {};
+
+		/** ThermostatId -> VacationEnabled */
+		this.thermostatVacationEnabled = {};
+		/** ThermostatId -> VacationBeginDay */
+		this.thermostatVacationBegin = {};
+		/** ThermostatId -> VacationEndDay */
+		this.thermostatVacationEnd = {};
+		/** ThermostatId -> VacationTemperature (numeric units) */
+		this.thermostatVacationTemp = {};
+
+		/** GroupId -> GroupName */
 		this.groupNameCache = {};
-		/** @type {Record<string,string>} GroupId -> ComfortEndTime ISO */
-		this.groupComfortEnd = {};
 
-		/** @type {Record<string,string>} GroupId -> BoostEndTime ISO */
-		this.groupBoostEnd = {};
-
-		/** @type {Record<string,boolean>} GroupId -> VacationEnabled */
-		this.groupVacationEnabled = {};
-		/** @type {Record<string,string>} GroupId -> VacationBeginDay ISO */
-		this.groupVacationBegin = {};
-		/** @type {Record<string,string>} GroupId -> VacationEndDay ISO */
-		this.groupVacationEnd = {};
-		/** @type {Record<string,number>} GroupId -> VacationTemperature (device units) */
-		this.groupVacationTemp = {};
+		// ------------------------------------------------------------------------
 
 		this.pollTimer = null;
-
 		this.unloading = false;
 		this.pollInFlight = false;
 		this.pollPromise = null;
@@ -74,25 +99,15 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
-	_parseEndTimeInput(val) {
-		// Accept ISO string OR number of minutes from now
-		if (val === null || val === undefined) {
-			return null;
+	async safeSetObject(id, obj) {
+		try {
+			await this._origSetObjectAsync(id, obj);
+		} catch (e) {
+			if (this.unloading || this._isConnClosed(e)) {
+				return;
+			}
+			throw e;
 		}
-		if (typeof val === 'number' && Number.isFinite(val)) {
-			return new Date(Date.now() + val * 60 * 1000).toISOString();
-		}
-		const s = String(val).trim();
-		if (!s) {
-			return null;
-		}
-		// If it's a plain integer string, treat as minutes
-		if (/^\d+$/.test(s)) {
-			const mins = Number(s);
-			return new Date(Date.now() + mins * 60 * 1000).toISOString();
-		}
-		// Assume ISO
-		return s;
 	}
 
 	safeSetState(id, val, ack = true) {
@@ -105,6 +120,61 @@ class SchlueterThermostat extends utils.Adapter {
 			throw e;
 		}
 	}
+
+	async safeGetObject(id) {
+		try {
+			return await this._origGetObjectAsync(id);
+		} catch (e) {
+			if (this.unloading || this._isConnClosed(e)) {
+				return null;
+			}
+			throw e;
+		}
+	}
+
+	// ============================================================================
+	// Legacy cleanup helpers
+	// ============================================================================
+
+	async safeDelObject(id, options = {}) {
+		try {
+			// delObjectAsync is provided by adapter-core
+			await this.delObjectAsync(id, options);
+		} catch (e) {
+			if (this.unloading || this._isConnClosed(e)) {
+				return;
+			}
+			// Ignore "not exists" style errors safely
+			const msg = String(e?.message || e);
+			if (msg.includes('not exist') || msg.includes('Not exists') || msg.includes('does not exist')) {
+				return;
+			}
+			throw e;
+		}
+	}
+
+	async legacyCleanup() {
+		// Remove legacy object tree from older adapter versions.
+		// Old root: schlueter-thermostat.0.thermostats.*
+		// New root: schlueter-thermostat.0.groups.*
+		try {
+			const legacyRoot = await this.safeGetObject('thermostats');
+			if (!legacyRoot) {
+				this.log.debug('legacyCleanup(): no legacy root "thermostats" found - nothing to delete.');
+				return;
+			}
+
+			this.log.warn('legacyCleanup(): deleting legacy object tree "thermostats.*" (recursive).');
+			await this.safeDelObject('thermostats', { recursive: true });
+			this.log.warn('legacyCleanup(): legacy object tree deleted successfully.');
+		} catch (e) {
+			this.log.warn(`legacyCleanup(): failed to delete legacy objects: ${e?.message || e}`);
+		}
+	}
+
+	// ============================================================================
+	// ON READY
+	// ============================================================================
 
 	async onReady() {
 		this.log.debug('onReady(): starting adapter');
@@ -136,29 +206,40 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
-		await this.safeSetObjectNotExists('thermostats', { type: 'channel', common: { name: 'Groups' }, native: {} });
+		await this.safeSetObjectNotExists('groups', { type: 'channel', common: { name: 'Groups' }, native: {} });
+		// Cleanup legacy object tree from old versions
+		await this.legacyCleanup();
 
 		const intervalSec = Math.max(15, Number(this.config.pollIntervalSec) || 60);
 		await this.pollOnce();
 
-		// Subscribe writable states
-		this.subscribeStates('thermostats.*.setpoint.manualSet');
-		this.subscribeStates('thermostats.*.setpoint.comfortSet');
-		this.subscribeStates('thermostats.*.regulationModeSet');
-		this.subscribeStates('thermostats.*.endTime.comfortSet');
-		this.subscribeStates('thermostats.*.endTime.boostSet');
-		this.subscribeStates('thermostats.*.vacation.enabledSet');
-		this.subscribeStates('thermostats.*.vacation.beginSet');
-		this.subscribeStates('thermostats.*.vacation.endSet');
-		this.subscribeStates('thermostats.*.vacation.temperatureSet');
+		// ------------------------------------------------------------------------
+		// Subscribe writable states (NEW path)
+		// ------------------------------------------------------------------------
+		this.subscribeStates('groups.*.thermostats.*.setpoint.manualSet');
+		this.subscribeStates('groups.*.thermostats.*.setpoint.comfortSet');
+		this.subscribeStates('groups.*.thermostats.*.regulationModeSet');
+		this.subscribeStates('groups.*.thermostats.*.thermostatNameSet');
+
+		this.subscribeStates('groups.*.thermostats.*.endTime.comfortSet');
+		this.subscribeStates('groups.*.thermostats.*.endTime.boostSet');
+
+		this.subscribeStates('groups.*.thermostats.*.vacation.enabledSet');
+		this.subscribeStates('groups.*.thermostats.*.vacation.beginSet');
+		this.subscribeStates('groups.*.thermostats.*.vacation.endSet');
+		this.subscribeStates('groups.*.thermostats.*.vacation.temperatureSet');
 
 		this.pollTimer = setInterval(() => {
 			this.pollOnce().catch(err => this.log.warn(`Poll error: ${err?.message || err}`));
 		}, intervalSec * 1000);
 	}
 
+	// ============================================================================
+	// POLL
+	// ============================================================================
+
 	async pollOnce() {
-		this.log.debug('pollOnce(): polling groups from cloud');
+		this.log.debug('pollOnce(): polling GroupContents from cloud');
 		if (this.unloading || this.pollInFlight) {
 			return;
 		}
@@ -172,15 +253,25 @@ class SchlueterThermostat extends utils.Adapter {
 
 		this.pollPromise = (async () => {
 			this.log.debug('Reading groups: OWD5 GroupContents');
-			const groups = await client.getAllGroups();
+			const data = await client.getGroupContents();
+			const groups = Array.isArray(data?.GroupContents) ? data.GroupContents : [];
 			this.log.debug(`Reading groups done: count=${groups.length}`);
 			this.safeSetState('info.connection', true, true);
 
-			for (const g of groups) {
+			for (const group of groups) {
 				if (this.unloading) {
 					break;
 				}
-				await this.upsertGroup(g);
+
+				await this.upsertGroup(group);
+
+				const thermostats = Array.isArray(group?.Thermostats) ? group.Thermostats : [];
+				for (const t of thermostats) {
+					if (this.unloading) {
+						break;
+					}
+					await this.upsertThermostat(group, t);
+				}
 			}
 		})()
 			.catch(err => {
@@ -195,40 +286,116 @@ class SchlueterThermostat extends utils.Adapter {
 		return this.pollPromise;
 	}
 
-	async upsertGroup(g) {
-		this.log.debug(
-			`upsertGroup(): GroupId=${g.groupId}, SerialNumber=${g.serialNumber || ''}, ThermostatId=${g.thermostatId || ''}`,
-		);
-		const groupId = String(g.groupId);
+	// ============================================================================
+	// UPSERT: GROUP
+	// ============================================================================
+
+	async upsertGroup(group) {
+		const groupId = String(group?.GroupId ?? '');
 		if (!groupId) {
 			return;
 		}
 
-		const devId = `thermostats.${safeId(groupId)}`;
+		const groupName = String(group?.GroupName || `Group ${groupId}`);
+		this.groupNameCache[groupId] = groupName;
 
-		// cache ids
-		if (g.serialNumber) {
-			this.groupSerial[groupId] = String(g.serialNumber);
+		const groupDev = `groups.${safeId(groupId)}`;
+
+		this.log.debug(`upsertGroup(): GroupId=${groupId} GroupName=${groupName}`);
+
+		await this.safeSetObjectNotExists(groupDev, {
+			type: 'device',
+			common: { name: groupName },
+			native: { groupId },
+		});
+
+		// Ensure thermostats channel
+		await this.safeSetObjectNotExists(`${groupDev}.thermostats`, {
+			type: 'channel',
+			common: { name: 'Thermostats' },
+			native: {},
+		});
+
+		// Update device name if it changed
+		const cur = await this.safeGetObject(groupDev);
+		if (cur && cur.common?.name !== groupName) {
+			await this.safeSetObject(groupDev, {
+				...cur,
+				common: { ...(cur.common || {}), name: groupName },
+			});
 		}
-		if (g.thermostatId) {
-			this.groupThermostatId[groupId] = String(g.thermostatId);
+	}
+
+	// ============================================================================
+	// UPSERT: THERMOSTAT
+	// ============================================================================
+
+	async upsertThermostat(group, t) {
+		const groupId = String(group?.GroupId ?? '');
+		const thermostatId = String(t?.Id ?? '');
+		if (!groupId || !thermostatId) {
+			return;
 		}
-		if (g.thermostatName) {
-			this.groupNameCache[groupId] = String(g.thermostatName);
+
+		const groupDev = `groups.${safeId(groupId)}`;
+		const devId = `${groupDev}.thermostats.${safeId(thermostatId)}`;
+
+		// Cache mappings
+		const serial = t?.SerialNumber ? String(t.SerialNumber) : '';
+		if (serial) {
+			this.thermostatSerial[thermostatId] = serial;
 		}
-		if (g.comfortEndTime) {
-			this.groupComfortEnd[groupId] = String(g.comfortEndTime);
+		this.thermostatGroup[thermostatId] = groupId;
+
+		const thermostatName = String(t?.ThermostatName || `Thermostat ${thermostatId}`);
+		this.thermostatNameCache[thermostatId] = thermostatName;
+
+		if (t?.ComfortEndTime) {
+			this.thermostatComfortEnd[thermostatId] = String(t.ComfortEndTime);
 		}
+		if (t?.BoostEndTime) {
+			this.thermostatBoostEnd[thermostatId] = String(t.BoostEndTime);
+		}
+
+		if (typeof t?.VacationEnabled === 'boolean') {
+			this.thermostatVacationEnabled[thermostatId] = Boolean(t.VacationEnabled);
+		}
+		if (t?.VacationBeginDay) {
+			this.thermostatVacationBegin[thermostatId] = String(t.VacationBeginDay);
+		}
+		if (t?.VacationEndDay) {
+			this.thermostatVacationEnd[thermostatId] = String(t.VacationEndDay);
+		}
+		if (t?.VacationTemperature !== undefined && t?.VacationTemperature !== null) {
+			this.thermostatVacationTemp[thermostatId] = Number(t.VacationTemperature);
+		}
+
+		this.log.debug(
+			`upsertThermostat(): GroupId=${groupId} ThermostatId=${thermostatId} Serial=${serial} Name=${thermostatName}`,
+		);
 
 		await this.safeSetObjectNotExists(devId, {
 			type: 'device',
-			common: { name: g.groupName || `Group ${groupId}` },
-			native: { groupId, serialNumber: g.serialNumber || '', thermostatId: g.thermostatId || '' },
+			common: { name: thermostatName },
+			native: { groupId, thermostatId, serialNumber: serial },
 		});
+
+		// Update device name if it changed
+		const cur = await this.safeGetObject(devId);
+		if (cur && cur.common?.name !== thermostatName) {
+			await this.safeSetObject(devId, {
+				...cur,
+				common: { ...(cur.common || {}), name: thermostatName },
+			});
+		}
 
 		const ensureState = async (id, common) => {
 			await this.safeSetObjectNotExists(id, { type: 'state', common, native: {} });
 		};
+
+		// ------------------------------------------------------------------------
+		// Common states
+		// ------------------------------------------------------------------------
 
 		await ensureState(`${devId}.online`, {
 			name: 'Online',
@@ -251,6 +418,13 @@ class SchlueterThermostat extends utils.Adapter {
 			role: 'text',
 			read: true,
 			write: false,
+		});
+		await ensureState(`${devId}.thermostatNameSet`, {
+			name: 'Set thermostat name',
+			type: 'string',
+			role: 'text',
+			read: true,
+			write: true,
 		});
 
 		await ensureState(`${devId}.temperature.room`, {
@@ -295,7 +469,7 @@ class SchlueterThermostat extends utils.Adapter {
 			write: false,
 		});
 
-		// writable
+		// Writable
 		await ensureState(`${devId}.setpoint.manualSet`, {
 			name: 'Set manual setpoint',
 			type: 'number',
@@ -320,9 +494,7 @@ class SchlueterThermostat extends utils.Adapter {
 			write: true,
 		});
 
-		// ============================================================================
-		// EndTime & Vacation objects (must exist before writing states)
-		// ============================================================================
+		// EndTime
 		await this.safeSetObjectNotExists(`${devId}.endTime`, {
 			type: 'channel',
 			common: { name: 'End times' },
@@ -357,6 +529,7 @@ class SchlueterThermostat extends utils.Adapter {
 			write: true,
 		});
 
+		// Vacation
 		await this.safeSetObjectNotExists(`${devId}.vacation`, {
 			type: 'channel',
 			common: { name: 'Vacation' },
@@ -433,12 +606,18 @@ class SchlueterThermostat extends utils.Adapter {
 			native: {},
 		});
 
-		// set values
-		this.safeSetState(`${devId}.online`, { val: Boolean(g.online), ack: true });
-		this.safeSetState(`${devId}.heating`, { val: Boolean(g.heating), ack: true });
+		// ------------------------------------------------------------------------
+		// Write values (read-only + mirror to writable states)
+		// ------------------------------------------------------------------------
 
-		const rt = numToC(g.roomTemperature);
-		const ft = numToC(g.floorTemperature);
+		this.safeSetState(`${devId}.online`, { val: Boolean(t?.Online), ack: true });
+		this.safeSetState(`${devId}.heating`, { val: Boolean(t?.Heating), ack: true });
+
+		this.safeSetState(`${devId}.thermostatName`, { val: String(t?.ThermostatName || ''), ack: true });
+		this.safeSetState(`${devId}.thermostatNameSet`, { val: String(t?.ThermostatName || ''), ack: true });
+
+		const rt = numToC(t?.RoomTemperature);
+		const ft = numToC(t?.FloorTemperature);
 		if (rt !== null) {
 			this.safeSetState(`${devId}.temperature.room`, { val: rt, ack: true });
 		}
@@ -446,8 +625,8 @@ class SchlueterThermostat extends utils.Adapter {
 			this.safeSetState(`${devId}.temperature.floor`, { val: ft, ack: true });
 		}
 
-		const ms = numToC(g.manualModeSetpoint);
-		const cs = numToC(g.comfortSetpoint);
+		const ms = numToC(t?.ManualModeSetpoint);
+		const cs = numToC(t?.ComfortSetpoint);
 		if (ms !== null) {
 			this.safeSetState(`${devId}.setpoint.manual`, { val: ms, ack: true });
 			this.safeSetState(`${devId}.setpoint.manualSet`, { val: ms, ack: true });
@@ -457,43 +636,52 @@ class SchlueterThermostat extends utils.Adapter {
 			this.safeSetState(`${devId}.setpoint.comfortSet`, { val: cs, ack: true });
 		}
 
-		const mode = Number(g.regulationMode ?? 0);
+		const mode = Number(t?.RegulationMode ?? 0);
 		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
 		this.safeSetState(`${devId}.regulationModeSet`, { val: mode, ack: true });
-		// End times
-		const comfortEnd = g.comfortEndTime ? String(g.comfortEndTime) : this.groupComfortEnd[groupId] || '';
-		const boostEnd = g.boostEndTime ? String(g.boostEndTime) : this.groupBoostEnd[groupId] || '';
-		this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
-		this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
-		this.safeSetState(`${devId}.endTime.boost`, boostEnd, true);
-		this.safeSetState(`${devId}.endTime.boostSet`, boostEnd, true);
 
-		// Vacation
-		const vEnabled =
-			typeof g.vacationEnabled === 'boolean'
-				? Boolean(g.vacationEnabled)
-				: Boolean(this.groupVacationEnabled[groupId]);
-		const vBegin = g.vacationBeginDay ? String(g.vacationBeginDay) : this.groupVacationBegin[groupId] || '';
-		const vEnd = g.vacationEndDay ? String(g.vacationEndDay) : this.groupVacationEnd[groupId] || '';
-		const vTempC = numToC(g.vacationTemperature ?? this.groupVacationTemp[groupId]);
+		const comfortEnd = String(t?.ComfortEndTime || '');
+		const boostEnd = String(t?.BoostEndTime || '');
+		if (comfortEnd) {
+			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
+			this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
+		}
+		if (boostEnd) {
+			this.safeSetState(`${devId}.endTime.boost`, boostEnd, true);
+			this.safeSetState(`${devId}.endTime.boostSet`, boostEnd, true);
+		}
+
+		const vEnabled = Boolean(t?.VacationEnabled);
+		const vBegin = String(t?.VacationBeginDay || '');
+		const vEnd = String(t?.VacationEndDay || '');
 		this.safeSetState(`${devId}.vacation.enabled`, vEnabled, true);
 		this.safeSetState(`${devId}.vacation.enabledSet`, vEnabled, true);
-		this.safeSetState(`${devId}.vacation.begin`, vBegin, true);
-		this.safeSetState(`${devId}.vacation.beginSet`, vBegin, true);
-		this.safeSetState(`${devId}.vacation.end`, vEnd, true);
-		this.safeSetState(`${devId}.vacation.endSet`, vEnd, true);
+		if (vBegin) {
+			this.safeSetState(`${devId}.vacation.begin`, vBegin, true);
+			this.safeSetState(`${devId}.vacation.beginSet`, vBegin, true);
+		}
+		if (vEnd) {
+			this.safeSetState(`${devId}.vacation.end`, vEnd, true);
+			this.safeSetState(`${devId}.vacation.endSet`, vEnd, true);
+		}
+		const vTempC = numToC(t?.VacationTemperature);
 		if (vTempC !== null) {
 			this.safeSetState(`${devId}.vacation.temperature`, vTempC, true);
 			this.safeSetState(`${devId}.vacation.temperatureSet`, vTempC, true);
 		}
 
+		// ------------------------------------------------------------------------
 		// Schedule as individual states
-		if (g.schedule && Array.isArray(g.schedule.Days)) {
-			for (const day of g.schedule.Days) {
+		// ------------------------------------------------------------------------
+
+		const schedule = t?.Schedule;
+		if (schedule && Array.isArray(schedule.Days)) {
+			for (const day of schedule.Days) {
 				const wd = String(day.WeekDayGrpNo ?? '');
 				if (!wd) {
 					continue;
 				}
+
 				const dayCh = `${devId}.schedule.day${wd}`;
 				await this.safeSetObjectNotExists(dayCh, {
 					type: 'channel',
@@ -560,17 +748,20 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 		}
 
-		// Energy as individual kWh values
-		const client = this.client;
-		const tid = g.serialNumber ? String(g.serialNumber) : null;
-		if (client && tid) {
+		// ------------------------------------------------------------------------
+		// Energy as individual kWh values (serial number)
+		// ------------------------------------------------------------------------
+
+		if (this.client && serial) {
 			try {
-				this.log.debug(`Energy: requesting usage for ThermostatID=${tid}`);
-				const energy = await client.getEnergyUsage(tid, {
+				this.log.debug(`Energy: requesting usage for SerialNumber=${serial}`);
+				const energy = await this.client.getEnergyUsage(serial, {
 					history: Number(this.config.energyHistory) || 0,
 					viewType: Number(this.config.energyViewType) || 2,
 				});
+
 				const usage = energy?.EnergyUsage?.[0]?.Usage || [];
+
 				await ensureState(`${devId}.energy.count`, {
 					name: 'Values count',
 					type: 'number',
@@ -590,88 +781,273 @@ class SchlueterThermostat extends utils.Adapter {
 						read: true,
 						write: false,
 					});
+
 					const v = Number(usage[i]?.EnergyKWattHour);
 					if (Number.isFinite(v)) {
 						this.safeSetState(sid, { val: v, ack: true });
 					}
 				}
 			} catch (e) {
-				this.log.debug(`Energy not available for ${groupId}: ${e?.message || e}`);
+				this.log.debug(`Energy not available for ThermostatId=${thermostatId}: ${e?.message || e}`);
 			}
-		} else {
-			this.log.debug(`Energy: skipped for GroupId=${groupId} (missing ThermostatID)`);
 		}
 	}
+
+	// ============================================================================
+	// WRITE HELPERS
+	// ============================================================================
+
+	_nowPlusMinutesIso(minutes) {
+		return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+	}
+
+	_parseIsoOrMinutes(value, defaultMinutes) {
+		const v = value === null || value === undefined ? '' : String(value).trim();
+		if (!v) {
+			return this._nowPlusMinutesIso(defaultMinutes);
+		}
+
+		// Numeric minutes (e.g. "60")
+		const asNum = Number(v);
+		if (Number.isFinite(asNum) && v.match(/^\d+(\.\d+)?$/)) {
+			return this._nowPlusMinutesIso(asNum);
+		}
+
+		// ISO-like string
+		const d = new Date(v);
+		if (!Number.isNaN(d.getTime())) {
+			return d.toISOString();
+		}
+
+		// Fallback
+		return this._nowPlusMinutesIso(defaultMinutes);
+	}
+
+	async _getSerialFromObject(groupId, thermostatId) {
+		const oid = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		const obj = await this.safeGetObject(oid);
+		const serial = obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
+		return serial;
+	}
+
+	// ============================================================================
+	// ON STATE CHANGE (writes)
+	// ============================================================================
 
 	async onStateChange(id, state) {
 		this.log.debug(`onStateChange(): id=${id} val=${state?.val}`);
 		if (!state || state.ack) {
 			return;
 		}
+
 		const client = this.client;
 		if (!client) {
 			return;
 		}
 
 		const parts = id.split('.');
-		const idx = parts.indexOf('thermostats');
-		if (idx === -1 || parts.length < idx + 2) {
+		const idxG = parts.indexOf('groups');
+		const idxT = parts.indexOf('thermostats');
+		if (idxG === -1 || idxT === -1 || parts.length < idxT + 2) {
 			return;
 		}
 
-		const groupId = parts[idx + 1];
-		const sub = parts.slice(idx + 2).join('.');
+		const groupId = parts[idxG + 1];
+		const thermostatId = parts[idxT + 1];
+		const sub = parts.slice(idxT + 2).join('.');
 
-		const serial = this.groupSerial[groupId];
+		// SerialNumber for writes
+		let serial = this.thermostatSerial[thermostatId];
 		if (!serial) {
-			this.log.warn(`Write ignored: SerialNumber unknown for group ${groupId} (not discovered yet).`);
+			serial = await this._getSerialFromObject(groupId, thermostatId);
+			if (serial) {
+				this.thermostatSerial[thermostatId] = serial;
+			}
+		}
+		if (!serial) {
+			this.log.warn(`Write ignored: SerialNumber unknown for thermostat ${thermostatId} (not discovered yet).`);
 			return;
 		}
-		const thermostatName = this.groupNameCache[groupId] || `Group ${groupId}`;
-		const comfortEndTime = this.groupComfortEnd[groupId] || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
-		const boostEndTime = this.groupBoostEnd[groupId] || new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+		const thermostatName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
+
+		const comfortEndTime = this.thermostatComfortEnd[thermostatId] || this._nowPlusMinutesIso(120);
+		const boostEndTime = this.thermostatBoostEnd[thermostatId] || this._nowPlusMinutesIso(60);
+
+		const baseUpdate = {
+			ThermostatName: thermostatName,
+			ComfortEndTime: comfortEndTime,
+			BoostEndTime: boostEndTime,
+			VacationEnabled: Boolean(this.thermostatVacationEnabled?.[thermostatId]),
+			VacationBeginDay: this.thermostatVacationBegin?.[thermostatId] || '1970-01-01T00:00:00',
+			VacationEndDay: this.thermostatVacationEnd?.[thermostatId] || '1970-01-01T00:00:00',
+			...(this.thermostatVacationTemp?.[thermostatId] !== undefined
+				? { VacationTemperature: this.thermostatVacationTemp[thermostatId] }
+				: {}),
+		};
+
+		// Convenience for state paths
+		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 
 		try {
+			// ----------------------------------------------------------------------
+			// Setpoints
+			// ----------------------------------------------------------------------
+
 			if (sub === 'setpoint.manualSet') {
 				const tempC = Number(state.val);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (manualSetpoint)`);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (comfortSetpoint)`);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (regulationMode)`);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (ManualModeSetpoint=${tempC}C)`);
 				await client.updateThermostat(serial, {
-					ThermostatName: thermostatName,
-					ComfortEndTime: comfortEndTime,
-					BoostEndTime: boostEndTime,
+					...baseUpdate,
 					RegulationMode: 4,
 					ManualModeSetpoint: cToNum(tempC),
 				});
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'setpoint.comfortSet') {
 				const tempC = Number(state.val);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C)`);
 				await client.updateThermostat(serial, {
-					ThermostatName: thermostatName,
-					ComfortEndTime: comfortEndTime,
+					...baseUpdate,
+					RegulationMode: 2,
 					ComfortSetpoint: cToNum(tempC),
 				});
-				this.groupComfortEnd[groupId] = comfortEndTime;
 				this.safeSetState(id, { val: tempC, ack: true });
+
+				// ----------------------------------------------------------------------
+				// Regulation mode (boost rule)
+				// ----------------------------------------------------------------------
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
 
-				// BOOST is RegulationMode=8 and must set BoostEndTime (now + 1h)
-				let boostToSend = boostEndTime;
+				// Boost is mode 8 and requires BoostEndTime (+1 hour)
 				if (mode === 8) {
-					boostToSend = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-					this.groupBoostEnd[groupId] = boostToSend;
-					this.log.debug(`BOOST enabled: setting BoostEndTime=${boostToSend}`);
+					const boostToSend = this._nowPlusMinutesIso(60);
+					this.log.debug(`Write: Boost mode=8 serial=${serial} BoostEndTime=${boostToSend}`);
+					await client.updateThermostat(serial, {
+						...baseUpdate,
+						RegulationMode: 8,
+						BoostEndTime: boostToSend,
+					});
+					this.thermostatBoostEnd[thermostatId] = boostToSend;
+					this.safeSetState(`${devPrefix}.endTime.boost`, boostToSend, true);
+					this.safeSetState(`${devPrefix}.endTime.boostSet`, boostToSend, true);
+				} else {
+					this.log.debug(`Write: UpdateThermostat serial=${serial} (RegulationMode=${mode})`);
+					await client.updateThermostat(serial, {
+						...baseUpdate,
+						RegulationMode: mode,
+					});
 				}
-				await client.updateThermostat(serial, {
-					ThermostatName: thermostatName,
-					ComfortEndTime: comfortEndTime,
-					BoostEndTime: boostToSend,
-					RegulationMode: mode,
-				});
+
 				this.safeSetState(id, { val: mode, ack: true });
+
+				// ----------------------------------------------------------------------
+				// Thermostat name
+				// ----------------------------------------------------------------------
+			} else if (sub === 'thermostatNameSet') {
+				const newName = String(state.val || '').trim();
+				if (!newName) {
+					throw new Error('Invalid thermostat name');
+				}
+
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (ThermostatName=${newName})`);
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					ThermostatName: newName,
+				});
+
+				this.thermostatNameCache[thermostatId] = newName;
+				this.safeSetState(id, { val: newName, ack: true });
+				this.safeSetState(`${devPrefix}.thermostatName`, { val: newName, ack: true });
+
+				// ----------------------------------------------------------------------
+				// End times
+				// ----------------------------------------------------------------------
+			} else if (sub === 'endTime.comfortSet') {
+				const comfortToSend = this._parseIsoOrMinutes(state.val, 120);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (ComfortEndTime=${comfortToSend})`);
+
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					ComfortEndTime: comfortToSend,
+				});
+
+				this.thermostatComfortEnd[thermostatId] = comfortToSend;
+				this.safeSetState(id, { val: comfortToSend, ack: true });
+				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortToSend, ack: true });
+			} else if (sub === 'endTime.boostSet') {
+				const boostToSend = this._parseIsoOrMinutes(state.val, 60);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (BoostEndTime=${boostToSend}, mode=8)`);
+
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					RegulationMode: 8,
+					BoostEndTime: boostToSend,
+				});
+
+				this.thermostatBoostEnd[thermostatId] = boostToSend;
+				this.safeSetState(id, { val: boostToSend, ack: true });
+				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostToSend, ack: true });
+
+				// ----------------------------------------------------------------------
+				// Vacation
+				// ----------------------------------------------------------------------
+			} else if (sub === 'vacation.enabledSet') {
+				const enabled = Boolean(state.val);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEnabled=${enabled})`);
+
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					VacationEnabled: enabled,
+				});
+
+				this.thermostatVacationEnabled[thermostatId] = enabled;
+				this.safeSetState(id, { val: enabled, ack: true });
+				this.safeSetState(`${devPrefix}.vacation.enabled`, { val: enabled, ack: true });
+			} else if (sub === 'vacation.beginSet') {
+				const beginIso = this._parseIsoOrMinutes(state.val, 0);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationBeginDay=${beginIso})`);
+
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					VacationBeginDay: beginIso,
+				});
+
+				this.thermostatVacationBegin[thermostatId] = beginIso;
+				this.safeSetState(id, { val: beginIso, ack: true });
+				this.safeSetState(`${devPrefix}.vacation.begin`, { val: beginIso, ack: true });
+			} else if (sub === 'vacation.endSet') {
+				const endIso = this._parseIsoOrMinutes(state.val, 0);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEndDay=${endIso})`);
+
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					VacationEndDay: endIso,
+				});
+
+				this.thermostatVacationEnd[thermostatId] = endIso;
+				this.safeSetState(id, { val: endIso, ack: true });
+				this.safeSetState(`${devPrefix}.vacation.end`, { val: endIso, ack: true });
+			} else if (sub === 'vacation.temperatureSet') {
+				const tempC = Number(state.val);
+				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationTemperature=${tempC}C)`);
+
+				const tempNum = cToNum(tempC);
+
+				await client.updateThermostat(serial, {
+					...baseUpdate,
+					VacationTemperature: tempNum,
+				});
+
+				this.thermostatVacationTemp[thermostatId] = tempNum;
+				this.safeSetState(id, { val: tempC, ack: true });
+				this.safeSetState(`${devPrefix}.vacation.temperature`, { val: tempC, ack: true });
+
+				// ----------------------------------------------------------------------
+				// Unknown writable state
+				// ----------------------------------------------------------------------
 			} else {
+				this.log.debug(`Write ignored (unknown sub-path): ${sub}`);
 				this.safeSetState(id, { val: state.val, ack: true });
 			}
 		} catch (e) {
@@ -679,10 +1055,15 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
+	// ============================================================================
+	// ON UNLOAD
+	// ============================================================================
+
 	async onUnload(callback) {
 		try {
 			this.log.debug('onUnload(): stopping adapter');
 			this.unloading = true;
+
 			if (this.pollTimer) {
 				clearInterval(this.pollTimer);
 			}
@@ -699,6 +1080,10 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 }
+
+// ============================================================================
+// START
+// ============================================================================
 
 if (require.main !== module) {
 	module.exports = options => new SchlueterThermostat(options);
