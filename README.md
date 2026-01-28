@@ -222,6 +222,11 @@ Enable **debug log level** to see cloud communication.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Catch wrong values for Temperature and Regulation Mode
+
 ### 0.2.2 (2026-01-28)
 
 - (patricknitsch) Update setStates for ComfortMode

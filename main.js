@@ -466,6 +466,8 @@ class SchlueterThermostat extends utils.Adapter {
 			unit: '°C',
 			read: true,
 			write: true,
+			min: 12,
+			max: 35,
 		});
 		await ensureState(`${devId}.setpoint.comfortSet`, {
 			name: 'Set comfort setpoint',
@@ -474,14 +476,17 @@ class SchlueterThermostat extends utils.Adapter {
 			unit: '°C',
 			read: true,
 			write: true,
+			min: 12,
+			max: 35,
 		});
 		await ensureState(`${devId}.regulationModeSet`, {
 			name: 'Set regulation mode',
 			type: 'number',
 			role: 'level',
 			read: true,
-			max: 9,
 			write: true,
+			min: 0,
+			max: 9,
 		});
 
 		await this.safeSetObjectNotExists(`${devId}.endTime`, {
@@ -580,6 +585,8 @@ class SchlueterThermostat extends utils.Adapter {
 			unit: '°C',
 			read: true,
 			write: true,
+			min: 12,
+			max: 35,
 		});
 
 		await this.safeSetObjectNotExists(`${devId}.schedule`, {
@@ -857,10 +864,15 @@ class SchlueterThermostat extends utils.Adapter {
 		};
 
 		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 		try {
 			if (sub === 'setpoint.manualSet') {
-				const tempC = Number(state.val);
+				let tempC = Number(state.val);
+				if (!Number.isFinite(tempC)) {
+					throw new Error('Invalid temperature');
+				}
+				tempC = clamp(tempC, 12, 35);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (ManualModeSetpoint=${tempC}C)`);
 				await client.updateThermostat(serial, {
 					...baseUpdate,
@@ -869,7 +881,11 @@ class SchlueterThermostat extends utils.Adapter {
 				});
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'setpoint.comfortSet') {
-				const tempC = Number(state.val);
+				let tempC = Number(state.val);
+				if (!Number.isFinite(tempC)) {
+					throw new Error('Invalid temperature');
+				}
+				tempC = clamp(tempC, 12, 35);
 				const comfortToSend = this._nowPlusMinutesIso(180);
 				this.log.debug(
 					`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C) (ComfortEndTime=${comfortToSend})`,
@@ -884,8 +900,12 @@ class SchlueterThermostat extends utils.Adapter {
 				this.safeSetState(`${devPrefix}.endTime.comfortSet`, comfortToSend, true);
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'regulationModeSet') {
-				const mode = Number(state.val);
-
+				let mode = Number(state.val);
+				if (!Number.isFinite(mode)) {
+					throw new Error('Invalid regulation mode');
+				}
+				mode = Math.trunc(mode);
+				mode = clamp(mode, 0, 9);
 				if (mode === 8) {
 					const boostToSend = this._nowPlusMinutesIso(180);
 					this.log.debug(`Write: Boost mode=8 serial=${serial} BoostEndTime=${boostToSend}`);
@@ -958,7 +978,11 @@ class SchlueterThermostat extends utils.Adapter {
 				this.safeSetState(id, { val: endIso, ack: true });
 				this.safeSetState(`${devPrefix}.vacation.end`, { val: endIso, ack: true });
 			} else if (sub === 'vacation.temperatureSet') {
-				const tempC = Number(state.val);
+				let tempC = Number(state.val);
+				if (!Number.isFinite(tempC)) {
+					throw new Error('Invalid temperature');
+				}
+				tempC = clamp(tempC, 12, 35); // NEW
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationTemperature=${tempC}C)`);
 
 				const tempNum = cToNum(tempC);
