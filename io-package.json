@@ -1,127 +1,146 @@
 {
-	"common": {
-		"name": "schlueter-thermostat",
-		"version": "0.1.0",
-		"news": {
-			"0.1.0": {
-				"en": "initial release\nfetch data and write in Datapoints\nfunctional version with Energy and settable functions",
-				"de": "erstausstrahlung\ndaten abrufen und in Datapoints schreiben\nfunktionsversion mit Energie und einstellbaren Funktionen",
-				"ru": "первоначальное освобождение\nполучать данные и писать в точках данных\nфункциональная версия с функцией Energy и Settable",
-				"pt": "libertação inicial\nobter dados e escrever em Pontos de Dados\nversão funcional com energia e funções settable",
-				"nl": "eerste release\ngegevens ophalen en schrijven in datapunten\nfunctionele versie met Energy en settable functies",
-				"fr": "libération initiale\nrécupérer les données et écrire dans Datapoints\nversion fonctionnelle avec fonctions Energy et settable",
-				"it": "rilascio iniziale\nrecuperare i dati e scrivere in Datapoints\nversione funzionale con funzioni Energy e settable",
-				"es": "liberación inicial\nbuscar datos y escribir en Datapoints\nversión funcional con Energía y funciones settable",
-				"pl": "początkowe zwolnienie\npobrać dane i zapisać w Datapoints\nwersja funkcjonalna z funkcjami energetycznymi i ustawieniami",
-				"uk": "початковий реліз\nfetch дані та запис у пунктах даних\nфункціональна версія з функціями енергії та налаштування",
-				"zh-cn": "初步释放\n在数据点中获取数据并写入\n具有能动和可设置功能的功能版本"
-			},
-			"0.0.1": {
-				"en": "initial release",
-				"de": "Erstveröffentlichung",
-				"ru": "Начальная версия",
-				"pt": "lançamento inicial",
-				"nl": "Eerste uitgave",
-				"fr": "Première version",
-				"it": "Versione iniziale",
-				"es": "Versión inicial",
-				"pl": "Pierwsze wydanie",
-				"uk": "Початкова версія",
-				"zh-cn": "首次出版"
-			}
-		},
-		"titleLang": {
-			"en": "Schlueter Ditra Heat Thermostat",
-			"de": "Schlüter Ditra Wärmethermostat",
-			"ru": "Тепловой термостат Schlueter Ditra",
-			"pt": "Termostato de calor Schlueter Ditra",
-			"nl": "Schlueter Ditra Heat-thermostaat",
-			"fr": "Thermostat de chaleur Schlueter Ditra",
-			"it": "Termostato termico Schlueter Ditra",
-			"es": "Termostato Schlueter Ditra Heat",
-			"pl": "Termostat grzewczy Schlueter Ditra",
-			"uk": "Тепловий термостат Schlueter Ditra",
-			"zh-cn": "Schlueter Ditra 热恒温器"
-		},
-		"desc": {
-			"en": "Floor heating controlled with Ditra Heat Thermostat",
-			"de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
-			"ru": "Подогрев пола контролируется термостатом Ditra Heat.",
-			"pt": "Aquecimento de piso controlado com termostato Ditra Heat",
-			"nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
-			"fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
-			"it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
-			"es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
-			"pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
-			"uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
-			"zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
-		},
-		"authors": ["patricknitsch <patricknitsch@web.de>"],
-		"keywords": ["ditra heat", "climate", "cloud"],
-		"licenseInformation": {
-			"type": "free",
-			"license": "MIT"
-		},
-		"platform": "Javascript/Node.js",
-		"icon": "schlueter-thermostat.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
-		"readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
-		"loglevel": "info",
-		"tier": 3,
-		"mode": "daemon",
-		"type": "climate-control",
-		"compact": true,
-		"connectionType": "cloud",
-		"dataSource": "poll",
-		"adminUI": {
-			"config": "json"
-		},
-		"dependencies": [
-			{
-				"js-controller": ">=6.0.11"
-			}
-		],
-		"globalDependencies": [
-			{
-				"admin": ">=7.0.23"
-			}
-		]
-	},
-	"native": {
-		"provider": "owd5",
-		"baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
-		"baseUrlOcd5": "https://ocd5.azurewebsites.net",
-		"username": "",
-		"password": "",
-		"apiKey": "",
-		"customerId": 1,
-		"pollIntervalSec": 60,
-		"energyHistory": 0,
-		"energyViewType": 2
-	},
-	"objects": [],
-	"instanceObjects": [
-		{
-			"_id": "info",
-			"type": "channel",
-			"common": {
-				"name": "Information"
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.connection",
-			"type": "state",
-			"common": {
-				"role": "indicator.connected",
-				"name": "Device or service connected",
-				"type": "boolean",
-				"read": true,
-				"write": false,
-				"def": false
-			},
-			"native": {}
-		}
-	]
+  "common": {
+    "name": "schlueter-thermostat",
+    "version": "0.1.1",
+    "news": {
+      "0.1.1": {
+        "en": "updated Readme",
+        "de": "mehr erfahren",
+        "ru": "обновленный Readme",
+        "pt": "readme atualizado",
+        "nl": "bijgewerkt Readme",
+        "fr": "mise à jour de Readme",
+        "it": "aggiornato",
+        "es": "actualizado",
+        "pl": "zaktualizowany Readme",
+        "uk": "оновлений Readme",
+        "zh-cn": "更新读取器"
+      },
+      "0.1.0": {
+        "en": "initial release\nfetch data and write in Datapoints\nfunctional version with Energy and settable functions",
+        "de": "erstausstrahlung\ndaten abrufen und in Datapoints schreiben\nfunktionsversion mit Energie und einstellbaren Funktionen",
+        "ru": "первоначальное освобождение\nполучать данные и писать в точках данных\nфункциональная версия с функцией Energy и Settable",
+        "pt": "libertação inicial\nobter dados e escrever em Pontos de Dados\nversão funcional com energia e funções settable",
+        "nl": "eerste release\ngegevens ophalen en schrijven in datapunten\nfunctionele versie met Energy en settable functies",
+        "fr": "libération initiale\nrécupérer les données et écrire dans Datapoints\nversion fonctionnelle avec fonctions Energy et settable",
+        "it": "rilascio iniziale\nrecuperare i dati e scrivere in Datapoints\nversione funzionale con funzioni Energy e settable",
+        "es": "liberación inicial\nbuscar datos y escribir en Datapoints\nversión funcional con Energía y funciones settable",
+        "pl": "początkowe zwolnienie\npobrać dane i zapisać w Datapoints\nwersja funkcjonalna z funkcjami energetycznymi i ustawieniami",
+        "uk": "початковий реліз\nfetch дані та запис у пунктах даних\nфункціональна версія з функціями енергії та налаштування",
+        "zh-cn": "初步释放\n在数据点中获取数据并写入\n具有能动和可设置功能的功能版本"
+      },
+      "0.0.1": {
+        "en": "initial release",
+        "de": "Erstveröffentlichung",
+        "ru": "Начальная версия",
+        "pt": "lançamento inicial",
+        "nl": "Eerste uitgave",
+        "fr": "Première version",
+        "it": "Versione iniziale",
+        "es": "Versión inicial",
+        "pl": "Pierwsze wydanie",
+        "uk": "Початкова версія",
+        "zh-cn": "首次出版"
+      }
+    },
+    "titleLang": {
+      "en": "Schlueter Ditra Heat Thermostat",
+      "de": "Schlüter Ditra Wärmethermostat",
+      "ru": "Тепловой термостат Schlueter Ditra",
+      "pt": "Termostato de calor Schlueter Ditra",
+      "nl": "Schlueter Ditra Heat-thermostaat",
+      "fr": "Thermostat de chaleur Schlueter Ditra",
+      "it": "Termostato termico Schlueter Ditra",
+      "es": "Termostato Schlueter Ditra Heat",
+      "pl": "Termostat grzewczy Schlueter Ditra",
+      "uk": "Тепловий термостат Schlueter Ditra",
+      "zh-cn": "Schlueter Ditra 热恒温器"
+    },
+    "desc": {
+      "en": "Floor heating controlled with Ditra Heat Thermostat",
+      "de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
+      "ru": "Подогрев пола контролируется термостатом Ditra Heat.",
+      "pt": "Aquecimento de piso controlado com termostato Ditra Heat",
+      "nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
+      "fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
+      "it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
+      "es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
+      "pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
+      "uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
+      "zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
+    },
+    "authors": [
+      "patricknitsch <patricknitsch@web.de>"
+    ],
+    "keywords": [
+      "ditra heat",
+      "climate",
+      "cloud"
+    ],
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "platform": "Javascript/Node.js",
+    "icon": "schlueter-thermostat.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
+    "readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
+    "loglevel": "info",
+    "tier": 3,
+    "mode": "daemon",
+    "type": "climate-control",
+    "compact": true,
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "adminUI": {
+      "config": "json"
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=6.0.11"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=7.0.23"
+      }
+    ]
+  },
+  "native": {
+    "provider": "owd5",
+    "baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
+    "baseUrlOcd5": "https://ocd5.azurewebsites.net",
+    "username": "",
+    "password": "",
+    "apiKey": "",
+    "customerId": 1,
+    "pollIntervalSec": 60,
+    "energyHistory": 0,
+    "energyViewType": 2
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Device or service connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }
