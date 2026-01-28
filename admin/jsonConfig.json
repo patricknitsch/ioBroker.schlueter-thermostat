@@ -9,16 +9,30 @@
 				"baseUrlOwd5": {
 					"type": "text",
 					"label": "OWD5 Base URL",
-					"default": "https://owd5-mh015-app.ojelectronics.com"
+					"default": "https://owd5-mh015-app.ojelectronics.com",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
 				},
 				"baseUrlOcd5": {
 					"type": "text",
 					"label": "OCD5 Base URL",
-					"default": "https://ocd5.azurewebsites.net"
+					"default": "https://ocd5.azurewebsites.net",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
 				},
 				"username": {
 					"type": "text",
 					"label": "Username",
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 6
 				},
 				"password": {
@@ -30,30 +44,50 @@
 					"type": "text",
 					"label": "API Key",
 					"default": "f219aab4-9ac0-4343-8422-b72203e2fac9",
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 8
 				},
 				"customerId": {
 					"type": "number",
 					"label": "Customer ID",
 					"default": 1,
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 4
 				},
 				"pollIntervalSec": {
 					"type": "number",
 					"label": "Poll interval (seconds)",
 					"default": 60,
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 4
 				},
 				"energyHistory": {
 					"type": "number",
 					"label": "Energy History (0=current)",
 					"default": 0,
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 4
 				},
 				"energyViewType": {
 					"type": "number",
 					"label": "Energy ViewType (2=week,3=month,4=year)",
 					"default": 2,
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 4
 				},
 				"_help": {
