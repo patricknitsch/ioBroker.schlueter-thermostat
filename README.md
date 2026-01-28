@@ -222,8 +222,7 @@ Enable **debug log level** to see cloud communication.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.2.4 (2026-01-28)
 
 - (patricknitsch) Change Format of Times
 

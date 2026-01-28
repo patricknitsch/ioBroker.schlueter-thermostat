@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "news": {
+      "0.2.4": {
+        "en": "Change Format of Times",
+        "de": "Format der Zeiten ändern",
+        "ru": "Изменение формата времени",
+        "pt": "Mudar o Formato dos Tempos",
+        "nl": "Formaat van tijden wijzigen",
+        "fr": "Modification du format des temps",
+        "it": "Cambia il formato dei tempi",
+        "es": "Formato de cambio de tiempos",
+        "pl": "Zmień format Times",
+        "uk": "Змінення форматів часу",
+        "zh-cn": "更改时间格式"
+      },
       "0.2.3": {
         "en": "Catch wrong values for Temperature and Regulation Mode",
         "de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
