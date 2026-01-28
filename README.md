@@ -222,8 +222,7 @@ Enable **debug log level** to see cloud communication.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.2.0 (2026-01-28)
 
 - (patricknitsch) add automatic Refresh of Token after Error 403
 - (patricknitsch) fix max Value of Regulation Mode to 9 for error preventing
