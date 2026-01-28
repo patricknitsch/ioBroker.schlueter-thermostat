@@ -193,7 +193,6 @@ class SchlueterThermostat extends utils.Adapter {
 			password: this.config.password,
 			apiKey: this.config.apiKey,
 			customerId: Number(this.config.customerId),
-			clientSwVersion: Number(this.config.clientSWVersion) || 1,
 		});
 
 		try {
@@ -214,7 +213,7 @@ class SchlueterThermostat extends utils.Adapter {
 		await this.pollOnce();
 
 		// ------------------------------------------------------------------------
-		// Subscribe writable states (NEW path)
+		// Subscribe writable states
 		// ------------------------------------------------------------------------
 		this.subscribeStates('groups.*.thermostats.*.setpoint.manualSet');
 		this.subscribeStates('groups.*.thermostats.*.setpoint.comfortSet');

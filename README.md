@@ -18,10 +18,16 @@ The adapter connects to the official **OWD5 (read)** and **OCD5
 (write)** cloud APIs to fully integrate thermostats into ioBroker.
 
 This adapter is **cloud-only** --- no local gateway or Modbus required.
+The complete API can be tested at: https://ocd5.azurewebsites.net/swagger/ui/index#/
+
+## Attention:
+
+I only have one thermostat. So I'm not sure, how it looks like with multiple thermostats.
+I will check it, if I get a second one, especially for energy valuse for each thermostat.
 
 ---
 
-# 🧩 Architecture
+## 🧩 Architecture
 
     ioBroker
        │
@@ -47,7 +53,7 @@ This adapter is **cloud-only** --- no local gateway or Modbus required.
 
 ---
 
-# ⚙ How the Adapter Works
+## ⚙ How the Adapter Works
 
 1.  **Login** to OWD5 cloud with your credentials.
 2.  **Polling** at configured interval (default 60s):
@@ -62,22 +68,22 @@ This adapter is **cloud-only** --- no local gateway or Modbus required.
 
 ---
 
-# 👤 Required User Data
+## 👤 Required User Data
 
 Setting Description
 
 ---
 
-Username Your Schlüter/OJ cloud login
-Password Cloud password
-API Key Provided API key
-Customer ID Your cloud customer ID
-Client SW Version Required by API (numeric)
+Username Your Schlüter/OJ cloud login -> **setted in your APP**
+Password Cloud password -> **setted in your APP**
+API Key Provided API key -> **use Default; It seems to work**
+Customer ID Your cloud customer ID -> **to find in you thermostat information**
+Client SW Version Required by API (numeric) -> **to find in your thermostat information**
 Poll Interval Seconds between cloud polls
 
 ---
 
-# 🏠 Object Structure
+## 🏠 Object Structure
 
     schlueter-thermostat.0
     └─ groups
@@ -87,7 +93,7 @@ Poll Interval Seconds between cloud polls
 
 ---
 
-# 🌡 What Can Be Read
+## 🌡 What Can Be Read
 
 Category States
 
@@ -103,7 +109,7 @@ Energy kWh history values
 
 ---
 
-# ✍ What Can Be Written
+## ✍ What Can Be Written
 
 State Description
 
@@ -122,16 +128,32 @@ vacation.temperatureSet Vacation temperature
 
 ---
 
-# 🔥 Boost Mode Logic
+## 🔥 Reglulation Mode Logic
+
+When `regulationModeSet = 1`:
+
+- Schedule Plan as defined in APP
+
+When `regulationModeSet = 2`:
+
+- Comfort Mode is active for setted Time in h
+- Temperature = setted Temperature
 
 When `regulationModeSet = 8`:
 
 - Boost end time = **now + 1 hour**
 - Temperature = thermostat maximum
 
+When `regulationModeSet = 9`:
+
+- Eco Mode is active
+- Temperature = 20 degrees
+
+There some more......
+
 ---
 
-# 🔁 State Flow Diagram
+## 🔁 State Flow Diagram
 
                 ┌──────────┐
                 │   AUTO   │
@@ -161,7 +183,7 @@ Vacation overrides all heating modes when enabled.
 
 ---
 
-# ⚡ Energy
+## ⚡ Energy
 
 Energy values are provided per thermostat:
 
@@ -170,9 +192,9 @@ Energy values are provided per thermostat:
     energy.value1
     ...
 
----
+## **It starts with the Energy from today.**
 
-# 🛡 Stability
+## 🛡 Stability
 
 - Safe object/state wrappers
 - Graceful shutdown
@@ -181,7 +203,7 @@ Energy values are provided per thermostat:
 
 ---
 
-# 🐛 Debug
+## 🐛 Debug
 
 Enable **debug log level** to see cloud communication.
 
@@ -189,12 +211,17 @@ Enable **debug log level** to see cloud communication.
 
 ## 📦 Version
 
-## Changelog
+### Changelog
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) updated Readme
+
 ### 0.1.0 (2026-01-28)
 
 - (patricknitsch) initial release

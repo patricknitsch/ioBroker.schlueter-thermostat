@@ -32,11 +32,6 @@
 					"default": "f219aab4-9ac0-4343-8422-b72203e2fac9",
 					"sm": 8
 				},
-				"clientSWVersion": {
-					"type": "text",
-					"label": "Software Version",
-					"sm": 4
-				},
 				"customerId": {
 					"type": "number",
 					"label": "Customer ID",
