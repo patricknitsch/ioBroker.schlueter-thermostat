@@ -899,7 +899,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (ManualModeSetpoint=${tempC}C)`);
 				await client.updateThermostat(serial, {
 					...baseUpdate,
-					RegulationMode: 4,
+					RegulationMode: 3,
 					ManualModeSetpoint: cToNum(tempC),
 				});
 				this.safeSetState(id, { val: tempC, ack: true });
