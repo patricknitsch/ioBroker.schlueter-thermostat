@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "news": {
+      "0.2.3": {
+        "en": "Catch wrong values for Temperature and Regulation Mode",
+        "de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
+        "ru": "Улавливать неправильные значения температуры и режима регулирования",
+        "pt": "Valores errados de captura para a temperatura e o modo de regulação",
+        "nl": "Verkeerde vangwaarden voor temperatuur- en regelmodus",
+        "fr": "Capturer des valeurs erronées en mode température et régulation",
+        "it": "Cattura valori errati per la modalità Temperatura e Regolamento",
+        "es": "Obtener valores incorrectos para el modo de temperatura y regulación",
+        "pl": "Nieprawidłowe wartości połowu dla trybu temperatury i regulacji",
+        "uk": "Випадкові значення для режиму температури та регулювання",
+        "zh-cn": "获取温度和调节模式的错误值"
+      },
       "0.2.2": {
         "en": "Update setStates for ComfortMode\nMore Debugging",
         "de": "Update setStates für ComfortMode\nMehr Debugging",

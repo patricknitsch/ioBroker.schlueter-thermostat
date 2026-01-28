@@ -222,8 +222,7 @@ Enable **debug log level** to see cloud communication.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.2.3 (2026-01-28)
 
 - (patricknitsch) Catch wrong values for Temperature and Regulation Mode
 
