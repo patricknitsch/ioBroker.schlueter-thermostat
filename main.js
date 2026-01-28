@@ -870,20 +870,24 @@ class SchlueterThermostat extends utils.Adapter {
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'setpoint.comfortSet') {
 				const tempC = Number(state.val);
-				const comfortToSend = this._nowPlusMinutesIso(120);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C)`);
+				const comfortToSend = this._nowPlusMinutesIso(180);
+				this.log.debug(
+					`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C) (ComfortEndTime=${comfortToSend})`,
+				);
 				await client.updateThermostat(serial, {
 					...baseUpdate,
 					RegulationMode: 2,
 					ComfortSetpoint: cToNum(tempC),
 					ComfortEndTime: comfortToSend,
 				});
+				this.safeSetState(`${devPrefix}.endTime.comfort`, comfortToSend, true);
+				this.safeSetState(`${devPrefix}.endTime.comfortSet`, comfortToSend, true);
 				this.safeSetState(id, { val: tempC, ack: true });
 			} else if (sub === 'regulationModeSet') {
 				const mode = Number(state.val);
 
 				if (mode === 8) {
-					const boostToSend = this._nowPlusMinutesIso(120);
+					const boostToSend = this._nowPlusMinutesIso(180);
 					this.log.debug(`Write: Boost mode=8 serial=${serial} BoostEndTime=${boostToSend}`);
 					await client.updateThermostat(serial, {
 						...baseUpdate,

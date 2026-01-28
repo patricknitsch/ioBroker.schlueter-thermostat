@@ -24,8 +24,7 @@
 					"sm": 12,
 					"md": 6,
 					"lg": 4,
-					"xl": 4,
-					"newLine": true
+					"xl": 4
 				},
 				"username": {
 					"type": "text",
@@ -34,16 +33,17 @@
 					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 6
+					"sm": 4,
+					"newLine": true
 				},
 				"password": {
 					"type": "password",
 					"label": "Password",
 					"xs": 12,
-					"md": 6,
+					"md": 4,
 					"lg": 4,
 					"xl": 4,
-					"sm": 6
+					"sm": 4
 				},
 				"apiKey": {
 					"type": "text",
@@ -60,7 +60,7 @@
 					"label": "Customer ID",
 					"default": 1,
 					"xs": 12,
-					"md": 6,
+					"md": 4,
 					"lg": 4,
 					"xl": 4,
 					"sm": 4
@@ -70,7 +70,7 @@
 					"label": "Poll interval (seconds)",
 					"default": 60,
 					"xs": 12,
-					"md": 6,
+					"md": 4,
 					"lg": 4,
 					"xl": 4,
 					"sm": 4,
@@ -81,7 +81,7 @@
 					"label": "Energy History (0=current)",
 					"default": 0,
 					"xs": 12,
-					"md": 6,
+					"md": 4,
 					"lg": 4,
 					"xl": 4,
 					"sm": 4
@@ -91,7 +91,7 @@
 					"label": "Energy ViewType (2=week,3=month,4=year)",
 					"default": 2,
 					"xs": 12,
-					"md": 6,
+					"md": 4,
 					"lg": 4,
 					"xl": 4,
 					"sm": 4
