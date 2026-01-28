@@ -630,8 +630,8 @@ class SchlueterThermostat extends utils.Adapter {
 		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
 		this.safeSetState(`${devId}.regulationModeSet`, { val: mode, ack: true });
 
-		const comfortEnd = String(t?.ComfortEndTime || '');
-		const boostEnd = String(t?.BoostEndTime || '');
+		const comfortEnd = this._formatIsoNoMsNoZ(t?.ComfortEndTime || '');
+		const boostEnd = this._formatIsoNoMsNoZ(t?.BoostEndTime || '');
 		if (comfortEnd) {
 			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
 			this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
@@ -780,7 +780,7 @@ class SchlueterThermostat extends utils.Adapter {
 	// ============================================================================
 
 	_nowPlusMinutesIso(minutes) {
-		return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+		return this._formatIsoNoMsNoZ(new Date(Date.now() + minutes * 60 * 1000));
 	}
 
 	_parseIsoOrMinutes(value, defaultMinutes) {
@@ -794,12 +794,39 @@ class SchlueterThermostat extends utils.Adapter {
 			return this._nowPlusMinutesIso(asNum);
 		}
 
+		// ISO-like string
 		const d = new Date(v);
 		if (!Number.isNaN(d.getTime())) {
-			return d.toISOString();
+			return this._formatIsoNoMsNoZ(d); // NEW
 		}
 
 		return this._nowPlusMinutesIso(defaultMinutes);
+	}
+
+	_formatIsoNoMsNoZ(value) {
+		// Accept Date or string, return "YYYY-MM-DDTHH:mm:ss"
+		if (!value) {
+			return '';
+		}
+
+		let d;
+		if (value instanceof Date) {
+			d = value;
+		} else {
+			d = new Date(String(value));
+		}
+
+		if (Number.isNaN(d.getTime())) {
+			// If it already looks like "YYYY-MM-DDTHH:mm:ss(.sss)?Z?" just strip
+			return String(value)
+				.trim()
+				.replace(/\.\d{3}Z$/, '')
+				.replace(/Z$/, '')
+				.replace(/\.\d{3}$/, '');
+		}
+
+		// toISOString() => "YYYY-MM-DDTHH:mm:ss.sssZ"
+		return d.toISOString().replace(/\.\d{3}Z$/, '');
 	}
 
 	async _getSerialFromObject(groupId, thermostatId) {
@@ -848,8 +875,13 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const thermostatName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
 
-		const comfortEndTime = this.thermostatComfortEnd[thermostatId] || this._nowPlusMinutesIso(120);
-		const boostEndTime = this.thermostatBoostEnd[thermostatId] || this._nowPlusMinutesIso(60);
+		const comfortEndTime = this._formatIsoNoMsNoZ(
+			this.thermostatComfortEnd[thermostatId] || this._nowPlusMinutesIso(120),
+		);
+
+		const boostEndTime = this._formatIsoNoMsNoZ(
+			this.thermostatBoostEnd[thermostatId] || this._nowPlusMinutesIso(60),
+		);
 
 		const baseUpdate = {
 			ThermostatName: thermostatName,
