@@ -24,7 +24,8 @@
 					"sm": 12,
 					"md": 6,
 					"lg": 4,
-					"xl": 4
+					"xl": 4,
+					"newLine": true
 				},
 				"username": {
 					"type": "text",
@@ -38,6 +39,10 @@
 				"password": {
 					"type": "password",
 					"label": "Password",
+					"xs": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4,
 					"sm": 6
 				},
 				"apiKey": {
@@ -68,7 +73,8 @@
 					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4
+					"sm": 4,
+					"newLine": true
 				},
 				"energyHistory": {
 					"type": "number",
