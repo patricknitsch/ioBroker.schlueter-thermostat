@@ -637,17 +637,18 @@ class SchlueterThermostat extends utils.Adapter {
 		});
 
 		const onlineNow = Boolean(t?.Online);
-		this.safeSetState(`${devId}.online`, { val: onlineNow, ack: true });
+		const onlinePrev = this.thermostatOnlineCache[thermostatId];
 
-		const lastOnline = this.thermostatOnlineCache[thermostatId];
-		if (lastOnline !== undefined && lastOnline !== onlineNow) {
-			if (!onlineNow) {
-				this.log.warn(`Thermostat "${thermostatName}" (${thermostatId}) is OFFLINE!`);
-			} else {
-				this.log.info(`Thermostat "${thermostatName}" (${thermostatId}) is online again.`);
-			}
+		if (onlinePrev !== false && onlineNow === false) {
+			this.log.warn(`No Connection: Thermostat "${thermostatName}" (${thermostatId}) is OFFLINE.`);
 		}
+		if (onlinePrev === false && onlineNow === true) {
+			this.log.info(`Thermostat "${thermostatName}" (${thermostatId}) is ONLINE again.`);
+		}
+
 		this.thermostatOnlineCache[thermostatId] = onlineNow;
+
+		this.safeSetState(`${devId}.online`, { val: onlineNow, ack: true });
 		this.safeSetState(`${devId}.heating`, { val: Boolean(t?.Heating), ack: true });
 
 		this.safeSetState(`${devId}.thermostatName`, { val: String(t?.ThermostatName || ''), ack: true });
@@ -1068,7 +1069,7 @@ class SchlueterThermostat extends utils.Adapter {
 				if (!Number.isFinite(tempC)) {
 					throw new Error('Invalid temperature');
 				}
-				tempC = clamp(tempC, 12, 35); // NEW
+				tempC = clamp(tempC, 12, 35);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationTemperature=${tempC}C)`);
 
 				const tempNum = cToNum(tempC);
