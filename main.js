@@ -537,13 +537,13 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		await ensureState(`${devId}.endTime.comfortSet`, {
+		/*await ensureState(`${devId}.endTime.comfortSet`, {
 			name: 'Set comfort end time (ISO or minutes)',
 			type: 'string',
 			role: 'date',
 			read: true,
 			write: true,
-		});
+		});*/
 		await ensureState(`${devId}.endTime.boost`, {
 			name: 'Boost end time',
 			type: 'string',
@@ -551,13 +551,13 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		await ensureState(`${devId}.endTime.boostSet`, {
+		/*await ensureState(`${devId}.endTime.boostSet`, {
 			name: 'Set boost end time (ISO or minutes)',
 			type: 'string',
 			role: 'date',
 			read: true,
 			write: true,
-		});
+		});*/
 
 		await this.safeSetObjectNotExists(`${devId}.vacation`, {
 			type: 'channel',
@@ -967,8 +967,7 @@ class SchlueterThermostat extends utils.Adapter {
 					throw new Error('Invalid temperature');
 				}
 				tempC = clamp(tempC, 12, 35);
-				//const comfortToSend = this._nowPlusMinutesIso(180);
-				const comfortToSend = sub === 'endTime.comfortSet';
+				const comfortToSend = this._nowPlusMinutesIso(180);
 				this.log.debug(
 					`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C) (ComfortEndTime=${comfortToSend})`,
 				);
