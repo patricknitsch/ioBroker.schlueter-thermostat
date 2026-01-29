@@ -74,6 +74,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this.unloading = false;
 		this.pollInFlight = false;
 		this.pollPromise = null;
+		this._verifyConnectionOk = true;
 		this._verifyPollTimer = null;
 
 		this.on('ready', this.onReady.bind(this));
@@ -143,9 +144,23 @@ class SchlueterThermostat extends utils.Adapter {
 		if (this._verifyPollTimer) {
 			clearTimeout(this._verifyPollTimer);
 		}
-		this._verifyPollTimer = setTimeout(() => {
+
+		this._verifyPollTimer = setTimeout(async () => {
 			this._verifyPollTimer = null;
-			this.pollOnce().catch(err => this.log.debug(`verify poll failed: ${err?.message || err}`));
+
+			try {
+				await this.pollOnce();
+
+				// If we reach here, cloud responded
+				this._verifyConnectionOk = true;
+				this.safeSetState('info.connection', true, true);
+			} catch (e) {
+				this._verifyConnectionOk = false;
+				this.safeSetState('info.connection', false, true);
+				this.log.warn(
+					`No connection to thermostat cloud — write could not be verified! Error: ${e?.message || e}`,
+				);
+			}
 		}, 5000);
 	}
 
@@ -214,6 +229,7 @@ class SchlueterThermostat extends utils.Adapter {
 			await this.client.login();
 			this.log.debug('Login successful');
 			this.safeSetState('info.connection', true, true);
+			this._verifyConnectionOk = true;
 		} catch (e) {
 			this.log.error(`Login failed: ${e?.message || e}`);
 			return;
