@@ -51,6 +51,9 @@ class SchlueterThermostat extends utils.Adapter {
 		/** ThermostatId -> ThermostatName */
 		this.thermostatNameCache = {};
 
+		/** ThermostatId -> last Online state */
+		this.thermostatOnlineCache = {};
+
 		/** ThermostatId -> ComfortEndTime ISO */
 		this.thermostatComfortEnd = {};
 		/** ThermostatId -> BoostEndTime ISO */
@@ -633,7 +636,18 @@ class SchlueterThermostat extends utils.Adapter {
 			native: {},
 		});
 
-		this.safeSetState(`${devId}.online`, { val: Boolean(t?.Online), ack: true });
+		const onlineNow = Boolean(t?.Online);
+		this.safeSetState(`${devId}.online`, { val: onlineNow, ack: true });
+
+		const lastOnline = this.thermostatOnlineCache[thermostatId];
+		if (lastOnline !== undefined && lastOnline !== onlineNow) {
+			if (!onlineNow) {
+				this.log.warn(`Thermostat "${thermostatName}" (${thermostatId}) is OFFLINE!`);
+			} else {
+				this.log.info(`Thermostat "${thermostatName}" (${thermostatId}) is online again.`);
+			}
+		}
+		this.thermostatOnlineCache[thermostatId] = onlineNow;
 		this.safeSetState(`${devId}.heating`, { val: Boolean(t?.Heating), ack: true });
 
 		this.safeSetState(`${devId}.thermostatName`, { val: String(t?.ThermostatName || ''), ack: true });
