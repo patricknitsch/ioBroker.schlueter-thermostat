@@ -967,7 +967,8 @@ class SchlueterThermostat extends utils.Adapter {
 					throw new Error('Invalid temperature');
 				}
 				tempC = clamp(tempC, 12, 35);
-				const comfortToSend = this._nowPlusMinutesIso(180);
+				//const comfortToSend = this._nowPlusMinutesIso(180);
+				const comfortToSend = sub === 'endTime.comfortSet';
 				this.log.debug(
 					`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C) (ComfortEndTime=${comfortToSend})`,
 				);
