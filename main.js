@@ -682,11 +682,11 @@ class SchlueterThermostat extends utils.Adapter {
 		const boostEnd = this._formatIsoNoMsNoZ(t?.BoostEndTime || '');
 		if (comfortEnd) {
 			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
-			this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
+			//this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
 		}
 		if (boostEnd) {
 			this.safeSetState(`${devId}.endTime.boost`, boostEnd, true);
-			this.safeSetState(`${devId}.endTime.boostSet`, boostEnd, true);
+			//this.safeSetState(`${devId}.endTime.boostSet`, boostEnd, true);
 		}
 
 		const vEnabled = Boolean(t?.VacationEnabled);
