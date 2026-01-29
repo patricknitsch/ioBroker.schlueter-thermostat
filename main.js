@@ -34,7 +34,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Keep original adapter-core methods (avoid wrapper recursion)
 		this._origSetObjectNotExistsAsync = this.setObjectNotExistsAsync.bind(this);
-		this._origSetObjectAsync = this.setObjectAsync.bind(this);
+		this._origSetObjectAsync = this.setObject.bind(this);
 		this._origGetObjectAsync = this.getObjectAsync.bind(this);
 		this._origSetState = this.setState.bind(this);
 
@@ -74,6 +74,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this.unloading = false;
 		this.pollInFlight = false;
 		this.pollPromise = null;
+		this._verifyPollTimer = null;
 
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
@@ -130,6 +131,22 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 			throw e;
 		}
+	}
+
+	// ============================================================================
+	// Verify Poll Scheduling
+	// ============================================================================
+	_scheduleVerifyPoll() {
+		if (this.unloading) {
+			return;
+		}
+		if (this._verifyPollTimer) {
+			clearTimeout(this._verifyPollTimer);
+		}
+		this._verifyPollTimer = setTimeout(() => {
+			this._verifyPollTimer = null;
+			this.pollOnce().catch(err => this.log.debug(`verify poll failed: ${err?.message || err}`));
+		}, 5000);
 	}
 
 	// ============================================================================
@@ -912,6 +929,7 @@ class SchlueterThermostat extends utils.Adapter {
 					ManualModeSetpoint: cToNum(tempC),
 				});
 				this.safeSetState(id, { val: tempC, ack: true });
+				this._scheduleVerifyPoll();
 			} else if (sub === 'setpoint.comfortSet') {
 				let tempC = Number(state.val);
 				if (!Number.isFinite(tempC)) {
@@ -931,6 +949,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.safeSetState(`${devPrefix}.endTime.comfort`, comfortToSend, true);
 				this.safeSetState(`${devPrefix}.endTime.comfortSet`, comfortToSend, true);
 				this.safeSetState(id, { val: tempC, ack: true });
+				this._scheduleVerifyPoll();
 			} else if (sub === 'regulationModeSet') {
 				let mode = Number(state.val);
 				if (!Number.isFinite(mode)) {
@@ -949,6 +968,7 @@ class SchlueterThermostat extends utils.Adapter {
 					this.thermostatBoostEnd[thermostatId] = boostToSend;
 					this.safeSetState(`${devPrefix}.endTime.boost`, boostToSend, true);
 					this.safeSetState(`${devPrefix}.endTime.boostSet`, boostToSend, true);
+					this._scheduleVerifyPoll();
 				} else {
 					this.log.debug(`Write: UpdateThermostat serial=${serial} (RegulationMode=${mode})`);
 					await client.updateThermostat(serial, {
@@ -973,6 +993,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatNameCache[thermostatId] = newName;
 				this.safeSetState(id, { val: newName, ack: true });
 				this.safeSetState(`${devPrefix}.thermostatName`, { val: newName, ack: true });
+				this._scheduleVerifyPoll();
 			} else if (sub === 'vacation.enabledSet') {
 				const enabled = Boolean(state.val);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEnabled=${enabled})`);
@@ -985,6 +1006,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatVacationEnabled[thermostatId] = enabled;
 				this.safeSetState(id, { val: enabled, ack: true });
 				this.safeSetState(`${devPrefix}.vacation.enabled`, { val: enabled, ack: true });
+				this._scheduleVerifyPoll();
 			} else if (sub === 'vacation.beginSet') {
 				const beginIso = this._parseIsoOrMinutes(state.val, 0);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationBeginDay=${beginIso})`);
@@ -997,6 +1019,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatVacationBegin[thermostatId] = beginIso;
 				this.safeSetState(id, { val: beginIso, ack: true });
 				this.safeSetState(`${devPrefix}.vacation.begin`, { val: beginIso, ack: true });
+				this._scheduleVerifyPoll();
 			} else if (sub === 'vacation.endSet') {
 				const endIso = this._parseIsoOrMinutes(state.val, 0);
 				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEndDay=${endIso})`);
@@ -1009,6 +1032,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatVacationEnd[thermostatId] = endIso;
 				this.safeSetState(id, { val: endIso, ack: true });
 				this.safeSetState(`${devPrefix}.vacation.end`, { val: endIso, ack: true });
+				this._scheduleVerifyPoll();
 			} else if (sub === 'vacation.temperatureSet') {
 				let tempC = Number(state.val);
 				if (!Number.isFinite(tempC)) {
@@ -1027,6 +1051,7 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatVacationTemp[thermostatId] = tempNum;
 				this.safeSetState(id, { val: tempC, ack: true });
 				this.safeSetState(`${devPrefix}.vacation.temperature`, { val: tempC, ack: true });
+				this._scheduleVerifyPoll();
 			} else {
 				this.log.debug(`Write ignored (unknown sub-path): ${sub}`);
 				this.safeSetState(id, { val: state.val, ack: true });
@@ -1047,6 +1072,9 @@ class SchlueterThermostat extends utils.Adapter {
 
 			if (this.pollTimer) {
 				clearInterval(this.pollTimer);
+			}
+			if (this._verifyPollTimer) {
+				clearTimeout(this._verifyPollTimer);
 			}
 
 			const p = this.pollPromise;

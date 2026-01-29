@@ -11,7 +11,7 @@
 
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.schlueter-thermostat/workflows/Test%20and%20Release/badge.svg)
 
-# Schlueter Thermostat
+## Schlueter Thermostat
 
 Cloud adapter for **Schlüter / OJ Microline OWD5 thermostats**.\
 The adapter connects to the official **OWD5 (read)** and **OCD5
@@ -20,14 +20,14 @@ The adapter connects to the official **OWD5 (read)** and **OCD5
 This adapter is **cloud-only** --- no local gateway or Modbus required.
 The complete API can be tested at: https://ocd5.azurewebsites.net/swagger/ui/index#/
 
-## Attention:
+### Attention:
 
 I only have one thermostat. So I'm not sure, how it looks like with multiple thermostats.
-I will check it, if I get a second one, especially for energy valuse for each thermostat.
+I will check it, if I get a second one, especially for energy values of each thermostat.
 
 ---
 
-## 🧩 Architecture
+### 🧩 Architecture
 
     ioBroker
        │
@@ -53,7 +53,7 @@ I will check it, if I get a second one, especially for energy valuse for each th
 
 ---
 
-## ⚙ How the Adapter Works
+### ⚙ How the Adapter Works
 
 1.  **Login** to OWD5 cloud with your credentials.
 2.  **Polling** at configured interval (default 60s):
@@ -68,22 +68,22 @@ I will check it, if I get a second one, especially for energy valuse for each th
 
 ---
 
-## 👤 Required User Data
+### 👤 Required User Data
 
 Setting Description
 
 ---
 
-Username Your Schlüter/OJ cloud login -> **setted in your APP**
-Password Cloud password -> **setted in your APP**
-API Key Provided API key -> **use Default; It seems to work**
-Customer ID Your cloud customer ID -> **to find in you thermostat information**
-Client SW Version Required by API (numeric) -> **to find in your thermostat information**
-Poll Interval Seconds between cloud polls
+1. Username Your Schlüter/OJ cloud login -> **setted in your APP**
+2. Password Cloud password -> **setted in your APP**
+3. API Key Provided API key -> **use Default; It seems to work**
+4. Customer ID Your cloud customer ID -> **to find in you thermostat information**
+5. Client SW Version Required by API (numeric) -> **to find in your thermostat information**
+6. Poll Interval Seconds between cloud polls
 
 ---
 
-## 🏠 Object Structure
+### 🏠 Object Structure
 
     schlueter-thermostat.0
     └─ groups
@@ -93,42 +93,42 @@ Poll Interval Seconds between cloud polls
 
 ---
 
-## 🌡 What Can Be Read
+### 🌡 What Can Be Read
 
 Category States
 
 ---
 
-Temperatures Room, Floor
-Setpoints Manual, Comfort
-Modes RegulationMode
-End Times ComfortEndTime, BoostEndTime
-Vacation Enabled, Begin, End, Temperature
-Schedule All days + events
-Energy kWh history values
+- Temperatures Room, Floor
+- Setpoints Manual, Comfort
+- Modes RegulationMode
+- End Times ComfortEndTime, BoostEndTime
+- Vacation Enabled, Begin, End, Temperature
+- Schedule All days + events
+- Energy kWh history values
 
 ---
 
-## ✍ What Can Be Written
+### ✍ What Can Be Written
 
 State Description
 
 ---
 
-setpoint.manualSet Manual temperature
-setpoint.comfortSet Comfort temperature
-regulationModeSet Mode change
-thermostatNameSet Rename thermostat
-endTime.comfortSet Comfort end time
-endTime.boostSet Boost end time
-vacation.enabledSet Enable vacation
-vacation.beginSet Vacation start
-vacation.endSet Vacation end
-vacation.temperatureSet Vacation temperature
+- setpoint.manualSet Manual temperature
+- setpoint.comfortSet Comfort temperature
+- regulationModeSet Mode change
+- thermostatNameSet Rename thermostat
+- endTime.comfortSet Comfort end time
+- endTime.boostSet Boost end time
+- vacation.enabledSet Enable vacation
+- vacation.beginSet Vacation start
+- vacation.endSet Vacation end
+- vacation.temperatureSet Vacation temperature
 
 ---
 
-## 🔥 Reglulation Mode Logic
+### 🔥 Reglulation Mode Logic
 
 When `regulationModeSet = 1`:
 
@@ -154,11 +154,11 @@ When `regulationModeSet = 9`:
 - Eco Mode is active
 - Temperature = 20 degrees
 
-There some more......
+There`s some more......
 
 ---
 
-## 🔁 State Flow Diagram
+### 🔁 State Flow Diagram
 
                 ┌──────────┐
                 │   AUTO   │
@@ -188,7 +188,7 @@ Vacation overrides all heating modes when enabled.
 
 ---
 
-## ⚡ Energy
+### ⚡ Energy
 
 Energy values are provided per thermostat:
 
@@ -197,9 +197,9 @@ Energy values are provided per thermostat:
     energy.value1
     ...
 
-## **It starts with the Energy from today.**
+### **It starts with the Energy from today.**
 
-## 🛡 Stability
+### 🛡 Stability
 
 - Safe object/state wrappers
 - Graceful shutdown
@@ -208,20 +208,26 @@ Energy values are provided per thermostat:
 
 ---
 
-## 🐛 Debug
+### 🐛 Debug
 
 Enable **debug log level** to see cloud communication.
 
 ---
 
-## 📦 Version
+### 📦 Version
 
-### Changelog
+#### Changelog
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Update Readme
+- (patricknitsch) Verify Polling if Thermostat give no Response
+
 ### 0.2.4 (2026-01-28)
 
 - (patricknitsch) Change Format of Times
