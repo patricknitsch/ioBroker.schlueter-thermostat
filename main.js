@@ -978,7 +978,7 @@ class SchlueterThermostat extends utils.Adapter {
 					ComfortEndTime: comfortToSend,
 				});
 				this.safeSetState(`${devPrefix}.endTime.comfort`, comfortToSend, true);
-				this.safeSetState(`${devPrefix}.endTime.comfortSet`, comfortToSend, true);
+				//this.safeSetState(`${devPrefix}.endTime.comfortSet`, comfortToSend, true);
 				this.safeSetState(id, { val: tempC, ack: true });
 				this._scheduleVerifyPoll();
 			} else if (sub === 'regulationModeSet') {
@@ -998,7 +998,7 @@ class SchlueterThermostat extends utils.Adapter {
 					});
 					this.thermostatBoostEnd[thermostatId] = boostToSend;
 					this.safeSetState(`${devPrefix}.endTime.boost`, boostToSend, true);
-					this.safeSetState(`${devPrefix}.endTime.boostSet`, boostToSend, true);
+					//this.safeSetState(`${devPrefix}.endTime.boostSet`, boostToSend, true);
 					this._scheduleVerifyPoll();
 				} else {
 					this.log.debug(`Write: UpdateThermostat serial=${serial} (RegulationMode=${mode})`);
