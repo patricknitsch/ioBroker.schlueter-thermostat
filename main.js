@@ -25,7 +25,9 @@
 // - Block ALL writes unless thermostat is online.
 // - Delete old writable "*Set" states (legacy) and do not recreate them.
 // - Apply concept: only pressing apply.*.apply sends data.
-// - Time strings: "YYYY-MM-DDTHH:mm:ss" (no ms, no trailing Z)
+// - Time strings sent/stored as: "YYYY-MM-DDTHH:mm:ss.SSSZ" (UTC, ms + trailing Z)
+// - If cloud returns "naive" ISO strings without timezone, interpret them using
+//   Thermostat.TimeZone (seconds offset, e.g. 3600) and convert to UTC ISO Z.
 // ============================================================================
 
 const utils = require('@iobroker/adapter-core');
@@ -64,6 +66,9 @@ class SchlueterThermostat extends utils.Adapter {
 		this.thermostatVacationEnd = {};
 		/** ThermostatId -> VacationTemperature (numeric units) */
 		this.thermostatVacationTemp = {};
+
+		/** ThermostatId -> TimeZone seconds offset (e.g. 3600) */
+		this.thermostatTimeZoneSec = {};
 
 		/** GroupId -> GroupName */
 		this.groupNameCache = {};
@@ -206,58 +211,95 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Time formatting (with ms + trailing Z) -> "YYYY-MM-DDTHH:mm:ss.SSSZ"
+	// Time formatting (with ms + trailing Z) and TimeZone handling
+	// - If the input already has timezone (Z or ±HH:MM), Date() parsing is enough.
+	// - If the input is "naive" ISO without timezone, interpret it as thermostat-local
+	//   time with TimeZone seconds offset and convert to UTC ISO (…Z).
 	// ============================================================================
 
-	_formatIsoMsZ(value) {
+	_parseNaiveIsoAsThermostatLocalToUtcIso(value, timeZoneSec) {
+		const s = (value ?? '').toString().trim();
+		if (!s) {
+			return '';
+		}
+
+		// If it already contains timezone info: Z or ±HH:MM or ±HHMM at end
+		if (/[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s)) {
+			const d = new Date(s);
+			return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+		}
+
+		// Match naive ISO: YYYY-MM-DDTHH:mm:ss(.SSS)?
+		const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/);
+		if (!m) {
+			// last resort: try Date parse (may assume system tz) then toISOString
+			const d = new Date(s);
+			return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+		}
+
+		const year = Number(m[1]);
+		const month = Number(m[2]);
+		const day = Number(m[3]);
+		const hour = Number(m[4]);
+		const minute = Number(m[5]);
+		const second = m[6] ? Number(m[6]) : 0;
+
+		let ms = 0;
+		if (m[7]) {
+			const frac = m[7].padEnd(3, '0').slice(0, 3);
+			ms = Number(frac);
+		}
+
+		const tzSec = Number.isFinite(Number(timeZoneSec)) ? Number(timeZoneSec) : 0;
+
+		// Treat string as thermostat-local time (offset tzSec from UTC).
+		// Convert local -> UTC by subtracting offset.
+		const utcMs = Date.UTC(year, month - 1, day, hour, minute, second, ms) - tzSec * 1000;
+		return new Date(utcMs).toISOString();
+	}
+
+	_formatIsoMsZ(value, timeZoneSec = 0) {
 		if (!value) {
 			return '';
 		}
 
-		let d;
 		if (value instanceof Date) {
-			d = value;
-		} else {
-			d = new Date(String(value));
+			return value.toISOString();
 		}
 
-		// If it's parseable, normalize to strict UTC ISO with ms + Z
-		if (!Number.isNaN(d.getTime())) {
-			return d.toISOString(); // e.g. 2026-01-28T10:00:05.960Z
-		}
-
-		// Fallback: keep string as-is, but try to "upgrade" common variants
-		// - if someone passed "...Z" already -> keep
-		// - if someone passed without timezone -> do not guess timezone, keep
 		const s = String(value).trim();
-
-		// If string looks like ISO without ms but with Z, add .000 before Z
-		if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(s)) {
-			return s.replace(/Z$/, '.000Z');
+		if (!s) {
+			return '';
 		}
 
-		// If string looks like ISO with ms but missing Z, keep (do not assume UTC)
-		return s;
+		// If string explicitly has timezone, normalize through Date()
+		if (/[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s)) {
+			const d = new Date(s);
+			return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+		}
+
+		// Otherwise interpret as thermostat-local naive time
+		return this._parseNaiveIsoAsThermostatLocalToUtcIso(s, timeZoneSec) || '';
 	}
 
 	_nowPlusMinutesIso(minutes) {
-		return this._formatIsoMsZ(new Date(Date.now() + minutes * 60 * 1000));
+		// Relative durations: instant in time, always safe as UTC ISO
+		return new Date(Date.now() + minutes * 60 * 1000).toISOString();
 	}
 
-	_parseIsoOrMinutes(value, defaultMinutes) {
+	_parseIsoOrMinutes(value, defaultMinutes, timeZoneSec = 0) {
 		const v = value === null || value === undefined ? '' : String(value).trim();
 		if (!v) {
 			return this._nowPlusMinutesIso(defaultMinutes);
 		}
 
-		// numbers mean minutes from now
 		const asNum = Number(v);
 		if (Number.isFinite(asNum) && v.match(/^\d+(\.\d+)?$/)) {
 			return this._nowPlusMinutesIso(asNum);
 		}
 
-		// otherwise treat as date string and normalize if possible
-		return this._formatIsoMsZ(v) || this._nowPlusMinutesIso(defaultMinutes);
+		const normalized = this._formatIsoMsZ(v, timeZoneSec);
+		return normalized || this._nowPlusMinutesIso(defaultMinutes);
 	}
 
 	async _getSerialFromObject(groupId, thermostatId) {
@@ -474,6 +516,14 @@ class SchlueterThermostat extends utils.Adapter {
 			this.thermostatVacationTemp[thermostatId] = Number(t.VacationTemperature);
 		}
 
+		// TimeZone (seconds offset from UTC, e.g. 3600)
+		if (t?.TimeZone !== undefined && t?.TimeZone !== null) {
+			const tz = Number(t.TimeZone);
+			if (Number.isFinite(tz)) {
+				this.thermostatTimeZoneSec[thermostatId] = tz;
+			}
+		}
+
 		this.log.debug(
 			`upsertThermostat(): GroupId=${groupId} ThermostatId=${thermostatId} Serial=${serial} Name=${thermostatName}`,
 		);
@@ -678,8 +728,16 @@ class SchlueterThermostat extends utils.Adapter {
 		const mode = Number(t?.RegulationMode ?? 0);
 		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
 
-		const comfortEnd = this._formatIsoMsZ(t?.ComfortEndTime || '');
-		const boostEnd = this._formatIsoMsZ(t?.BoostEndTime || '');
+		// Use thermostat TimeZone seconds when normalizing naive end times
+		let tzSec = this.thermostatTimeZoneSec[thermostatId];
+
+		if (!Number.isFinite(tzSec)) {
+			const parsed = Number(t?.TimeZone);
+			tzSec = Number.isFinite(parsed) ? parsed : 0;
+		}
+
+		const comfortEnd = this._formatIsoMsZ(t?.ComfortEndTime || '', tzSec);
+		const boostEnd = this._formatIsoMsZ(t?.BoostEndTime || '', tzSec);
 		if (comfortEnd) {
 			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
 		}
@@ -1029,6 +1087,7 @@ class SchlueterThermostat extends utils.Adapter {
 				let dur = await readNum(`${devPrefix}.apply.comfort.durationMinutes`, 180);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
+				// Always send ISO UTC with ms + Z
 				const comfortEnd = this._nowPlusMinutesIso(dur);
 
 				await client.updateThermostat(serial, {
@@ -1056,6 +1115,7 @@ class SchlueterThermostat extends utils.Adapter {
 				let dur = await readNum(`${devPrefix}.apply.boost.durationMinutes`, 60);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
+				// Always send ISO UTC with ms + Z
 				const boostEnd = this._nowPlusMinutesIso(dur);
 
 				await client.updateThermostat(serial, {
