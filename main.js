@@ -5,33 +5,13 @@
 // schlueter-thermostat
 // Cloud-only adapter for OJ Microline / Schlüter OWD5/OCD5
 //
-// Object structure (NEW):
-// groups.<GroupId>              (device, name = GroupName)
-//   .thermostats                (channel)
-//     .<ThermostatId>           (device, name = ThermostatName)
-//        .temperature.*
-//        .setpoint.*
-//        .regulationMode*
-//        .endTime.*
-//        .vacation.*
-//        .schedule.*
-//        .energy.*
-//        .apply.*               (apply-only controls)
-//
-// Robustness:
-// - Poll every 60s (min 10s).
-// - If poll fails, info.connection = false.
-// - Warn once when a thermostat turns offline (online true -> false).
-// - Block ALL writes unless thermostat is online.
-// - Delete old writable "*Set" states (legacy) and do not recreate them.
-// - Apply concept: only pressing apply.*.apply sends data.
-//
-// Time handling (UPDATED):
-// - OUTGOING (ComfortEndTime / BoostEndTime): send THERMOSTAT LOCAL time WITHOUT Z:
+// Time handling (FINAL):
+// - OUTGOING EndTimes (Comfort/Boost): send UTC time WITHOUT Z and WITHOUT ms:
 //     "YYYY-MM-DDTHH:mm:ss"
-//   computed by: (UTC now + duration) + TimeZoneSec
+//   Reason: backend interprets naive timestamps as UTC and applies thermostat TimeZone.
+//   This fixes the "need 2h to get 1h" symptom.
 // - INCOMING EndTimes:
-//   - if cloud returns "…Z" or "+/-HH:MM": convert to thermostat local no-Z
+//   - if cloud returns "…Z" or "+/-HH:MM": convert to thermostat local no-Z (device display)
 //   - if cloud returns naive "YYYY-…": treat as thermostat local, strip ms if any
 // ============================================================================
 
@@ -213,17 +193,15 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Time formatting (Thermostat local WITHOUT Z for outgoing EndTimes)
+	// Time helpers
 	// ============================================================================
 
 	_getTzSec(thermostatId, t) {
-		// prefer cached
 		const cached = this.thermostatTimeZoneSec[thermostatId];
 		if (Number.isFinite(cached)) {
 			return cached;
 		}
 
-		// parse from object
 		const parsed = Number(t?.TimeZone);
 		if (Number.isFinite(parsed)) {
 			return parsed;
@@ -236,26 +214,28 @@ class SchlueterThermostat extends utils.Adapter {
 		return String(n).padStart(2, '0');
 	}
 
-	// Format an instant (ms since epoch) into thermostat-local time WITHOUT Z:
-	// "YYYY-MM-DDTHH:mm:ss"
+	// OUTGOING: UTC without Z, without ms -> "YYYY-MM-DDTHH:mm:ss"
+	_nowPlusMinutesUtcNoZ(minutes) {
+		const utcMs = Date.now() + minutes * 60 * 1000;
+		// toISOString() -> "...SSSZ" => remove ".SSS" and trailing "Z"
+		return new Date(utcMs)
+			.toISOString()
+			.replace(/\.\d{3}Z$/, '')
+			.replace(/Z$/, '');
+	}
+
+	// Convert an instant to thermostat-local without Z for display/storage
 	_formatThermostatLocalNoZFromUtcMs(utcMs, timeZoneSec) {
 		const tz = Number.isFinite(timeZoneSec) ? timeZoneSec : 0;
 		const localMs = utcMs + tz * 1000;
 		const d = new Date(localMs);
 
-		// Use UTC getters because we've already shifted by tz into "local"
 		return `${d.getUTCFullYear()}-${this._pad2(d.getUTCMonth() + 1)}-${this._pad2(d.getUTCDate())}T${this._pad2(
 			d.getUTCHours(),
 		)}:${this._pad2(d.getUTCMinutes())}:${this._pad2(d.getUTCSeconds())}`;
 	}
 
-	_nowPlusMinutesThermostatLocalNoZ(minutes, timeZoneSec) {
-		const utcMs = Date.now() + minutes * 60 * 1000;
-		return this._formatThermostatLocalNoZFromUtcMs(utcMs, timeZoneSec);
-	}
-
-	_stripMsAndZoneKeepLocalNoZ(s) {
-		// normalize to "YYYY-MM-DDTHH:mm:ss" if possible
+	_stripMsKeepLocalNoZ(s) {
 		if (!s) {
 			return '';
 		}
@@ -264,16 +244,16 @@ class SchlueterThermostat extends utils.Adapter {
 			return '';
 		}
 
-		// If already without zone but with ms: 2026-01-30T20:18:51.424 -> strip .SSS
+		// strip .SSS if present
 		const msStripped = x.replace(/\.\d{1,3}(?=($|[zZ]|[+-]\d{2}:?\d{2}$))/, '');
 
-		// If ends with Z or offset, we do NOT keep it here (caller decides)
+		// remove zone suffix if any (caller decides when to keep zone)
 		return msStripped.replace(/[zZ]$/, '').replace(/[+-]\d{2}:?\d{2}$/, '');
 	}
 
-	// Incoming EndTime -> thermostat local no-Z
-	// - if input has Z/offset: parse as instant and convert to thermostat local
-	// - else: treat as thermostat local and normalize (strip ms)
+	// Incoming EndTime -> thermostat local no-Z:
+	// - has Z/offset => parse instant and convert to thermostat local
+	// - naive => treat as thermostat local and normalize (strip ms)
 	_toThermostatLocalNoZFromAny(value, timeZoneSec) {
 		if (!value) {
 			return '';
@@ -293,10 +273,7 @@ class SchlueterThermostat extends utils.Adapter {
 			return this._formatThermostatLocalNoZFromUtcMs(d.getTime(), timeZoneSec);
 		}
 
-		// naive: assume already thermostat-local
-		const noZone = this._stripMsAndZoneKeepLocalNoZ(s);
-
-		// ensure it looks like "YYYY-MM-DDTHH:mm:ss"
+		const noZone = this._stripMsKeepLocalNoZ(s);
 		const m = noZone.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
 		if (!m) {
 			return noZone;
@@ -492,7 +469,6 @@ class SchlueterThermostat extends utils.Adapter {
 		const groupDev = `groups.${safeId(groupId)}`;
 		const devId = `${groupDev}.thermostats.${safeId(thermostatId)}`;
 
-		// Cache mappings
 		const serial = t?.SerialNumber ? String(t.SerialNumber) : '';
 		if (serial) {
 			this.thermostatSerial[thermostatId] = serial;
@@ -585,6 +561,7 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
+
 		await ensureState(`${devId}.setpoint.manual`, {
 			name: 'Manual setpoint',
 			type: 'number',
@@ -723,7 +700,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 		this.safeSetState(`${devId}.regulationMode`, { val: Number(t?.RegulationMode ?? 0), ack: true });
 
-		// EndTimes: store as THERMOSTAT LOCAL no-Z
+		// EndTimes: store as THERMOSTAT LOCAL no-Z (device-display style)
 		const comfortEndLocal = this._toThermostatLocalNoZFromAny(t?.ComfortEndTime || '', tzSec);
 		const boostEndLocal = this._toThermostatLocalNoZFromAny(t?.BoostEndTime || '', tzSec);
 
@@ -1030,7 +1007,6 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
-		// SerialNumber for writes
 		let serial = this.thermostatSerial[thermostatId];
 		if (!serial) {
 			serial = await this._getSerialFromObject(groupId, thermostatId);
@@ -1045,7 +1021,6 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
-
 		const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 		const readNum = async (sid, def) => {
@@ -1055,9 +1030,6 @@ class SchlueterThermostat extends utils.Adapter {
 		};
 
 		const baseName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
-
-		// IMPORTANT: outgoing EndTimes must be thermostat local no-Z
-		const tzSec = this._getTzSec(thermostatId, null);
 
 		try {
 			const modeFolder = parts[idxApply + 1]; // schedule / comfort / manual / boost / eco
@@ -1071,17 +1043,18 @@ class SchlueterThermostat extends utils.Adapter {
 				let dur = await readNum(`${devPrefix}.apply.comfort.durationMinutes`, 180);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				const comfortEndLocal = this._nowPlusMinutesThermostatLocalNoZ(dur, tzSec);
+				// OUTGOING: UTC no-Z to match backend behavior
+				const comfortEnd = this._nowPlusMinutesUtcNoZ(dur);
 
 				await client.updateThermostat(serial, {
 					ThermostatName: baseName,
 					RegulationMode: 2,
 					ComfortSetpoint: cToNum(tempC),
-					ComfortEndTime: comfortEndLocal, // <--- thermostat local no-Z
+					ComfortEndTime: comfortEnd,
 				});
 
-				this.thermostatComfortEnd[thermostatId] = comfortEndLocal;
-				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortEndLocal, ack: true });
+				// mirror the value we sent (note: displayed as local elsewhere)
+				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortEnd, ack: true });
 			} else if (modeFolder === 'manual') {
 				let tempC = await readNum(`${devPrefix}.apply.manual.setpoint`, 21);
 				tempC = clamp(tempC, 12, 35);
@@ -1095,16 +1068,16 @@ class SchlueterThermostat extends utils.Adapter {
 				let dur = await readNum(`${devPrefix}.apply.boost.durationMinutes`, 60);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				const boostEndLocal = this._nowPlusMinutesThermostatLocalNoZ(dur, tzSec);
+				// OUTGOING: UTC no-Z to match backend behavior
+				const boostEnd = this._nowPlusMinutesUtcNoZ(dur);
 
 				await client.updateThermostat(serial, {
 					ThermostatName: baseName,
 					RegulationMode: 8,
-					BoostEndTime: boostEndLocal, // <--- thermostat local no-Z
+					BoostEndTime: boostEnd,
 				});
 
-				this.thermostatBoostEnd[thermostatId] = boostEndLocal;
-				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostEndLocal, ack: true });
+				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostEnd, ack: true });
 			} else if (modeFolder === 'eco') {
 				await client.updateThermostat(serial, { ThermostatName: baseName, RegulationMode: 9 });
 			} else {
