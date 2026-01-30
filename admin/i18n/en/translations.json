@@ -9,5 +9,7 @@
 	"Poll interval (seconds)": "Poll interval (seconds)",
 	"Energy History (0=current)": "Energy History (0=current)",
 	"Energy ViewType (2=week,3=month,4=year)": "Energy ViewType (2=week,3=month,4=year)",
+	"Legacy Cleanup (1=enabled,0=disabled)": "Legacy Cleanup (1=enabled,0=disabled)",
+	"Time zone for timestamps": "Time zone for timestamps",
 	"OWD5 cloud only. Devices are created per GroupId. Writeback uses Group/UpdateGroup. Energy uses EnergyUsage/GetEnergyUsage with ThermostatID (Thermostats[].Id).": "OWD5 cloud only. Devices are created per GroupId. Writeback uses Group/UpdateGroup. Energy uses EnergyUsage/GetEnergyUsage with ThermostatID (Thermostats[].Id)."
 }

@@ -138,7 +138,8 @@
 		"pollIntervalSec": 60,
 		"energyHistory": 0,
 		"energyViewType": 2,
-		"legacyCleanup": false
+		"legacyCleanup": false,
+		"timeZone": "Europe/Berlin"
 	},
 	"protectedNative": ["password", "apiKey", "customerId"],
 	"objects": [],
