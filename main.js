@@ -19,15 +19,20 @@
 //        .apply.*               (apply-only controls)
 //
 // Robustness:
-// - Poll every 60s (min 60s).
+// - Poll every 60s (min 10s).
 // - If poll fails, info.connection = false.
 // - Warn once when a thermostat turns offline (online true -> false).
 // - Block ALL writes unless thermostat is online.
 // - Delete old writable "*Set" states (legacy) and do not recreate them.
 // - Apply concept: only pressing apply.*.apply sends data.
-// - Time strings sent/stored as: "YYYY-MM-DDTHH:mm:ss.SSSZ" (UTC, ms + trailing Z)
-// - If cloud returns "naive" ISO strings without timezone, interpret them using
-//   Thermostat.TimeZone (seconds offset, e.g. 3600) and convert to UTC ISO Z.
+//
+// Time handling (UPDATED):
+// - OUTGOING (ComfortEndTime / BoostEndTime): send THERMOSTAT LOCAL time WITHOUT Z:
+//     "YYYY-MM-DDTHH:mm:ss"
+//   computed by: (UTC now + duration) + TimeZoneSec
+// - INCOMING EndTimes:
+//   - if cloud returns "…Z" or "+/-HH:MM": convert to thermostat local no-Z
+//   - if cloud returns naive "YYYY-…": treat as thermostat local, strip ms if any
 // ============================================================================
 
 const utils = require('@iobroker/adapter-core');
@@ -53,9 +58,9 @@ class SchlueterThermostat extends utils.Adapter {
 		/** ThermostatId -> ThermostatName */
 		this.thermostatNameCache = {};
 
-		/** ThermostatId -> ComfortEndTime ISO */
+		/** ThermostatId -> ComfortEndTime (thermostat local no-Z) */
 		this.thermostatComfortEnd = {};
-		/** ThermostatId -> BoostEndTime ISO */
+		/** ThermostatId -> BoostEndTime (thermostat local no-Z) */
 		this.thermostatBoostEnd = {};
 
 		/** ThermostatId -> VacationEnabled */
@@ -67,7 +72,7 @@ class SchlueterThermostat extends utils.Adapter {
 		/** ThermostatId -> VacationTemperature (numeric units) */
 		this.thermostatVacationTemp = {};
 
-		/** ThermostatId -> TimeZone seconds offset (e.g. 3600) */
+		/** ThermostatId -> TimeZone offset seconds (e.g. 3600) */
 		this.thermostatTimeZoneSec = {};
 
 		/** GroupId -> GroupName */
@@ -163,8 +168,6 @@ class SchlueterThermostat extends utils.Adapter {
 	// ============================================================================
 
 	async legacyCleanup() {
-		// Old root: schlueter-thermostat.0.thermostats.*
-		// New root: schlueter-thermostat.0.groups.*
 		try {
 			const legacyRoot = await this.safeGetObject('thermostats');
 			if (!legacyRoot) {
@@ -186,7 +189,6 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 		this.legacyStatesDeleted[devId] = true;
 
-		// Old direct-write states that should not exist anymore
 		const legacyIds = [
 			`${devId}.setpoint.manualSet`,
 			`${devId}.setpoint.comfortSet`,
@@ -211,70 +213,103 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Time formatting (UTC, no ms, with trailing Z) -> "YYYY-MM-DDTHH:mm:ssZ"
-	// Handles thermostat TimeZone for naive ISO strings.
+	// Time formatting (Thermostat local WITHOUT Z for outgoing EndTimes)
 	// ============================================================================
 
-	_toIsoNoMsZ(date) {
-		// Normal ISO minus milliseconds
-		return new Date(date).toISOString().replace(/\.\d{3}Z$/, 'Z');
+	_getTzSec(thermostatId, t) {
+		// prefer cached
+		const cached = this.thermostatTimeZoneSec[thermostatId];
+		if (Number.isFinite(cached)) {
+			return cached;
+		}
+
+		// parse from object
+		const parsed = Number(t?.TimeZone);
+		if (Number.isFinite(parsed)) {
+			return parsed;
+		}
+
+		return 0;
 	}
 
-	_parseNaiveIsoAsThermostatLocalToUtcIsoNoMs(value, timeZoneSec) {
-		const s = (value ?? '').toString().trim();
+	_pad2(n) {
+		return String(n).padStart(2, '0');
+	}
+
+	// Format an instant (ms since epoch) into thermostat-local time WITHOUT Z:
+	// "YYYY-MM-DDTHH:mm:ss"
+	_formatThermostatLocalNoZFromUtcMs(utcMs, timeZoneSec) {
+		const tz = Number.isFinite(timeZoneSec) ? timeZoneSec : 0;
+		const localMs = utcMs + tz * 1000;
+		const d = new Date(localMs);
+
+		// Use UTC getters because we've already shifted by tz into "local"
+		return `${d.getUTCFullYear()}-${this._pad2(d.getUTCMonth() + 1)}-${this._pad2(d.getUTCDate())}T${this._pad2(
+			d.getUTCHours(),
+		)}:${this._pad2(d.getUTCMinutes())}:${this._pad2(d.getUTCSeconds())}`;
+	}
+
+	_nowPlusMinutesThermostatLocalNoZ(minutes, timeZoneSec) {
+		const utcMs = Date.now() + minutes * 60 * 1000;
+		return this._formatThermostatLocalNoZFromUtcMs(utcMs, timeZoneSec);
+	}
+
+	_stripMsAndZoneKeepLocalNoZ(s) {
+		// normalize to "YYYY-MM-DDTHH:mm:ss" if possible
 		if (!s) {
 			return '';
 		}
-
-		// Already has timezone → normalize
-		if (/[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s)) {
-			const d = new Date(s);
-			return Number.isNaN(d.getTime()) ? '' : this._toIsoNoMsZ(d);
-		}
-
-		// Match naive ISO
-		const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
-		if (!m) {
-			const d = new Date(s);
-			return Number.isNaN(d.getTime()) ? '' : this._toIsoNoMsZ(d);
-		}
-
-		const year = Number(m[1]);
-		const month = Number(m[2]);
-		const day = Number(m[3]);
-		const hour = Number(m[4]);
-		const minute = Number(m[5]);
-		const second = m[6] ? Number(m[6]) : 0;
-
-		const tzSec = Number.isFinite(timeZoneSec) ? timeZoneSec : 0;
-
-		const utcMs = Date.UTC(year, month - 1, day, hour, minute, second) - tzSec * 1000;
-		return this._toIsoNoMsZ(utcMs);
-	}
-
-	_formatIsoNoMsZ(value, timeZoneSec = 0) {
-		if (!value) {
+		const x = String(s).trim();
+		if (!x) {
 			return '';
 		}
 
-		if (value instanceof Date) {
-			return this._toIsoNoMsZ(value);
-		}
+		// If already without zone but with ms: 2026-01-30T20:18:51.424 -> strip .SSS
+		const msStripped = x.replace(/\.\d{1,3}(?=($|[zZ]|[+-]\d{2}:?\d{2}$))/, '');
 
+		// If ends with Z or offset, we do NOT keep it here (caller decides)
+		return msStripped.replace(/[zZ]$/, '').replace(/[+-]\d{2}:?\d{2}$/, '');
+	}
+
+	// Incoming EndTime -> thermostat local no-Z
+	// - if input has Z/offset: parse as instant and convert to thermostat local
+	// - else: treat as thermostat local and normalize (strip ms)
+	_toThermostatLocalNoZFromAny(value, timeZoneSec) {
+		if (!value) {
+			return '';
+		}
 		const s = String(value).trim();
 		if (!s) {
 			return '';
 		}
 
-		if (/[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s)) {
-			return this._toIsoNoMsZ(s);
+		const hasZone = /[zZ]$/.test(s) || /[+-]\d{2}:?\d{2}$/.test(s);
+
+		if (hasZone) {
+			const d = new Date(s);
+			if (Number.isNaN(d.getTime())) {
+				return '';
+			}
+			return this._formatThermostatLocalNoZFromUtcMs(d.getTime(), timeZoneSec);
 		}
 
-		return this._parseNaiveIsoAsThermostatLocalToUtcIsoNoMs(s, timeZoneSec) || '';
-	}
+		// naive: assume already thermostat-local
+		const noZone = this._stripMsAndZoneKeepLocalNoZ(s);
 
-	_nowPlusMinutesIso(minutes) {
-		return this._toIsoNoMsZ(Date.now() + minutes * 60 * 1000);
+		// ensure it looks like "YYYY-MM-DDTHH:mm:ss"
+		const m = noZone.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
+		if (!m) {
+			return noZone;
+		}
+
+		const year = m[1];
+		const mon = m[2];
+		const day = m[3];
+		const hh = m[4];
+		const mm = m[5];
+		const ss = m[6] ? m[6] : '00';
+
+		return `${year}-${mon}-${day}T${hh}:${mm}:${ss}`;
 	}
 
 	async _getSerialFromObject(groupId, thermostatId) {
@@ -284,12 +319,10 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	async _isThermostatOnline(groupId, thermostatId) {
-		// Prefer cache from poll (exact ThermostatId key, not safeId)
 		if (typeof this.lastOnline[thermostatId] === 'boolean') {
 			return this.lastOnline[thermostatId];
 		}
 
-		// Fallback: read state once
 		const devId = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 		try {
 			const st = await this.getStateAsync(`${devId}.online`);
@@ -337,19 +370,17 @@ class SchlueterThermostat extends utils.Adapter {
 
 		await this.safeSetObjectNotExists('groups', { type: 'channel', common: { name: 'Groups' }, native: {} });
 
-		// Cleanup legacy object tree from old versions (optional via config)
 		if (this.config.legacyCleanup === true) {
 			await this.legacyCleanup();
 		} else {
 			this.log.debug('legacyCleanup(): disabled by config');
 		}
 
-		// Poll interval: min 10 seconds
 		const intervalSec = Math.max(10, Number(this.config.pollIntervalSec) || 60);
 
 		await this.pollOnce();
 
-		// Subscribe ONLY apply buttons (no direct-write legacy states)
+		// Subscribe ONLY apply buttons
 		this.subscribeStates('groups.*.thermostats.*.apply.*.apply');
 
 		this.pollTimer = setInterval(() => {
@@ -471,13 +502,14 @@ class SchlueterThermostat extends utils.Adapter {
 		const thermostatName = String(t?.ThermostatName || `Thermostat ${thermostatId}`);
 		this.thermostatNameCache[thermostatId] = thermostatName;
 
-		if (t?.ComfortEndTime) {
-			this.thermostatComfortEnd[thermostatId] = String(t.ComfortEndTime);
+		// cache timezone
+		const parsedTz = Number(t?.TimeZone);
+		if (Number.isFinite(parsedTz)) {
+			this.thermostatTimeZoneSec[thermostatId] = parsedTz;
 		}
-		if (t?.BoostEndTime) {
-			this.thermostatBoostEnd[thermostatId] = String(t.BoostEndTime);
-		}
+		const tzSec = this._getTzSec(thermostatId, t);
 
+		// cache vacation
 		if (typeof t?.VacationEnabled === 'boolean') {
 			this.thermostatVacationEnabled[thermostatId] = Boolean(t.VacationEnabled);
 		}
@@ -491,16 +523,8 @@ class SchlueterThermostat extends utils.Adapter {
 			this.thermostatVacationTemp[thermostatId] = Number(t.VacationTemperature);
 		}
 
-		// TimeZone (seconds offset from UTC, e.g. 3600)
-		if (t?.TimeZone !== undefined && t?.TimeZone !== null) {
-			const tz = Number(t.TimeZone);
-			if (Number.isFinite(tz)) {
-				this.thermostatTimeZoneSec[thermostatId] = tz;
-			}
-		}
-
 		this.log.debug(
-			`upsertThermostat(): GroupId=${groupId} ThermostatId=${thermostatId} Serial=${serial} Name=${thermostatName}`,
+			`upsertThermostat(): GroupId=${groupId} ThermostatId=${thermostatId} Serial=${serial} Name=${thermostatName} TZsec=${tzSec}`,
 		);
 
 		await this.safeSetObjectNotExists(devId, {
@@ -517,7 +541,6 @@ class SchlueterThermostat extends utils.Adapter {
 			});
 		}
 
-		// Delete legacy direct-write states once
 		await this.deleteOldWritableStates(devId);
 
 		const ensureState = async (id, common) => {
@@ -562,7 +585,6 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-
 		await ensureState(`${devId}.setpoint.manual`, {
 			name: 'Manual setpoint',
 			type: 'number',
@@ -666,7 +688,6 @@ class SchlueterThermostat extends utils.Adapter {
 		const onlineNow = Boolean(t?.Online);
 		this.safeSetState(`${devId}.online`, { val: onlineNow, ack: true });
 
-		// warn once on transition: online -> offline
 		const prevOnline = this.lastOnline[thermostatId];
 		if (prevOnline === true && onlineNow === false && !this.warnedOffline[thermostatId]) {
 			const tName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
@@ -700,22 +721,19 @@ class SchlueterThermostat extends utils.Adapter {
 			this.safeSetState(`${devId}.setpoint.comfort`, { val: cs, ack: true });
 		}
 
-		const mode = Number(t?.RegulationMode ?? 0);
-		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
+		this.safeSetState(`${devId}.regulationMode`, { val: Number(t?.RegulationMode ?? 0), ack: true });
 
-		const tzCached = this.thermostatTimeZoneSec[thermostatId];
-		const parsedTz = Number(t?.TimeZone);
-		const tzSec = Number.isFinite(tzCached) ? tzCached : Number.isFinite(parsedTz) ? parsedTz : 0;
-		this.log.warn(`Host local time: ${new Date().toString()}`);
-		this.log.warn(`Host ISO (UTC):  ${new Date().toISOString()}`);
-		this.log.warn(`Thermostat TZsec: ${tzSec}`);
-		const comfortEnd = this._formatIsoNoMsZ(t?.ComfortEndTime || '', tzSec);
-		const boostEnd = this._formatIsoNoMsZ(t?.BoostEndTime || '', tzSec);
-		if (comfortEnd) {
-			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
+		// EndTimes: store as THERMOSTAT LOCAL no-Z
+		const comfortEndLocal = this._toThermostatLocalNoZFromAny(t?.ComfortEndTime || '', tzSec);
+		const boostEndLocal = this._toThermostatLocalNoZFromAny(t?.BoostEndTime || '', tzSec);
+
+		if (comfortEndLocal) {
+			this.thermostatComfortEnd[thermostatId] = comfortEndLocal;
+			this.safeSetState(`${devId}.endTime.comfort`, { val: comfortEndLocal, ack: true });
 		}
-		if (boostEnd) {
-			this.safeSetState(`${devId}.endTime.boost`, boostEnd, true);
+		if (boostEndLocal) {
+			this.thermostatBoostEnd[thermostatId] = boostEndLocal;
+			this.safeSetState(`${devId}.endTime.boost`, { val: boostEndLocal, ack: true });
 		}
 
 		const vEnabled = Boolean(t?.VacationEnabled);
@@ -1000,17 +1018,14 @@ class SchlueterThermostat extends utils.Adapter {
 		const groupId = parts[idxG + 1];
 		const thermostatId = parts[idxT + 1];
 
-		// Only react to apply buttons
 		const isApplyButton = id.endsWith('.apply');
 		if (!isApplyButton) {
 			return;
 		}
 
-		// Block writes if thermostat offline
 		const online = await this._isThermostatOnline(groupId, thermostatId);
 		if (!online) {
 			this.log.warn(`Write blocked: thermostat offline (ThermostatId=${thermostatId}) id=${id}`);
-			// reset button state to false (ack)
 			this.safeSetState(id, { val: false, ack: true });
 			return;
 		}
@@ -1041,40 +1056,33 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const baseName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
 
+		// IMPORTANT: outgoing EndTimes must be thermostat local no-Z
+		const tzSec = this._getTzSec(thermostatId, null);
+
 		try {
-			// Identify which mode folder
-			// id: groups.<g>.thermostats.<t>.apply.<mode>.apply
 			const modeFolder = parts[idxApply + 1]; // schedule / comfort / manual / boost / eco
 
 			if (modeFolder === 'schedule') {
-				// 1 -> schedule (only RegulationMode 1)
-				await client.updateThermostat(serial, {
-					ThermostatName: baseName,
-					RegulationMode: 1,
-				});
+				await client.updateThermostat(serial, { ThermostatName: baseName, RegulationMode: 1 });
 			} else if (modeFolder === 'comfort') {
-				// 2 -> comfort (EndTime + Setpoint Temperature)
 				let tempC = await readNum(`${devPrefix}.apply.comfort.setpoint`, 22);
 				tempC = clamp(tempC, 12, 35);
 
 				let dur = await readNum(`${devPrefix}.apply.comfort.durationMinutes`, 180);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				// Always send ISO UTC with ms + Z
-				const comfortEnd = this._nowPlusMinutesIso(dur);
+				const comfortEndLocal = this._nowPlusMinutesThermostatLocalNoZ(dur, tzSec);
 
 				await client.updateThermostat(serial, {
 					ThermostatName: baseName,
 					RegulationMode: 2,
 					ComfortSetpoint: cToNum(tempC),
-					ComfortEndTime: comfortEnd,
+					ComfortEndTime: comfortEndLocal, // <--- thermostat local no-Z
 				});
 
-				// mirror end time readouts
-				this.thermostatComfortEnd[thermostatId] = comfortEnd;
-				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortEnd, ack: true });
+				this.thermostatComfortEnd[thermostatId] = comfortEndLocal;
+				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortEndLocal, ack: true });
 			} else if (modeFolder === 'manual') {
-				// 3 -> manual (Setpoint Temperature)
 				let tempC = await readNum(`${devPrefix}.apply.manual.setpoint`, 21);
 				tempC = clamp(tempC, 12, 35);
 
@@ -1084,36 +1092,28 @@ class SchlueterThermostat extends utils.Adapter {
 					ManualModeSetpoint: cToNum(tempC),
 				});
 			} else if (modeFolder === 'boost') {
-				// 8 -> boost (End Time + duration; default 60 min)
 				let dur = await readNum(`${devPrefix}.apply.boost.durationMinutes`, 60);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				// Always send ISO UTC with ms + Z
-				const boostEnd = this._nowPlusMinutesIso(dur);
+				const boostEndLocal = this._nowPlusMinutesThermostatLocalNoZ(dur, tzSec);
 
 				await client.updateThermostat(serial, {
 					ThermostatName: baseName,
 					RegulationMode: 8,
-					BoostEndTime: boostEnd,
+					BoostEndTime: boostEndLocal, // <--- thermostat local no-Z
 				});
 
-				this.thermostatBoostEnd[thermostatId] = boostEnd;
-				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostEnd, ack: true });
+				this.thermostatBoostEnd[thermostatId] = boostEndLocal;
+				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostEndLocal, ack: true });
 			} else if (modeFolder === 'eco') {
-				// 9 -> eco (only RegulationMode 9)
-				await client.updateThermostat(serial, {
-					ThermostatName: baseName,
-					RegulationMode: 9,
-				});
+				await client.updateThermostat(serial, { ThermostatName: baseName, RegulationMode: 9 });
 			} else {
 				this.log.debug(`Apply ignored: unknown mode folder "${modeFolder}" (${id})`);
 			}
 
-			// reset button state
 			this.safeSetState(id, { val: false, ack: true });
 		} catch (e) {
 			this.log.error(`Apply failed for ${id}: ${e?.message || e}`);
-			// reset button state even on error to avoid stuck button
 			this.safeSetState(id, { val: false, ack: true });
 		}
 	}
@@ -1131,24 +1131,21 @@ class SchlueterThermostat extends utils.Adapter {
 				clearInterval(this.pollTimer);
 			}
 
-			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
 				let timeoutId = null;
-
 				const timeoutPromise = new Promise(resolve => {
 					timeoutId = setTimeout(resolve, 5000);
 				});
-
 				await Promise.race([p, timeoutPromise]);
-
 				if (timeoutId) {
 					clearTimeout(timeoutId);
 				}
 			}
 
 			callback();
-		} catch {
+		} catch (e) {
+			this.log.error(`onUnload error: ${e?.message || e}`);
 			callback();
 		}
 	}
