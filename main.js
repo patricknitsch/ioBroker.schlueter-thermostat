@@ -706,7 +706,9 @@ class SchlueterThermostat extends utils.Adapter {
 		const tzCached = this.thermostatTimeZoneSec[thermostatId];
 		const parsedTz = Number(t?.TimeZone);
 		const tzSec = Number.isFinite(tzCached) ? tzCached : Number.isFinite(parsedTz) ? parsedTz : 0;
-
+		this.log.warn(`Host local time: ${new Date().toString()}`);
+		this.log.warn(`Host ISO (UTC):  ${new Date().toISOString()}`);
+		this.log.warn(`Thermostat TZsec: ${tzSec}`);
 		const comfortEnd = this._formatIsoNoMsZ(t?.ComfortEndTime || '', tzSec);
 		const boostEnd = this._formatIsoNoMsZ(t?.BoostEndTime || '', tzSec);
 		if (comfortEnd) {
