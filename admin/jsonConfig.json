@@ -63,7 +63,8 @@
 					"md": 4,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4
+					"sm": 4,
+					"newLine": true
 				},
 				"pollIntervalSec": {
 					"type": "number",
@@ -76,6 +77,16 @@
 					"sm": 4,
 					"newLine": true
 				},
+				"legacyCleanup": {
+					"type": "checkbox",
+					"label": "Legacy Cleanup (1=enabled,0=disabled)",
+					"default": 1,
+					"xs": 12,
+					"md": 4,
+					"lg": 4,
+					"xl": 4,
+					"sm": 4
+				},
 				"energyHistory": {
 					"type": "number",
 					"label": "Energy History (0=current)",
@@ -84,7 +95,8 @@
 					"md": 4,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4
+					"sm": 4,
+					"newLine": true
 				},
 				"energyViewType": {
 					"type": "number",

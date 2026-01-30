@@ -1,177 +1,168 @@
 {
-  "common": {
-    "name": "schlueter-thermostat",
-    "version": "0.2.4",
-    "news": {
-      "0.2.4": {
-        "en": "Change Format of Times",
-        "de": "Format der Zeiten ändern",
-        "ru": "Изменение формата времени",
-        "pt": "Mudar o Formato dos Tempos",
-        "nl": "Formaat van tijden wijzigen",
-        "fr": "Modification du format des temps",
-        "it": "Cambia il formato dei tempi",
-        "es": "Formato de cambio de tiempos",
-        "pl": "Zmień format Times",
-        "uk": "Змінення форматів часу",
-        "zh-cn": "更改时间格式"
-      },
-      "0.2.3": {
-        "en": "Catch wrong values for Temperature and Regulation Mode",
-        "de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
-        "ru": "Улавливать неправильные значения температуры и режима регулирования",
-        "pt": "Valores errados de captura para a temperatura e o modo de regulação",
-        "nl": "Verkeerde vangwaarden voor temperatuur- en regelmodus",
-        "fr": "Capturer des valeurs erronées en mode température et régulation",
-        "it": "Cattura valori errati per la modalità Temperatura e Regolamento",
-        "es": "Obtener valores incorrectos para el modo de temperatura y regulación",
-        "pl": "Nieprawidłowe wartości połowu dla trybu temperatury i regulacji",
-        "uk": "Випадкові значення для режиму температури та регулювання",
-        "zh-cn": "获取温度和调节模式的错误值"
-      },
-      "0.2.2": {
-        "en": "Update setStates for ComfortMode\nMore Debugging",
-        "de": "Update setStates für ComfortMode\nMehr Debugging",
-        "ru": "Обновление setStates для ComfortMode\nБольше отладки",
-        "pt": "Atualizar os estados para o ComfortMode\nMais depuração",
-        "nl": "Update setStates voor ComfortMode\nMeer debuggen",
-        "fr": "Mettre à jour setStates for ComfortMode\nPlus de débogage",
-        "it": "Set di aggiornamentiStati per ComfortMode\nPiù Debug",
-        "es": "Estados de actualización para ComfortMode\nMás Debugging",
-        "pl": "Aktualizacja stanów dla ComfortMode\nWięcej debugowania",
-        "uk": "Оновлення адаптерів для ComfortMode\nБільше пробудження",
-        "zh-cn": "更新舒适模式设置状态\n更多调试"
-      },
-      "0.2.1": {
-        "en": "Fix JsonConfig",
-        "de": "JsonConfig",
-        "ru": "Исполнитель: JsonConfig",
-        "pt": "Corrigir o JsonConfig",
-        "nl": "Fix JsonConfig",
-        "fr": "Correction de JsonConfig",
-        "it": "Fissare JsonConfig",
-        "es": "Fix JsonConfig",
-        "pl": "Napraw JsonConfig",
-        "uk": "Фіксація JsonConfig",
-        "zh-cn": "修复 Json 连接"
-      },
-      "0.2.0": {
-        "en": "add automatic Refresh of Token after Error 403\nfix max Value of Regulation Mode to 9 for error preventing\nimprove Handling of Mode Settings",
-        "de": "hinzufügen automatisch Aktualisieren von Token nach Fehler 403\nmax. Wert des Regelmodus auf 9 zur Fehlerverhütung\nverbesserung der Handhabung von Moduseinstellungen",
-        "ru": "добавить автоматический Обновление токена после ошибки 403\nфиксировать максимальное значение режима регулирования до 9 для предотвращения ошибок\nулучшение обработки настроек режима",
-        "pt": "adicionar automático Atualizar o item após o erro 403\nfixar o valor máximo do modo de regulação até 9 para evitar erros\nmelhorar o manuseio das configurações do modo",
-        "nl": "automatisch toevoegen Verversen van Token na fout 403\nfix max Value of Regulation Mode to 9 for error preventing\nverbeteren van de behandeling van modusinstellingen",
-        "fr": "ajouter automatique Rafraîchir le jeton après l'erreur 403\nfixer la valeur maximale du mode de régulation à 9 pour éviter les erreurs\naméliorer la manipulation des paramètres de mode",
-        "it": "aggiungere automatico Rifiuto di Token dopo Errore 403\nfissare il valore massimo della modalità di regolamento a 9 per evitare errori\nmigliorare Gestione delle impostazioni di modalità",
-        "es": "añadir automático Actualización de Token después del Error 403\nfijar el valor máximo del modo de regulación a 9 para la prevención de errores\nmejorar Manejo de configuración de modo",
-        "pl": "dodawać automatycznie Odśwież Token po błędzie 403\nnaprawić maksymalną wartość trybu regulacji do 9 dla zapobiegania błędom\npoprawić obsługę ustawień trybu",
-        "uk": "додати автоматичний Refresh Token після помилки 403\nвиправити максимальне значення режиму регулювання до 9 для запобігання помилок\nполіпшення ручки параметрів режиму",
-        "zh-cn": "添加自动 错误 403 后刷新托肯\n用于防止错误的规范模式 9 值\n改进模式设置的处理"
-      }
-    },
-    "titleLang": {
-      "en": "Schlueter Ditra Heat Thermostat",
-      "de": "Schlüter Ditra Wärmethermostat",
-      "ru": "Тепловой термостат Schlueter Ditra",
-      "pt": "Termostato de calor Schlueter Ditra",
-      "nl": "Schlueter Ditra Heat-thermostaat",
-      "fr": "Thermostat de chaleur Schlueter Ditra",
-      "it": "Termostato termico Schlueter Ditra",
-      "es": "Termostato Schlueter Ditra Heat",
-      "pl": "Termostat grzewczy Schlueter Ditra",
-      "uk": "Тепловий термостат Schlueter Ditra",
-      "zh-cn": "Schlueter Ditra 热恒温器"
-    },
-    "desc": {
-      "en": "Floor heating controlled with Ditra Heat Thermostat",
-      "de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
-      "ru": "Подогрев пола контролируется термостатом Ditra Heat.",
-      "pt": "Aquecimento de piso controlado com termostato Ditra Heat",
-      "nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
-      "fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
-      "it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
-      "es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
-      "pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
-      "uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
-      "zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
-    },
-    "authors": [
-      "patricknitsch <patricknitsch@web.de>"
-    ],
-    "keywords": [
-      "ditra heat",
-      "climate",
-      "cloud"
-    ],
-    "licenseInformation": {
-      "type": "free",
-      "license": "MIT"
-    },
-    "platform": "Javascript/Node.js",
-    "icon": "schlueter-thermostat.png",
-    "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
-    "readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
-    "loglevel": "info",
-    "tier": 3,
-    "mode": "daemon",
-    "type": "climate-control",
-    "compact": true,
-    "connectionType": "cloud",
-    "dataSource": "poll",
-    "adminUI": {
-      "config": "json"
-    },
-    "dependencies": [
-      {
-        "js-controller": ">=6.0.11"
-      }
-    ],
-    "globalDependencies": [
-      {
-        "admin": ">=7.6.17"
-      }
-    ]
-  },
-  "native": {
-    "provider": "owd5",
-    "baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
-    "baseUrlOcd5": "https://ocd5.azurewebsites.net",
-    "username": "",
-    "password": "",
-    "apiKey": "",
-    "customerId": 1,
-    "pollIntervalSec": 60,
-    "energyHistory": 0,
-    "energyViewType": 2
-  },
-  "protectedNative": [
-    "password",
-    "apiKey",
-    "customerId"
-  ],
-  "objects": [],
-  "instanceObjects": [
-    {
-      "_id": "info",
-      "type": "channel",
-      "common": {
-        "name": "Information"
-      },
-      "native": {}
-    },
-    {
-      "_id": "info.connection",
-      "type": "state",
-      "common": {
-        "role": "indicator.connected",
-        "name": "Device or service connected",
-        "type": "boolean",
-        "read": true,
-        "write": false,
-        "def": false
-      },
-      "native": {}
-    }
-  ]
+	"common": {
+		"name": "schlueter-thermostat",
+		"version": "0.2.4",
+		"news": {
+			"0.2.4": {
+				"en": "Change Format of Times",
+				"de": "Format der Zeiten ändern",
+				"ru": "Изменение формата времени",
+				"pt": "Mudar o Formato dos Tempos",
+				"nl": "Formaat van tijden wijzigen",
+				"fr": "Modification du format des temps",
+				"it": "Cambia il formato dei tempi",
+				"es": "Formato de cambio de tiempos",
+				"pl": "Zmień format Times",
+				"uk": "Змінення форматів часу",
+				"zh-cn": "更改时间格式"
+			},
+			"0.2.3": {
+				"en": "Catch wrong values for Temperature and Regulation Mode",
+				"de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
+				"ru": "Улавливать неправильные значения температуры и режима регулирования",
+				"pt": "Valores errados de captura para a temperatura e o modo de regulação",
+				"nl": "Verkeerde vangwaarden voor temperatuur- en regelmodus",
+				"fr": "Capturer des valeurs erronées en mode température et régulation",
+				"it": "Cattura valori errati per la modalità Temperatura e Regolamento",
+				"es": "Obtener valores incorrectos para el modo de temperatura y regulación",
+				"pl": "Nieprawidłowe wartości połowu dla trybu temperatury i regulacji",
+				"uk": "Випадкові значення для режиму температури та регулювання",
+				"zh-cn": "获取温度和调节模式的错误值"
+			},
+			"0.2.2": {
+				"en": "Update setStates for ComfortMode\nMore Debugging",
+				"de": "Update setStates für ComfortMode\nMehr Debugging",
+				"ru": "Обновление setStates для ComfortMode\nБольше отладки",
+				"pt": "Atualizar os estados para o ComfortMode\nMais depuração",
+				"nl": "Update setStates voor ComfortMode\nMeer debuggen",
+				"fr": "Mettre à jour setStates for ComfortMode\nPlus de débogage",
+				"it": "Set di aggiornamentiStati per ComfortMode\nPiù Debug",
+				"es": "Estados de actualización para ComfortMode\nMás Debugging",
+				"pl": "Aktualizacja stanów dla ComfortMode\nWięcej debugowania",
+				"uk": "Оновлення адаптерів для ComfortMode\nБільше пробудження",
+				"zh-cn": "更新舒适模式设置状态\n更多调试"
+			},
+			"0.2.1": {
+				"en": "Fix JsonConfig",
+				"de": "JsonConfig",
+				"ru": "Исполнитель: JsonConfig",
+				"pt": "Corrigir o JsonConfig",
+				"nl": "Fix JsonConfig",
+				"fr": "Correction de JsonConfig",
+				"it": "Fissare JsonConfig",
+				"es": "Fix JsonConfig",
+				"pl": "Napraw JsonConfig",
+				"uk": "Фіксація JsonConfig",
+				"zh-cn": "修复 Json 连接"
+			},
+			"0.2.0": {
+				"en": "add automatic Refresh of Token after Error 403\nfix max Value of Regulation Mode to 9 for error preventing\nimprove Handling of Mode Settings",
+				"de": "hinzufügen automatisch Aktualisieren von Token nach Fehler 403\nmax. Wert des Regelmodus auf 9 zur Fehlerverhütung\nverbesserung der Handhabung von Moduseinstellungen",
+				"ru": "добавить автоматический Обновление токена после ошибки 403\nфиксировать максимальное значение режима регулирования до 9 для предотвращения ошибок\nулучшение обработки настроек режима",
+				"pt": "adicionar automático Atualizar o item após o erro 403\nfixar o valor máximo do modo de regulação até 9 para evitar erros\nmelhorar o manuseio das configurações do modo",
+				"nl": "automatisch toevoegen Verversen van Token na fout 403\nfix max Value of Regulation Mode to 9 for error preventing\nverbeteren van de behandeling van modusinstellingen",
+				"fr": "ajouter automatique Rafraîchir le jeton après l'erreur 403\nfixer la valeur maximale du mode de régulation à 9 pour éviter les erreurs\naméliorer la manipulation des paramètres de mode",
+				"it": "aggiungere automatico Rifiuto di Token dopo Errore 403\nfissare il valore massimo della modalità di regolamento a 9 per evitare errori\nmigliorare Gestione delle impostazioni di modalità",
+				"es": "añadir automático Actualización de Token después del Error 403\nfijar el valor máximo del modo de regulación a 9 para la prevención de errores\nmejorar Manejo de configuración de modo",
+				"pl": "dodawać automatycznie Odśwież Token po błędzie 403\nnaprawić maksymalną wartość trybu regulacji do 9 dla zapobiegania błędom\npoprawić obsługę ustawień trybu",
+				"uk": "додати автоматичний Refresh Token після помилки 403\nвиправити максимальне значення режиму регулювання до 9 для запобігання помилок\nполіпшення ручки параметрів режиму",
+				"zh-cn": "添加自动 错误 403 后刷新托肯\n用于防止错误的规范模式 9 值\n改进模式设置的处理"
+			}
+		},
+		"titleLang": {
+			"en": "Schlueter Ditra Heat Thermostat",
+			"de": "Schlüter Ditra Wärmethermostat",
+			"ru": "Тепловой термостат Schlueter Ditra",
+			"pt": "Termostato de calor Schlueter Ditra",
+			"nl": "Schlueter Ditra Heat-thermostaat",
+			"fr": "Thermostat de chaleur Schlueter Ditra",
+			"it": "Termostato termico Schlueter Ditra",
+			"es": "Termostato Schlueter Ditra Heat",
+			"pl": "Termostat grzewczy Schlueter Ditra",
+			"uk": "Тепловий термостат Schlueter Ditra",
+			"zh-cn": "Schlueter Ditra 热恒温器"
+		},
+		"desc": {
+			"en": "Floor heating controlled with Ditra Heat Thermostat",
+			"de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
+			"ru": "Подогрев пола контролируется термостатом Ditra Heat.",
+			"pt": "Aquecimento de piso controlado com termostato Ditra Heat",
+			"nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
+			"fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
+			"it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
+			"es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
+			"pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
+			"uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
+			"zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
+		},
+		"authors": ["patricknitsch <patricknitsch@web.de>"],
+		"keywords": ["ditra heat", "climate", "cloud"],
+		"licenseInformation": {
+			"type": "free",
+			"license": "MIT"
+		},
+		"platform": "Javascript/Node.js",
+		"icon": "schlueter-thermostat.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
+		"readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
+		"loglevel": "info",
+		"tier": 3,
+		"mode": "daemon",
+		"type": "climate-control",
+		"compact": true,
+		"connectionType": "cloud",
+		"dataSource": "poll",
+		"adminUI": {
+			"config": "json"
+		},
+		"dependencies": [
+			{
+				"js-controller": ">=6.0.11"
+			}
+		],
+		"globalDependencies": [
+			{
+				"admin": ">=7.6.17"
+			}
+		]
+	},
+	"native": {
+		"provider": "owd5",
+		"baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
+		"baseUrlOcd5": "https://ocd5.azurewebsites.net",
+		"username": "",
+		"password": "",
+		"apiKey": "",
+		"customerId": 1,
+		"pollIntervalSec": 60,
+		"energyHistory": 0,
+		"energyViewType": 2,
+		"legacyCleanup": false
+	},
+	"protectedNative": ["password", "apiKey", "customerId"],
+	"objects": [],
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": "Information"
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"role": "indicator.connected",
+				"name": "Device or service connected",
+				"type": "boolean",
+				"read": true,
+				"write": false,
+				"def": false
+			},
+			"native": {}
+		}
+	]
 }

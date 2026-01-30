@@ -1,3 +1,4 @@
+// main.js
 'use strict';
 
 // ============================================================================
@@ -15,13 +16,16 @@
 //        .vacation.*
 //        .schedule.*
 //        .energy.*
+//        .apply.*               (apply-only controls)
 //
-// Reads:
-// - OWD5: GroupContents (groups + thermostats + schedules)
-// - OWD5: EnergyUsage  (per thermostat serial number)
-//
-// Writes:
-// - OCD5: UpdateThermostat (per thermostat serial number)
+// Robustness:
+// - Poll every 60s (min 60s).
+// - If poll fails, info.connection = false.
+// - Warn once when a thermostat turns offline (online true -> false).
+// - Block ALL writes unless thermostat is online.
+// - Delete old writable "*Set" states (legacy) and do not recreate them.
+// - Apply concept: only pressing apply.*.apply sends data.
+// - Time strings: "YYYY-MM-DDTHH:mm:ss" (no ms, no trailing Z)
 // ============================================================================
 
 const utils = require('@iobroker/adapter-core');
@@ -40,19 +44,12 @@ class SchlueterThermostat extends utils.Adapter {
 
 		this.client = null;
 
-		// ------------------------------------------------------------------------
-		// Caches / mappings (keyed by ThermostatId)
-		// ------------------------------------------------------------------------
-
 		/** ThermostatId -> SerialNumber */
 		this.thermostatSerial = {};
 		/** ThermostatId -> GroupId */
 		this.thermostatGroup = {};
 		/** ThermostatId -> ThermostatName */
 		this.thermostatNameCache = {};
-
-		/** ThermostatId -> last Online state */
-		this.thermostatOnlineCache = {};
 
 		/** ThermostatId -> ComfortEndTime ISO */
 		this.thermostatComfortEnd = {};
@@ -71,14 +68,17 @@ class SchlueterThermostat extends utils.Adapter {
 		/** GroupId -> GroupName */
 		this.groupNameCache = {};
 
-		// ------------------------------------------------------------------------
+		/** ThermostatId -> last known online */
+		this.lastOnline = {};
+		/** ThermostatId -> did we already warn for current offline phase? */
+		this.warnedOffline = {};
+		/** devId -> legacy deleted */
+		this.legacyStatesDeleted = {};
 
 		this.pollTimer = null;
 		this.unloading = false;
 		this.pollInFlight = false;
 		this.pollPromise = null;
-		this._verifyConnectionOk = true;
-		this._verifyPollTimer = null;
 
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
@@ -137,40 +137,6 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
-	// ============================================================================
-	// Verify Poll Scheduling
-	// ============================================================================
-	_scheduleVerifyPoll() {
-		if (this.unloading) {
-			return;
-		}
-		if (this._verifyPollTimer) {
-			clearTimeout(this._verifyPollTimer);
-		}
-
-		this._verifyPollTimer = setTimeout(async () => {
-			this._verifyPollTimer = null;
-
-			try {
-				await this.pollOnce();
-
-				// If we reach here, cloud responded
-				this._verifyConnectionOk = true;
-				this.safeSetState('info.connection', true, true);
-			} catch (e) {
-				this._verifyConnectionOk = false;
-				this.safeSetState('info.connection', false, true);
-				this.log.warn(
-					`No connection to thermostat cloud — write could not be verified! Error: ${e?.message || e}`,
-				);
-			}
-		}, 5000);
-	}
-
-	// ============================================================================
-	// Legacy cleanup helpers
-	// ============================================================================
-
 	async safeDelObject(id, options = {}) {
 		try {
 			await this.delObjectAsync(id, options);
@@ -178,6 +144,7 @@ class SchlueterThermostat extends utils.Adapter {
 			if (this.unloading || this._isConnClosed(e)) {
 				return;
 			}
+
 			const msg = String(e?.message || e);
 			if (msg.includes('not exist') || msg.includes('Not exists') || msg.includes('does not exist')) {
 				return;
@@ -185,6 +152,10 @@ class SchlueterThermostat extends utils.Adapter {
 			throw e;
 		}
 	}
+
+	// ============================================================================
+	// Legacy cleanup
+	// ============================================================================
 
 	async legacyCleanup() {
 		// Old root: schlueter-thermostat.0.thermostats.*
@@ -202,6 +173,111 @@ class SchlueterThermostat extends utils.Adapter {
 		} catch (e) {
 			this.log.warn(`legacyCleanup(): failed to delete legacy objects: ${e?.message || e}`);
 		}
+	}
+
+	async deleteOldWritableStates(devId) {
+		if (this.legacyStatesDeleted[devId]) {
+			return;
+		}
+		this.legacyStatesDeleted[devId] = true;
+
+		// Old direct-write states that should not exist anymore
+		const legacyIds = [
+			`${devId}.setpoint.manualSet`,
+			`${devId}.setpoint.comfortSet`,
+			`${devId}.regulationModeSet`,
+			`${devId}.thermostatNameSet`,
+			`${devId}.endTime.comfortSet`,
+			`${devId}.endTime.boostSet`,
+			`${devId}.vacation.enabledSet`,
+			`${devId}.vacation.beginSet`,
+			`${devId}.vacation.endSet`,
+			`${devId}.vacation.temperatureSet`,
+		];
+
+		for (const id of legacyIds) {
+			try {
+				await this.safeDelObject(id);
+				this.log.debug(`Deleted legacy state: ${id}`);
+			} catch (e) {
+				this.log.debug(`Could not delete legacy state ${id}: ${e?.message || e}`);
+			}
+		}
+	}
+
+	// ============================================================================
+	// Time formatting (no ms, no Z)
+	// ============================================================================
+
+	_formatIsoNoMsNoZ(value) {
+		if (!value) {
+			return '';
+		}
+
+		let d;
+		if (value instanceof Date) {
+			d = value;
+		} else {
+			d = new Date(String(value));
+		}
+
+		if (Number.isNaN(d.getTime())) {
+			return String(value)
+				.trim()
+				.replace(/\.\d{3}Z$/, '')
+				.replace(/Z$/, '')
+				.replace(/\.\d{3}$/, '');
+		}
+
+		return d.toISOString().replace(/\.\d{3}Z$/, '');
+	}
+
+	_nowPlusMinutesIso(minutes) {
+		return this._formatIsoNoMsNoZ(new Date(Date.now() + minutes * 60 * 1000));
+	}
+
+	_parseIsoOrMinutes(value, defaultMinutes) {
+		const v = value === null || value === undefined ? '' : String(value).trim();
+		if (!v) {
+			return this._nowPlusMinutesIso(defaultMinutes);
+		}
+
+		const asNum = Number(v);
+		if (Number.isFinite(asNum) && v.match(/^\d+(\.\d+)?$/)) {
+			return this._nowPlusMinutesIso(asNum);
+		}
+
+		const d = new Date(v);
+		if (!Number.isNaN(d.getTime())) {
+			return this._formatIsoNoMsNoZ(d);
+		}
+
+		return this._nowPlusMinutesIso(defaultMinutes);
+	}
+
+	async _getSerialFromObject(groupId, thermostatId) {
+		const oid = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		const obj = await this.safeGetObject(oid);
+		return obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
+	}
+
+	async _isThermostatOnline(groupId, thermostatId) {
+		// Prefer cache from poll (exact ThermostatId key, not safeId)
+		if (typeof this.lastOnline[thermostatId] === 'boolean') {
+			return this.lastOnline[thermostatId];
+		}
+
+		// Fallback: read state once
+		const devId = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		try {
+			const st = await this.getStateAsync(`${devId}.online`);
+			if (st && typeof st.val === 'boolean') {
+				return st.val;
+			}
+		} catch {
+			// ignore
+		}
+		return false;
 	}
 
 	// ============================================================================
@@ -232,7 +308,6 @@ class SchlueterThermostat extends utils.Adapter {
 			await this.client.login();
 			this.log.debug('Login successful');
 			this.safeSetState('info.connection', true, true);
-			this._verifyConnectionOk = true;
 		} catch (e) {
 			this.log.error(`Login failed: ${e?.message || e}`);
 			return;
@@ -240,27 +315,20 @@ class SchlueterThermostat extends utils.Adapter {
 
 		await this.safeSetObjectNotExists('groups', { type: 'channel', common: { name: 'Groups' }, native: {} });
 
-		// Cleanup legacy object tree from old versions
-		await this.legacyCleanup();
+		// Cleanup legacy object tree from old versions (optional via config)
+		if (this.config.legacyCleanup === true) {
+			await this.legacyCleanup();
+		} else {
+			this.log.debug('legacyCleanup(): disabled by config');
+		}
 
-		const intervalSec = Math.max(15, Number(this.config.pollIntervalSec) || 60);
+		// Poll interval: min 10 seconds
+		const intervalSec = Math.max(10, Number(this.config.pollIntervalSec) || 60);
+
 		await this.pollOnce();
 
-		// ------------------------------------------------------------------------
-		// Subscribe writable states
-		// ------------------------------------------------------------------------
-		this.subscribeStates('groups.*.thermostats.*.setpoint.manualSet');
-		this.subscribeStates('groups.*.thermostats.*.setpoint.comfortSet');
-		this.subscribeStates('groups.*.thermostats.*.regulationModeSet');
-		this.subscribeStates('groups.*.thermostats.*.thermostatNameSet');
-
-		this.subscribeStates('groups.*.thermostats.*.endTime.comfortSet');
-		this.subscribeStates('groups.*.thermostats.*.endTime.boostSet');
-
-		this.subscribeStates('groups.*.thermostats.*.vacation.enabledSet');
-		this.subscribeStates('groups.*.thermostats.*.vacation.beginSet');
-		this.subscribeStates('groups.*.thermostats.*.vacation.endSet');
-		this.subscribeStates('groups.*.thermostats.*.vacation.temperatureSet');
+		// Subscribe ONLY apply buttons (no direct-write legacy states)
+		this.subscribeStates('groups.*.thermostats.*.apply.*.apply');
 
 		this.pollTimer = setInterval(() => {
 			this.pollOnce().catch(err => this.log.warn(`Poll error: ${err?.message || err}`));
@@ -309,7 +377,7 @@ class SchlueterThermostat extends utils.Adapter {
 		})()
 			.catch(err => {
 				if (!this.unloading) {
-					this.safeSetState('info.connection', false, true); // NEW
+					this.safeSetState('info.connection', false, true);
 					this.log.warn(`Poll error: ${err?.message || err}`);
 				}
 			})
@@ -334,7 +402,6 @@ class SchlueterThermostat extends utils.Adapter {
 		this.groupNameCache[groupId] = groupName;
 
 		const groupDev = `groups.${safeId(groupId)}`;
-
 		this.log.debug(`upsertGroup(): GroupId=${groupId} GroupName=${groupName}`);
 
 		await this.safeSetObjectNotExists(groupDev, {
@@ -372,6 +439,7 @@ class SchlueterThermostat extends utils.Adapter {
 		const groupDev = `groups.${safeId(groupId)}`;
 		const devId = `${groupDev}.thermostats.${safeId(thermostatId)}`;
 
+		// Cache mappings
 		const serial = t?.SerialNumber ? String(t.SerialNumber) : '';
 		if (serial) {
 			this.thermostatSerial[thermostatId] = serial;
@@ -419,10 +487,14 @@ class SchlueterThermostat extends utils.Adapter {
 			});
 		}
 
+		// Delete legacy direct-write states once
+		await this.deleteOldWritableStates(devId);
+
 		const ensureState = async (id, common) => {
 			await this.safeSetObjectNotExists(id, { type: 'state', common, native: {} });
 		};
 
+		// Common states
 		await ensureState(`${devId}.online`, {
 			name: 'Online',
 			type: 'boolean',
@@ -437,7 +509,6 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-
 		await ensureState(`${devId}.thermostatName`, {
 			name: 'Thermostat name',
 			type: 'string',
@@ -445,14 +516,6 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		await ensureState(`${devId}.thermostatNameSet`, {
-			name: 'Set thermostat name',
-			type: 'string',
-			role: 'text',
-			read: true,
-			write: true,
-		});
-
 		await ensureState(`${devId}.temperature.room`, {
 			name: 'Room temperature',
 			type: 'number',
@@ -486,7 +549,6 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-
 		await ensureState(`${devId}.regulationMode`, {
 			name: 'Regulation mode',
 			type: 'number',
@@ -495,36 +557,7 @@ class SchlueterThermostat extends utils.Adapter {
 			write: false,
 		});
 
-		await ensureState(`${devId}.setpoint.manualSet`, {
-			name: 'Set manual setpoint',
-			type: 'number',
-			role: 'level.temperature',
-			unit: '°C',
-			read: true,
-			write: true,
-			min: 12,
-			max: 35,
-		});
-		await ensureState(`${devId}.setpoint.comfortSet`, {
-			name: 'Set comfort setpoint',
-			type: 'number',
-			role: 'level.temperature',
-			unit: '°C',
-			read: true,
-			write: true,
-			min: 12,
-			max: 35,
-		});
-		await ensureState(`${devId}.regulationModeSet`, {
-			name: 'Set regulation mode',
-			type: 'number',
-			role: 'level',
-			read: true,
-			write: true,
-			min: 0,
-			max: 9,
-		});
-
+		// EndTime
 		await this.safeSetObjectNotExists(`${devId}.endTime`, {
 			type: 'channel',
 			common: { name: 'End times' },
@@ -537,13 +570,6 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		/*await ensureState(`${devId}.endTime.comfortSet`, {
-			name: 'Set comfort end time (ISO or minutes)',
-			type: 'string',
-			role: 'date',
-			read: true,
-			write: true,
-		});*/
 		await ensureState(`${devId}.endTime.boost`, {
 			name: 'Boost end time',
 			type: 'string',
@@ -551,14 +577,8 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		/*await ensureState(`${devId}.endTime.boostSet`, {
-			name: 'Set boost end time (ISO or minutes)',
-			type: 'string',
-			role: 'date',
-			read: true,
-			write: true,
-		});*/
 
+		// Vacation
 		await this.safeSetObjectNotExists(`${devId}.vacation`, {
 			type: 'channel',
 			common: { name: 'Vacation' },
@@ -571,13 +591,6 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		await ensureState(`${devId}.vacation.enabledSet`, {
-			name: 'Set vacation enabled',
-			type: 'boolean',
-			role: 'switch',
-			read: true,
-			write: true,
-		});
 		await ensureState(`${devId}.vacation.begin`, {
 			name: 'Vacation begin day',
 			type: 'string',
@@ -585,26 +598,12 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		await ensureState(`${devId}.vacation.beginSet`, {
-			name: 'Set vacation begin day (ISO)',
-			type: 'string',
-			role: 'date',
-			read: true,
-			write: true,
-		});
 		await ensureState(`${devId}.vacation.end`, {
 			name: 'Vacation end day',
 			type: 'string',
 			role: 'date',
 			read: true,
 			write: false,
-		});
-		await ensureState(`${devId}.vacation.endSet`, {
-			name: 'Set vacation end day (ISO)',
-			type: 'string',
-			role: 'date',
-			read: true,
-			write: true,
 		});
 		await ensureState(`${devId}.vacation.temperature`, {
 			name: 'Vacation temperature',
@@ -614,17 +613,8 @@ class SchlueterThermostat extends utils.Adapter {
 			read: true,
 			write: false,
 		});
-		await ensureState(`${devId}.vacation.temperatureSet`, {
-			name: 'Set vacation temperature',
-			type: 'number',
-			role: 'level.temperature',
-			unit: '°C',
-			read: true,
-			write: true,
-			min: 12,
-			max: 35,
-		});
 
+		// Schedule & Energy channels
 		await this.safeSetObjectNotExists(`${devId}.schedule`, {
 			type: 'channel',
 			common: { name: 'Schedule' },
@@ -636,23 +626,31 @@ class SchlueterThermostat extends utils.Adapter {
 			native: {},
 		});
 
+		// APPLY controls
+		await this.ensureApplyStates(devId);
+
+		// ------------------------------------------------------------------------
+		// Write values
+		// ------------------------------------------------------------------------
+
 		const onlineNow = Boolean(t?.Online);
-		const onlinePrev = this.thermostatOnlineCache[thermostatId];
-
-		if (onlinePrev !== false && onlineNow === false) {
-			this.log.warn(`No Connection: Thermostat "${thermostatName}" (${thermostatId}) is OFFLINE.`);
-		}
-		if (onlinePrev === false && onlineNow === true) {
-			this.log.info(`Thermostat "${thermostatName}" (${thermostatId}) is ONLINE again.`);
-		}
-
-		this.thermostatOnlineCache[thermostatId] = onlineNow;
-
 		this.safeSetState(`${devId}.online`, { val: onlineNow, ack: true });
-		this.safeSetState(`${devId}.heating`, { val: Boolean(t?.Heating), ack: true });
 
+		// warn once on transition: online -> offline
+		const prevOnline = this.lastOnline[thermostatId];
+		if (prevOnline === true && onlineNow === false && !this.warnedOffline[thermostatId]) {
+			const tName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
+			const gName = this.groupNameCache[groupId] || `Group ${groupId}`;
+			this.log.warn(`Thermostat OFFLINE: ${gName} / ${tName} (ThermostatId=${thermostatId})`);
+			this.warnedOffline[thermostatId] = true;
+		}
+		if (onlineNow === true) {
+			this.warnedOffline[thermostatId] = false;
+		}
+		this.lastOnline[thermostatId] = onlineNow;
+
+		this.safeSetState(`${devId}.heating`, { val: Boolean(t?.Heating), ack: true });
 		this.safeSetState(`${devId}.thermostatName`, { val: String(t?.ThermostatName || ''), ack: true });
-		this.safeSetState(`${devId}.thermostatNameSet`, { val: String(t?.ThermostatName || ''), ack: true });
 
 		const rt = numToC(t?.RoomTemperature);
 		const ft = numToC(t?.FloorTemperature);
@@ -667,47 +665,40 @@ class SchlueterThermostat extends utils.Adapter {
 		const cs = numToC(t?.ComfortSetpoint);
 		if (ms !== null) {
 			this.safeSetState(`${devId}.setpoint.manual`, { val: ms, ack: true });
-			this.safeSetState(`${devId}.setpoint.manualSet`, { val: ms, ack: true });
 		}
 		if (cs !== null) {
 			this.safeSetState(`${devId}.setpoint.comfort`, { val: cs, ack: true });
-			this.safeSetState(`${devId}.setpoint.comfortSet`, { val: cs, ack: true });
 		}
 
 		const mode = Number(t?.RegulationMode ?? 0);
 		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
-		this.safeSetState(`${devId}.regulationModeSet`, { val: mode, ack: true });
 
 		const comfortEnd = this._formatIsoNoMsNoZ(t?.ComfortEndTime || '');
 		const boostEnd = this._formatIsoNoMsNoZ(t?.BoostEndTime || '');
 		if (comfortEnd) {
 			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
-			//this.safeSetState(`${devId}.endTime.comfortSet`, comfortEnd, true);
 		}
 		if (boostEnd) {
 			this.safeSetState(`${devId}.endTime.boost`, boostEnd, true);
-			//this.safeSetState(`${devId}.endTime.boostSet`, boostEnd, true);
 		}
 
 		const vEnabled = Boolean(t?.VacationEnabled);
 		const vBegin = String(t?.VacationBeginDay || '');
 		const vEnd = String(t?.VacationEndDay || '');
 		this.safeSetState(`${devId}.vacation.enabled`, vEnabled, true);
-		this.safeSetState(`${devId}.vacation.enabledSet`, vEnabled, true);
 		if (vBegin) {
 			this.safeSetState(`${devId}.vacation.begin`, vBegin, true);
-			this.safeSetState(`${devId}.vacation.beginSet`, vBegin, true);
 		}
 		if (vEnd) {
 			this.safeSetState(`${devId}.vacation.end`, vEnd, true);
-			this.safeSetState(`${devId}.vacation.endSet`, vEnd, true);
 		}
+
 		const vTempC = numToC(t?.VacationTemperature);
 		if (vTempC !== null) {
 			this.safeSetState(`${devId}.vacation.temperature`, vTempC, true);
-			this.safeSetState(`${devId}.vacation.temperatureSet`, vTempC, true);
 		}
 
+		// Schedule as individual states
 		const schedule = t?.Schedule;
 		if (schedule && Array.isArray(schedule.Days)) {
 			for (const day of schedule.Days) {
@@ -782,6 +773,7 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 		}
 
+		// Energy
 		if (this.client && serial) {
 			try {
 				this.log.debug(`Energy: requesting usage for SerialNumber=${serial}`);
@@ -823,68 +815,131 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
+	async ensureApplyStates(devId) {
+		const ensureState = async (id, common) => {
+			await this.safeSetObjectNotExists(id, { type: 'state', common, native: {} });
+		};
+
+		await this.safeSetObjectNotExists(`${devId}.apply`, { type: 'channel', common: { name: 'Apply' }, native: {} });
+
+		// schedule (mode 1)
+		await this.safeSetObjectNotExists(`${devId}.apply.schedule`, {
+			type: 'channel',
+			common: { name: 'Schedule mode' },
+			native: {},
+		});
+		await ensureState(`${devId}.apply.schedule.apply`, {
+			name: 'Apply schedule mode (RegulationMode=1)',
+			type: 'boolean',
+			role: 'button',
+			read: true,
+			write: true,
+			def: false,
+		});
+
+		// comfort (mode 2: setpoint + endTime)
+		await this.safeSetObjectNotExists(`${devId}.apply.comfort`, {
+			type: 'channel',
+			common: { name: 'Comfort mode' },
+			native: {},
+		});
+		await ensureState(`${devId}.apply.comfort.setpoint`, {
+			name: 'Comfort setpoint',
+			type: 'number',
+			role: 'level.temperature',
+			unit: '°C',
+			read: true,
+			write: true,
+			min: 12,
+			max: 35,
+		});
+		await ensureState(`${devId}.apply.comfort.durationMinutes`, {
+			name: 'Comfort duration (minutes)',
+			type: 'number',
+			role: 'value',
+			read: true,
+			write: true,
+			min: 1,
+			max: 24 * 60,
+			def: 180,
+		});
+		await ensureState(`${devId}.apply.comfort.apply`, {
+			name: 'Apply comfort mode',
+			type: 'boolean',
+			role: 'button',
+			read: true,
+			write: true,
+			def: false,
+		});
+
+		// manual (mode 3: setpoint)
+		await this.safeSetObjectNotExists(`${devId}.apply.manual`, {
+			type: 'channel',
+			common: { name: 'Manual mode' },
+			native: {},
+		});
+		await ensureState(`${devId}.apply.manual.setpoint`, {
+			name: 'Manual setpoint',
+			type: 'number',
+			role: 'level.temperature',
+			unit: '°C',
+			read: true,
+			write: true,
+			min: 12,
+			max: 35,
+		});
+		await ensureState(`${devId}.apply.manual.apply`, {
+			name: 'Apply manual mode',
+			type: 'boolean',
+			role: 'button',
+			read: true,
+			write: true,
+			def: false,
+		});
+
+		// boost (mode 8: endTime + duration)
+		await this.safeSetObjectNotExists(`${devId}.apply.boost`, {
+			type: 'channel',
+			common: { name: 'Boost mode' },
+			native: {},
+		});
+		await ensureState(`${devId}.apply.boost.durationMinutes`, {
+			name: 'Boost duration (minutes)',
+			type: 'number',
+			role: 'value',
+			read: true,
+			write: true,
+			min: 1,
+			max: 24 * 60,
+			def: 60,
+		});
+		await ensureState(`${devId}.apply.boost.apply`, {
+			name: 'Apply boost mode',
+			type: 'boolean',
+			role: 'button',
+			read: true,
+			write: true,
+			def: false,
+		});
+
+		// eco (mode 9)
+		await this.safeSetObjectNotExists(`${devId}.apply.eco`, {
+			type: 'channel',
+			common: { name: 'Eco mode' },
+			native: {},
+		});
+		await ensureState(`${devId}.apply.eco.apply`, {
+			name: 'Apply eco mode (RegulationMode=9)',
+			type: 'boolean',
+			role: 'button',
+			read: true,
+			write: true,
+			def: false,
+		});
+	}
+
 	// ============================================================================
-	// WRITE HELPERS
-	// ============================================================================
-
-	_nowPlusMinutesIso(minutes) {
-		return this._formatIsoNoMsNoZ(new Date(Date.now() + minutes * 60 * 1000));
-	}
-
-	_parseIsoOrMinutes(value, defaultMinutes) {
-		const v = value === null || value === undefined ? '' : String(value).trim();
-		if (!v) {
-			return this._nowPlusMinutesIso(defaultMinutes);
-		}
-
-		const asNum = Number(v);
-		if (Number.isFinite(asNum) && v.match(/^\d+(\.\d+)?$/)) {
-			return this._nowPlusMinutesIso(asNum);
-		}
-
-		// ISO-like string
-		const d = new Date(v);
-		if (!Number.isNaN(d.getTime())) {
-			return this._formatIsoNoMsNoZ(d); // NEW
-		}
-
-		return this._nowPlusMinutesIso(defaultMinutes);
-	}
-
-	_formatIsoNoMsNoZ(value) {
-		// Accept Date or string, return "YYYY-MM-DDTHH:mm:ss"
-		if (!value) {
-			return '';
-		}
-
-		let d;
-		if (value instanceof Date) {
-			d = value;
-		} else {
-			d = new Date(String(value));
-		}
-
-		if (Number.isNaN(d.getTime())) {
-			// If it already looks like "YYYY-MM-DDTHH:mm:ss(.sss)?Z?" just strip
-			return String(value)
-				.trim()
-				.replace(/\.\d{3}Z$/, '')
-				.replace(/Z$/, '')
-				.replace(/\.\d{3}$/, '');
-		}
-
-		// toISOString() => "YYYY-MM-DDTHH:mm:ss.sssZ"
-		return d.toISOString().replace(/\.\d{3}Z$/, '');
-	}
-
-	async _getSerialFromObject(groupId, thermostatId) {
-		const oid = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
-		const obj = await this.safeGetObject(oid);
-		return obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
-	}
-
-	// ============================================================================
-	// ON STATE CHANGE (writes)
+	// ON STATE CHANGE (apply-only writes)
 	// ============================================================================
 
 	async onStateChange(id, state) {
@@ -901,14 +956,30 @@ class SchlueterThermostat extends utils.Adapter {
 		const parts = id.split('.');
 		const idxG = parts.indexOf('groups');
 		const idxT = parts.indexOf('thermostats');
-		if (idxG === -1 || idxT === -1 || parts.length < idxT + 2) {
+		const idxApply = parts.indexOf('apply');
+		if (idxG === -1 || idxT === -1 || idxApply === -1) {
 			return;
 		}
 
 		const groupId = parts[idxG + 1];
 		const thermostatId = parts[idxT + 1];
-		const sub = parts.slice(idxT + 2).join('.');
 
+		// Only react to apply buttons
+		const isApplyButton = id.endsWith('.apply');
+		if (!isApplyButton) {
+			return;
+		}
+
+		// Block writes if thermostat offline
+		const online = await this._isThermostatOnline(groupId, thermostatId);
+		if (!online) {
+			this.log.warn(`Write blocked: thermostat offline (ThermostatId=${thermostatId}) id=${id}`);
+			// reset button state to false (ack)
+			this.safeSetState(id, { val: false, ack: true });
+			return;
+		}
+
+		// SerialNumber for writes
 		let serial = this.thermostatSerial[thermostatId];
 		if (!serial) {
 			serial = await this._getSerialFromObject(groupId, thermostatId);
@@ -917,178 +988,95 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 		}
 		if (!serial) {
-			this.log.warn(`Write ignored: SerialNumber unknown for thermostat ${thermostatId} (not discovered yet).`);
+			this.log.warn(`Apply ignored: SerialNumber unknown for thermostat ${thermostatId} (not discovered yet).`);
+			this.safeSetState(id, { val: false, ack: true });
 			return;
 		}
 
-		const thermostatName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
-
-		const comfortEndTime = this._formatIsoNoMsNoZ(
-			this.thermostatComfortEnd[thermostatId] || this._nowPlusMinutesIso(120),
-		);
-
-		const boostEndTime = this._formatIsoNoMsNoZ(
-			this.thermostatBoostEnd[thermostatId] || this._nowPlusMinutesIso(60),
-		);
-
-		const baseUpdate = {
-			ThermostatName: thermostatName,
-			ComfortEndTime: comfortEndTime,
-			BoostEndTime: boostEndTime,
-			VacationEnabled: Boolean(this.thermostatVacationEnabled?.[thermostatId]),
-			VacationBeginDay: this.thermostatVacationBegin?.[thermostatId] || '1970-01-01T00:00:00',
-			VacationEndDay: this.thermostatVacationEnd?.[thermostatId] || '1970-01-01T00:00:00',
-			...(this.thermostatVacationTemp?.[thermostatId] !== undefined
-				? { VacationTemperature: this.thermostatVacationTemp[thermostatId] }
-				: {}),
-		};
-
 		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+
 		const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
+		const readNum = async (sid, def) => {
+			const st = await this.getStateAsync(sid);
+			const n = Number(st?.val);
+			return Number.isFinite(n) ? n : def;
+		};
+
+		const baseName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
+
 		try {
-			if (sub === 'setpoint.manualSet') {
-				let tempC = Number(state.val);
-				if (!Number.isFinite(tempC)) {
-					throw new Error('Invalid temperature');
-				}
-				tempC = clamp(tempC, 12, 35);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (ManualModeSetpoint=${tempC}C)`);
+			// Identify which mode folder
+			// id: groups.<g>.thermostats.<t>.apply.<mode>.apply
+			const modeFolder = parts[idxApply + 1]; // schedule / comfort / manual / boost / eco
+
+			if (modeFolder === 'schedule') {
+				// 1 -> schedule (only RegulationMode 1)
 				await client.updateThermostat(serial, {
-					...baseUpdate,
+					ThermostatName: baseName,
+					RegulationMode: 1,
+				});
+			} else if (modeFolder === 'comfort') {
+				// 2 -> comfort (EndTime + Setpoint Temperature)
+				let tempC = await readNum(`${devPrefix}.apply.comfort.setpoint`, 22);
+				tempC = clamp(tempC, 12, 35);
+
+				let dur = await readNum(`${devPrefix}.apply.comfort.durationMinutes`, 180);
+				dur = clamp(Math.trunc(dur), 1, 24 * 60);
+
+				const comfortEnd = this._nowPlusMinutesIso(dur);
+
+				await client.updateThermostat(serial, {
+					ThermostatName: baseName,
+					RegulationMode: 2,
+					ComfortSetpoint: cToNum(tempC),
+					ComfortEndTime: comfortEnd,
+				});
+
+				// mirror end time readouts
+				this.thermostatComfortEnd[thermostatId] = comfortEnd;
+				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortEnd, ack: true });
+			} else if (modeFolder === 'manual') {
+				// 3 -> manual (Setpoint Temperature)
+				let tempC = await readNum(`${devPrefix}.apply.manual.setpoint`, 21);
+				tempC = clamp(tempC, 12, 35);
+
+				await client.updateThermostat(serial, {
+					ThermostatName: baseName,
 					RegulationMode: 3,
 					ManualModeSetpoint: cToNum(tempC),
 				});
-				this.safeSetState(id, { val: tempC, ack: true });
-				this._scheduleVerifyPoll();
-			} else if (sub === 'setpoint.comfortSet') {
-				let tempC = Number(state.val);
-				if (!Number.isFinite(tempC)) {
-					throw new Error('Invalid temperature');
-				}
-				tempC = clamp(tempC, 12, 35);
-				const comfortToSend = this._nowPlusMinutesIso(180);
-				this.log.debug(
-					`Write: UpdateThermostat serial=${serial} (ComfortSetpoint=${tempC}C) (ComfortEndTime=${comfortToSend})`,
-				);
-				await client.updateThermostat(serial, {
-					...baseUpdate,
-					RegulationMode: 2,
-					ComfortSetpoint: cToNum(tempC),
-					ComfortEndTime: comfortToSend,
-				});
-				this.safeSetState(`${devPrefix}.endTime.comfort`, comfortToSend, true);
-				//this.safeSetState(`${devPrefix}.endTime.comfortSet`, comfortToSend, true);
-				this.safeSetState(id, { val: tempC, ack: true });
-				this._scheduleVerifyPoll();
-			} else if (sub === 'regulationModeSet') {
-				let mode = Number(state.val);
-				if (!Number.isFinite(mode)) {
-					throw new Error('Invalid regulation mode');
-				}
-				mode = Math.trunc(mode);
-				mode = clamp(mode, 0, 9);
-				if (mode === 8) {
-					const boostToSend = this._nowPlusMinutesIso(180);
-					this.log.debug(`Write: Boost mode=8 serial=${serial} BoostEndTime=${boostToSend}`);
-					await client.updateThermostat(serial, {
-						...baseUpdate,
-						RegulationMode: 8,
-						BoostEndTime: boostToSend,
-					});
-					this.thermostatBoostEnd[thermostatId] = boostToSend;
-					this.safeSetState(`${devPrefix}.endTime.boost`, boostToSend, true);
-					//this.safeSetState(`${devPrefix}.endTime.boostSet`, boostToSend, true);
-					this._scheduleVerifyPoll();
-				} else {
-					this.log.debug(`Write: UpdateThermostat serial=${serial} (RegulationMode=${mode})`);
-					await client.updateThermostat(serial, {
-						...baseUpdate,
-						RegulationMode: mode,
-					});
-				}
+			} else if (modeFolder === 'boost') {
+				// 8 -> boost (End Time + duration; default 60 min)
+				let dur = await readNum(`${devPrefix}.apply.boost.durationMinutes`, 60);
+				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				this.safeSetState(id, { val: mode, ack: true });
-			} else if (sub === 'thermostatNameSet') {
-				const newName = String(state.val || '').trim();
-				if (!newName) {
-					throw new Error('Invalid thermostat name');
-				}
-
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (ThermostatName=${newName})`);
-				await client.updateThermostat(serial, {
-					...baseUpdate,
-					ThermostatName: newName,
-				});
-
-				this.thermostatNameCache[thermostatId] = newName;
-				this.safeSetState(id, { val: newName, ack: true });
-				this.safeSetState(`${devPrefix}.thermostatName`, { val: newName, ack: true });
-				this._scheduleVerifyPoll();
-			} else if (sub === 'vacation.enabledSet') {
-				const enabled = Boolean(state.val);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEnabled=${enabled})`);
+				const boostEnd = this._nowPlusMinutesIso(dur);
 
 				await client.updateThermostat(serial, {
-					...baseUpdate,
-					VacationEnabled: enabled,
+					ThermostatName: baseName,
+					RegulationMode: 8,
+					BoostEndTime: boostEnd,
 				});
 
-				this.thermostatVacationEnabled[thermostatId] = enabled;
-				this.safeSetState(id, { val: enabled, ack: true });
-				this.safeSetState(`${devPrefix}.vacation.enabled`, { val: enabled, ack: true });
-				this._scheduleVerifyPoll();
-			} else if (sub === 'vacation.beginSet') {
-				const beginIso = this._parseIsoOrMinutes(state.val, 0);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationBeginDay=${beginIso})`);
-
+				this.thermostatBoostEnd[thermostatId] = boostEnd;
+				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostEnd, ack: true });
+			} else if (modeFolder === 'eco') {
+				// 9 -> eco (only RegulationMode 9)
 				await client.updateThermostat(serial, {
-					...baseUpdate,
-					VacationBeginDay: beginIso,
+					ThermostatName: baseName,
+					RegulationMode: 9,
 				});
-
-				this.thermostatVacationBegin[thermostatId] = beginIso;
-				this.safeSetState(id, { val: beginIso, ack: true });
-				this.safeSetState(`${devPrefix}.vacation.begin`, { val: beginIso, ack: true });
-				this._scheduleVerifyPoll();
-			} else if (sub === 'vacation.endSet') {
-				const endIso = this._parseIsoOrMinutes(state.val, 0);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationEndDay=${endIso})`);
-
-				await client.updateThermostat(serial, {
-					...baseUpdate,
-					VacationEndDay: endIso,
-				});
-
-				this.thermostatVacationEnd[thermostatId] = endIso;
-				this.safeSetState(id, { val: endIso, ack: true });
-				this.safeSetState(`${devPrefix}.vacation.end`, { val: endIso, ack: true });
-				this._scheduleVerifyPoll();
-			} else if (sub === 'vacation.temperatureSet') {
-				let tempC = Number(state.val);
-				if (!Number.isFinite(tempC)) {
-					throw new Error('Invalid temperature');
-				}
-				tempC = clamp(tempC, 12, 35);
-				this.log.debug(`Write: UpdateThermostat serial=${serial} (VacationTemperature=${tempC}C)`);
-
-				const tempNum = cToNum(tempC);
-
-				await client.updateThermostat(serial, {
-					...baseUpdate,
-					VacationTemperature: tempNum,
-				});
-
-				this.thermostatVacationTemp[thermostatId] = tempNum;
-				this.safeSetState(id, { val: tempC, ack: true });
-				this.safeSetState(`${devPrefix}.vacation.temperature`, { val: tempC, ack: true });
-				this._scheduleVerifyPoll();
 			} else {
-				this.log.debug(`Write ignored (unknown sub-path): ${sub}`);
-				this.safeSetState(id, { val: state.val, ack: true });
+				this.log.debug(`Apply ignored: unknown mode folder "${modeFolder}" (${id})`);
 			}
+
+			// reset button state
+			this.safeSetState(id, { val: false, ack: true });
 		} catch (e) {
-			this.log.error(`Write failed for ${id}: ${e?.message || e}`);
+			this.log.error(`Apply failed for ${id}: ${e?.message || e}`);
+			// reset button state even on error to avoid stuck button
+			this.safeSetState(id, { val: false, ack: true });
 		}
 	}
 
@@ -1104,10 +1092,8 @@ class SchlueterThermostat extends utils.Adapter {
 			if (this.pollTimer) {
 				clearInterval(this.pollTimer);
 			}
-			if (this._verifyPollTimer) {
-				clearTimeout(this._verifyPollTimer);
-			}
 
+			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
 				let timeoutId = null;
