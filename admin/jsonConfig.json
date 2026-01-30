@@ -77,32 +77,6 @@
 					"sm": 4,
 					"newLine": true
 				},
-				"timeZone": {
-					"type": "select",
-					"label": "Time zone for timestamps",
-					"default": "Europe/Berlin",
-					"options": [
-						{ "label": "Europe/Berlin (DE)", "value": "Europe/Berlin" },
-						{ "label": "UTC", "value": "UTC" },
-						{ "label": "Europe/Vienna (AT)", "value": "Europe/Vienna" },
-						{ "label": "Europe/Zurich (CH)", "value": "Europe/Zurich" },
-						{ "label": "Europe/Amsterdam (NL)", "value": "Europe/Amsterdam" },
-						{ "label": "Europe/Brussels (BE)", "value": "Europe/Brussels" },
-						{ "label": "Europe/Paris (FR)", "value": "Europe/Paris" },
-						{ "label": "Europe/Rome (IT)", "value": "Europe/Rome" },
-						{ "label": "Europe/Madrid (ES)", "value": "Europe/Madrid" },
-						{ "label": "Europe/London (UK)", "value": "Europe/London" },
-						{ "label": "America/New_York (US East)", "value": "America/New_York" },
-						{ "label": "America/Chicago (US Central)", "value": "America/Chicago" },
-						{ "label": "America/Denver (US Mountain)", "value": "America/Denver" },
-						{ "label": "America/Los_Angeles (US West)", "value": "America/Los_Angeles" }
-					],
-					"xs": 12,
-					"md": 4,
-					"lg": 4,
-					"xl": 4,
-					"sm": 4
-				},
 				"energyHistory": {
 					"type": "number",
 					"label": "Energy History (0=current)",
