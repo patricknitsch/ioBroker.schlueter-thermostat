@@ -53,7 +53,8 @@
 					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 8
+					"sm": 8,
+					"newLine": true
 				},
 				"customerId": {
 					"type": "number",

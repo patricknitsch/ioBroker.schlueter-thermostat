@@ -19,13 +19,13 @@
 //        .apply.*               (apply-only controls)
 //
 // Robustness:
-// - Poll every 60s (min 60s).
+// - Poll every Xs (min 10s).
 // - If poll fails, info.connection = false.
 // - Warn once when a thermostat turns offline (online true -> false).
 // - Block ALL writes unless thermostat is online.
 // - Delete old writable "*Set" states (legacy) and do not recreate them.
 // - Apply concept: only pressing apply.*.apply sends data.
-// - Time strings: "YYYY-MM-DDTHH:mm:ss" (no ms, no trailing Z)
+// - Time strings SENT: "YYYY-MM-DDTHH:mm:ss.sssZ" (UTC ISO with ms + Z)
 // ============================================================================
 
 const utils = require('@iobroker/adapter-core');
@@ -38,7 +38,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Keep original adapter-core methods (avoid wrapper recursion)
 		this._origSetObjectNotExistsAsync = this.setObjectNotExistsAsync.bind(this);
-		this._origSetObjectAsync = this.setObject.bind(this);
+		this._origSetObjectAsync = this.setObjectAsync.bind(this); // FIX: must be setObjectAsync
 		this._origGetObjectAsync = this.getObjectAsync.bind(this);
 		this._origSetState = this.setState.bind(this);
 
@@ -206,10 +206,10 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Time formatting (no ms, no Z)
+	// Time formatting (UTC ISO with ms + Z)
 	// ============================================================================
 
-	_formatIsoNoMsNoZ(value) {
+	_formatIsoSssZ(value) {
 		if (!value) {
 			return '';
 		}
@@ -222,18 +222,34 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		if (Number.isNaN(d.getTime())) {
-			return String(value)
-				.trim()
-				.replace(/\.\d{3}Z$/, '')
-				.replace(/Z$/, '')
-				.replace(/\.\d{3}$/, '');
+			// If it already looks ISO-ish, best-effort: ensure it ends with Z and has .sss
+			// Otherwise return empty to avoid sending garbage.
+			const s = String(value).trim();
+			// If it ends with Z and has milliseconds, accept as-is.
+			if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(s)) {
+				return s;
+			}
+			// If it ends with Z but no ms -> add .000Z
+			if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(s)) {
+				return s.replace(/Z$/, '.000Z');
+			}
+			// If it has ms but no Z -> add Z
+			if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$/.test(s)) {
+				return `${s}Z`;
+			}
+			// If no ms and no Z -> add .000Z
+			if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) {
+				return `${s}.000Z`;
+			}
+			return '';
 		}
 
-		return d.toISOString().replace(/\.\d{3}Z$/, '');
+		// toISOString() => "YYYY-MM-DDTHH:mm:ss.sssZ"
+		return d.toISOString();
 	}
 
 	_nowPlusMinutesIso(minutes) {
-		return this._formatIsoNoMsNoZ(new Date(Date.now() + minutes * 60 * 1000));
+		return new Date(Date.now() + minutes * 60 * 1000).toISOString(); // sssZ
 	}
 
 	_parseIsoOrMinutes(value, defaultMinutes) {
@@ -249,10 +265,12 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const d = new Date(v);
 		if (!Number.isNaN(d.getTime())) {
-			return this._formatIsoNoMsNoZ(d);
+			return d.toISOString(); // normalize to sssZ
 		}
 
-		return this._nowPlusMinutesIso(defaultMinutes);
+		// last resort: try normalize string patterns
+		const normalized = this._formatIsoSssZ(v);
+		return normalized || this._nowPlusMinutesIso(defaultMinutes);
 	}
 
 	async _getSerialFromObject(groupId, thermostatId) {
@@ -262,12 +280,10 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	async _isThermostatOnline(groupId, thermostatId) {
-		// Prefer cache from poll (exact ThermostatId key, not safeId)
 		if (typeof this.lastOnline[thermostatId] === 'boolean') {
 			return this.lastOnline[thermostatId];
 		}
 
-		// Fallback: read state once
 		const devId = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 		try {
 			const st = await this.getStateAsync(`${devId}.online`);
@@ -673,8 +689,9 @@ class SchlueterThermostat extends utils.Adapter {
 		const mode = Number(t?.RegulationMode ?? 0);
 		this.safeSetState(`${devId}.regulationMode`, { val: mode, ack: true });
 
-		const comfortEnd = this._formatIsoNoMsNoZ(t?.ComfortEndTime || '');
-		const boostEnd = this._formatIsoNoMsNoZ(t?.BoostEndTime || '');
+		// IMPORTANT: store/display end times normalized to sssZ
+		const comfortEnd = this._formatIsoSssZ(t?.ComfortEndTime || '');
+		const boostEnd = this._formatIsoSssZ(t?.BoostEndTime || '');
 		if (comfortEnd) {
 			this.safeSetState(`${devId}.endTime.comfort`, comfortEnd, true);
 		}
@@ -965,8 +982,7 @@ class SchlueterThermostat extends utils.Adapter {
 		const thermostatId = parts[idxT + 1];
 
 		// Only react to apply buttons
-		const isApplyButton = id.endsWith('.apply');
-		if (!isApplyButton) {
+		if (!id.endsWith('.apply')) {
 			return;
 		}
 
@@ -974,7 +990,6 @@ class SchlueterThermostat extends utils.Adapter {
 		const online = await this._isThermostatOnline(groupId, thermostatId);
 		if (!online) {
 			this.log.warn(`Write blocked: thermostat offline (ThermostatId=${thermostatId}) id=${id}`);
-			// reset button state to false (ack)
 			this.safeSetState(id, { val: false, ack: true });
 			return;
 		}
@@ -1006,25 +1021,19 @@ class SchlueterThermostat extends utils.Adapter {
 		const baseName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
 
 		try {
-			// Identify which mode folder
 			// id: groups.<g>.thermostats.<t>.apply.<mode>.apply
 			const modeFolder = parts[idxApply + 1]; // schedule / comfort / manual / boost / eco
 
 			if (modeFolder === 'schedule') {
-				// 1 -> schedule (only RegulationMode 1)
-				await client.updateThermostat(serial, {
-					ThermostatName: baseName,
-					RegulationMode: 1,
-				});
+				await client.updateThermostat(serial, { ThermostatName: baseName, RegulationMode: 1 });
 			} else if (modeFolder === 'comfort') {
-				// 2 -> comfort (EndTime + Setpoint Temperature)
 				let tempC = await readNum(`${devPrefix}.apply.comfort.setpoint`, 22);
 				tempC = clamp(tempC, 12, 35);
 
 				let dur = await readNum(`${devPrefix}.apply.comfort.durationMinutes`, 180);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				const comfortEnd = this._nowPlusMinutesIso(dur);
+				const comfortEnd = this._nowPlusMinutesIso(dur); // sssZ
 
 				await client.updateThermostat(serial, {
 					ThermostatName: baseName,
@@ -1033,11 +1042,9 @@ class SchlueterThermostat extends utils.Adapter {
 					ComfortEndTime: comfortEnd,
 				});
 
-				// mirror end time readouts
 				this.thermostatComfortEnd[thermostatId] = comfortEnd;
 				this.safeSetState(`${devPrefix}.endTime.comfort`, { val: comfortEnd, ack: true });
 			} else if (modeFolder === 'manual') {
-				// 3 -> manual (Setpoint Temperature)
 				let tempC = await readNum(`${devPrefix}.apply.manual.setpoint`, 21);
 				tempC = clamp(tempC, 12, 35);
 
@@ -1047,11 +1054,10 @@ class SchlueterThermostat extends utils.Adapter {
 					ManualModeSetpoint: cToNum(tempC),
 				});
 			} else if (modeFolder === 'boost') {
-				// 8 -> boost (End Time + duration; default 60 min)
 				let dur = await readNum(`${devPrefix}.apply.boost.durationMinutes`, 60);
 				dur = clamp(Math.trunc(dur), 1, 24 * 60);
 
-				const boostEnd = this._nowPlusMinutesIso(dur);
+				const boostEnd = this._nowPlusMinutesIso(dur); // sssZ
 
 				await client.updateThermostat(serial, {
 					ThermostatName: baseName,
@@ -1062,20 +1068,14 @@ class SchlueterThermostat extends utils.Adapter {
 				this.thermostatBoostEnd[thermostatId] = boostEnd;
 				this.safeSetState(`${devPrefix}.endTime.boost`, { val: boostEnd, ack: true });
 			} else if (modeFolder === 'eco') {
-				// 9 -> eco (only RegulationMode 9)
-				await client.updateThermostat(serial, {
-					ThermostatName: baseName,
-					RegulationMode: 9,
-				});
+				await client.updateThermostat(serial, { ThermostatName: baseName, RegulationMode: 9 });
 			} else {
 				this.log.debug(`Apply ignored: unknown mode folder "${modeFolder}" (${id})`);
 			}
 
-			// reset button state
 			this.safeSetState(id, { val: false, ack: true });
 		} catch (e) {
 			this.log.error(`Apply failed for ${id}: ${e?.message || e}`);
-			// reset button state even on error to avoid stuck button
 			this.safeSetState(id, { val: false, ack: true });
 		}
 	}
@@ -1093,7 +1093,6 @@ class SchlueterThermostat extends utils.Adapter {
 				clearInterval(this.pollTimer);
 			}
 
-			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
 				let timeoutId = null;
