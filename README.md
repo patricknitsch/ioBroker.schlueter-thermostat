@@ -1,4 +1,4 @@
-![Logo](admin/schlueter-thermostat.png)
+### ![Logo](admin/schlueter-thermostat.png)
 
 # ioBroker.schlueter-thermostat
 
