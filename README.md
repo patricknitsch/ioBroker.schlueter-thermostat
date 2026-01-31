@@ -11,217 +11,107 @@
 
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.schlueter-thermostat/workflows/Test%20and%20Release/badge.svg)
 
-# Schlueter Thermostat
-
-Cloud adapter for **Schlüter / OJ Microline OWD5 thermostats**.\
-The adapter connects to the official **OWD5 (read)** and **OCD5
-(write)** cloud APIs to fully integrate thermostats into ioBroker.
-
-This adapter is **cloud-only** --- no local gateway or Modbus required.
-The complete API can be tested at: https://ocd5.azurewebsites.net/swagger/ui/index#/
-
-## Attention:
-
-I only have one thermostat. So I'm not sure, how it looks like with multiple thermostats.
-I will check it, if I get a second one, especially for energy valuse for each thermostat.
-
 ---
 
-## 🧩 Architecture
+##
 
-    ioBroker
-       │
-       │  REST (HTTPS)
-       ▼
-    schlueter-thermostat Adapter
-       │
-       ├───────────────► OWD5 Cloud API (READ)
-       │                  - Groups
-       │                  - Thermostats
-       │                  - Schedule
-       │                  - Energy usage
-       │
-       └───────────────► OCD5 Cloud API (WRITE)
-                          - Setpoints
-                          - Modes
-                          - End times
-                          - Vacation
-                          - Thermostat name
-                               │
-                               ▼
-                     Schlüter / OJ Microline Thermostats
+## 🌍 Overview
 
----
+This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
 
-## ⚙ How the Adapter Works
+It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
 
-1.  **Login** to OWD5 cloud with your credentials.
-2.  **Polling** at configured interval (default 60s):
-    - Reads **GroupContents**
-    - Creates/updates group & thermostat objects
-    - Reads temperatures, modes, setpoints, schedules
-    - Reads energy usage per thermostat (via SerialNumber)
-3.  When a writable state changes:
-    - Adapter builds full **UpdateThermostat payload**
-    - Sends it to **OCD5 cloud**
-4.  Cloud forwards the command to the thermostat.
+> **Cloud-only** — no local gateway, Modbus, or LAN API required.
 
----
+##
 
-## 👤 Required User Data
+## 🚀 How to Start
 
-Setting Description
+1. Install adapter in ioBroker
+2. Open instance configuration
+3. Enter:
 
----
+| Setting           | Description                   |
+| ----------------- | ----------------------------- |
+| Username          | Your Schlüter/OJ cloud login  |
+| Password          | Cloud password                |
+| API Key           | Default works in most cases   |
+| Customer ID       | Found in thermostat info      |
+| Client SW Version | Numeric value from thermostat |
+| Poll Interval     | Default: 60 seconds           |
 
-Username Your Schlüter/OJ cloud login -> **setted in your APP**
-Password Cloud password -> **setted in your APP**
-API Key Provided API key -> **use Default; It seems to work**
-Customer ID Your cloud customer ID -> **to find in you thermostat information**
-Client SW Version Required by API (numeric) -> **to find in your thermostat information**
-Poll Interval Seconds between cloud polls
+4. Save & start adapter
 
----
+##
 
-## 🏠 Object Structure
+## Documentation
 
-    schlueter-thermostat.0
-    └─ groups
-       └─ <GroupId> (device)
-          └─ thermostats
-             └─ <ThermostatId> (device)
+[🇺🇸 Documentation](./docs/en/README.md)
 
----
+[🇩🇪 Dokumentation](./docs/de/README.md)
 
-## 🌡 What Can Be Read
+##
 
-Category States
+## Compact Architecture Overview
 
----
+### Architecture Badges
 
-Temperatures Room, Floor
-Setpoints Manual, Comfort
-Modes RegulationMode
-End Times ComfortEndTime, BoostEndTime
-Vacation Enabled, Begin, End, Temperature
-Schedule All days + events
-Energy kWh history values
+![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
+![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
+![Mode Support](https://img.shields.io/badge/Modes-Schedule%20Comfort%20Manual%20Boost%20Eco%20Vacation-orange?style=for-the-badge)
 
----
+### Compact Program Structure
 
-## ✍ What Can Be Written
+```mermaid
+flowchart LR
+  UI[User / UI] --> IO[ioBroker States]
+  IO --> ADP[Adapter]
 
-State Description
+  ADP -->|read| OWD5[OWD5 Cloud]
+  ADP -->|write| OCD5[OCD5 Cloud]
+  OCD5 --> TH[Thermostat]
 
----
+  ADP --> OBJ[Object Tree]
+  OBJ --> RO[Read States]
+  OBJ --> AP[Apply Controls]
+```
 
-setpoint.manualSet Manual temperature
-setpoint.comfortSet Comfort temperature
-regulationModeSet Mode change
-thermostatNameSet Rename thermostat
-endTime.comfortSet Comfort end time
-endTime.boostSet Boost end time
-vacation.enabledSet Enable vacation
-vacation.beginSet Vacation start
-vacation.endSet Vacation end
-vacation.temperatureSet Vacation temperature
+### Internal Flow (Mini)
 
----
+```mermaid
+flowchart TB
+  READY[onReady] --> LOGIN[Cloud Login]
+  LOGIN --> POLL[pollOnce]
+  POLL --> UPSERT[Update Objects + States]
 
-## 🔥 Reglulation Mode Logic
+  APPLYBTN[Apply Button] --> ROUTER[applyRouter]
+  ROUTER --> API[updateThermostat]
+```
 
-When `regulationModeSet = 1`:
+##
 
-- Schedule Plan as defined in APP
+## 📌 Notes
 
-When `regulationModeSet = 2`:
+- Developed and tested with a single thermostat
+- Multi-device environments supported, but feedback welcome
 
-- Comfort Mode is active for setted Time in h
-- Temperature = setted Temperature
+##
 
-When `regulationModeSet = 3`:
-
-- Manual Mode is active for undefined time
-- Temperature = setted Temperature
-
-When `regulationModeSet = 8`:
-
-- Boost end time = **now + 1 hour**
-- Temperature = thermostat maximum
-
-When `regulationModeSet = 9`:
-
-- Eco Mode is active
-- Temperature = 20 degrees
-
-There some more......
-
----
-
-## 🔁 State Flow Diagram
-
-                ┌──────────┐
-                │   AUTO   │
-                └─────┬────┘
-                      │
-              comfortSetpoint
-                      ▼
-                ┌──────────┐
-                │ COMFORT  │
-                └─────┬────┘
-                      │ manualSetpoint
-                      ▼
-                ┌──────────┐
-                │  MANUAL  │
-                └─────┬────┘
-                      │ regulationMode=8
-                      ▼
-                ┌──────────┐
-                │  BOOST   │
-                │ (1 hour) │
-                └─────┬────┘
-                      │ endTime reached
-                      ▼
-                back to previous mode
-
-Vacation overrides all heating modes when enabled.
-
----
-
-## ⚡ Energy
-
-Energy values are provided per thermostat:
-
-    energy.count
-    energy.value0
-    energy.value1
-    ...
-
-## **It starts with the Energy from today.**
-
-## 🛡 Stability
-
-- Safe object/state wrappers
-- Graceful shutdown
-- Poll protection
-- Debug logging
-
----
-
-## 🐛 Debug
-
-Enable **debug log level** to see cloud communication.
-
----
-
-## 📦 Version
-
-### Changelog
+## Changelog
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Update Readme
+- (patricknitsch) Verify Polling if Thermostat give no Response
+- (patricknitsch) Complete Refactoring to handle functions better
+- (patricknitsch) encrypt all sensitive credentials -> Relogin necessary
+- (patricknitsch) Code Fixing for latest repo
+
 ### 0.2.4 (2026-01-28)
 
 - (patricknitsch) Change Format of Times
@@ -254,6 +144,8 @@ Enable **debug log level** to see cloud communication.
 - (patricknitsch) initial release
 - (patricknitsch) fetch data and write in Datapoints
 - (patricknitsch) functional version with Energy and settable functions
+
+##
 
 ## License
 
