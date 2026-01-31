@@ -103,6 +103,12 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Add Mode Frost Protection
+- (patricknitsch) Show Enum instead of Regulation Number
+
 ### 0.3.0 (2026-01-31)
 
 - (patricknitsch) Update Readme
