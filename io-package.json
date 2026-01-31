@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "news": {
+      "0.3.1": {
+        "en": "Add Mode Frost Protection\nShow Enum instead of Regulation Number",
+        "de": "Modus Frostschutz hinzufügen\nAnum anstelle der Regelungsnummer anzeigen",
+        "ru": "Добавить режим защиты от мороза\nПоказать номер вместо номера",
+        "pt": "Adicionar Modo de Proteção de Gelo\nMostrar o Enum em vez do Número de Regulação",
+        "nl": "Frostbescherming toevoegen\nEnum tonen in plaats van Reglementnummer",
+        "fr": "Ajouter une protection contre le gel en mode\nAfficher le nom au lieu du numéro de règlement",
+        "it": "Aggiungere la modalità di protezione del gelo\nMostra Enum invece del numero di regolamento",
+        "es": "Añadir Mode Frost Protection\nMostrar Enum en lugar del número de regulación",
+        "pl": "Dodaj tryb ochrony mróz\nPokaż Enum zamiast numeru regulaminu",
+        "uk": "Додайте режим захисту від загартування\nПоказати Enum замість номеру регулювання",
+        "zh-cn": "添加模式霜保护\n显示 Enum 而不是规章编号"
+      },
       "0.3.0": {
         "en": "Update Readme\nVerify Polling if Thermostat give no Response\nComplete Refactoring to handle functions better\nencrypt all sensitive credentials -> Relogin necessary\nCode Fixing for latest repo",
         "de": "Update Reader\nVerifizieren Sie Polling, wenn Thermostat keine Antwort geben\nKomplette Refactoring, um Funktionen besser zu handhaben\nalle sensiblen Anmeldeinformationen verschlüsseln -> Relogin notwendig\nCode Fixing für die neueste Repo",
