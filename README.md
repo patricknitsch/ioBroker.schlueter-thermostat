@@ -13,8 +13,6 @@
 
 ---
 
-##
-
 ## 🌍 Overview
 
 This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
