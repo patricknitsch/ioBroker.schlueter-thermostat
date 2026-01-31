@@ -1,4 +1,4 @@
-### ![Logo](admin/schlueter-thermostat.png)
+![Logo](admin/schlueter-thermostat.png)
 
 # ioBroker.schlueter-thermostat
 
@@ -13,6 +13,8 @@
 
 ---
 
+##
+
 ## 🌍 Overview
 
 This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
@@ -20,6 +22,8 @@ This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBro
 It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
 
 > **Cloud-only** — no local gateway, Modbus, or LAN API required.
+
+##
 
 ## 🚀 How to Start
 
@@ -38,13 +42,17 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 
 4. Save & start adapter
 
+##
+
 ## Documentation
 
 [🇺🇸 Documentation](./docs/en/README.md)
 
 [🇩🇪 Dokumentation](./docs/de/README.md)
 
-### Compact Architecture Overview
+##
+
+## Compact Architecture Overview
 
 ### Architecture Badges
 
@@ -80,10 +88,14 @@ flowchart TB
   ROUTER --> API[updateThermostat]
 ```
 
+##
+
 ## 📌 Notes
 
 - Developed and tested with a single thermostat
 - Multi-device environments supported, but feedback welcome
+
+##
 
 ## Changelog
 
@@ -132,6 +144,8 @@ flowchart TB
 - (patricknitsch) initial release
 - (patricknitsch) fetch data and write in Datapoints
 - (patricknitsch) functional version with Energy and settable functions
+
+##
 
 ## License
 
