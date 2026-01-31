@@ -107,7 +107,8 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### 0.3.2 (2026-01-31)
+
+### **WORK IN PROGRESS**
 
 - (patricknitsch) Update from git to https
 
