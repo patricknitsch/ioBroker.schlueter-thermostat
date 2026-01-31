@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "news": {
+      "0.3.2": {
+        "en": "Update from git to https",
+        "de": "Update von git zu https",
+        "ru": "Обновление от git до https",
+        "pt": "Atualizar do git para https",
+        "nl": "Bijwerken van git naar https",
+        "fr": "Mettre à jour de git à https",
+        "it": "Aggiornamento da git a https",
+        "es": "Actualización de git a https",
+        "pl": "Aktualizacja z git do https",
+        "uk": "Оновлення з git на HTTPS",
+        "zh-cn": "从 git 更新到 https"
+      },
       "0.3.1": {
         "en": "Add Mode Frost Protection\nShow Enum instead of Regulation Number",
         "de": "Modus Frostschutz hinzufügen\nAnum anstelle der Regelungsnummer anzeigen",
@@ -80,19 +93,6 @@
         "pl": "Napraw JsonConfig",
         "uk": "Фіксація JsonConfig",
         "zh-cn": "修复 Json 连接"
-      },
-      "0.2.0": {
-        "en": "add automatic Refresh of Token after Error 403\nfix max Value of Regulation Mode to 9 for error preventing\nimprove Handling of Mode Settings",
-        "de": "hinzufügen automatisch Aktualisieren von Token nach Fehler 403\nmax. Wert des Regelmodus auf 9 zur Fehlerverhütung\nverbesserung der Handhabung von Moduseinstellungen",
-        "ru": "добавить автоматический Обновление токена после ошибки 403\nфиксировать максимальное значение режима регулирования до 9 для предотвращения ошибок\nулучшение обработки настроек режима",
-        "pt": "adicionar automático Atualizar o item após o erro 403\nfixar o valor máximo do modo de regulação até 9 para evitar erros\nmelhorar o manuseio das configurações do modo",
-        "nl": "automatisch toevoegen Verversen van Token na fout 403\nfix max Value of Regulation Mode to 9 for error preventing\nverbeteren van de behandeling van modusinstellingen",
-        "fr": "ajouter automatique Rafraîchir le jeton après l'erreur 403\nfixer la valeur maximale du mode de régulation à 9 pour éviter les erreurs\naméliorer la manipulation des paramètres de mode",
-        "it": "aggiungere automatico Rifiuto di Token dopo Errore 403\nfissare il valore massimo della modalità di regolamento a 9 per evitare errori\nmigliorare Gestione delle impostazioni di modalità",
-        "es": "añadir automático Actualización de Token después del Error 403\nfijar el valor máximo del modo de regulación a 9 para la prevención de errores\nmejorar Manejo de configuración de modo",
-        "pl": "dodawać automatycznie Odśwież Token po błędzie 403\nnaprawić maksymalną wartość trybu regulacji do 9 dla zapobiegania błędom\npoprawić obsługę ustawień trybu",
-        "uk": "додати автоматичний Refresh Token після помилки 403\nвиправити максимальне значення режиму регулювання до 9 для запобігання помилок\nполіпшення ручки параметрів режиму",
-        "zh-cn": "添加自动 错误 403 后刷新托肯\n用于防止错误的规范模式 9 值\n改进模式设置的处理"
       }
     },
     "titleLang": {
