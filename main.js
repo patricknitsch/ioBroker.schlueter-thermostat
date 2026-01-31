@@ -365,15 +365,11 @@ class SchlueterThermostat extends utils.Adapter {
 		this.pollPromise = (async () => {
 			const data = await client.getGroupContents();
 			const groups = Array.isArray(data?.GroupContents) ? data.GroupContents : [];
+
+			// success: mark connected + reset fail counters
 			this.safeSetState('info.connection', true, true);
 			this.pollFailCount = 0;
 			this.warnedNoCloud = false;
-			this.safeSetState('info.connection', true, true);
-
-			if (!this.warnedNoCloud) {
-				this.log.warn('Cloud communication failed. Adapter set info.connection=false.');
-				this.warnedNoCloud = true;
-			}
 
 			for (const group of groups) {
 				if (this.unloading) {
@@ -401,7 +397,6 @@ class SchlueterThermostat extends utils.Adapter {
 				if (comm) {
 					this.pollFailCount += 1;
 
-					// failed too often: set connection false
 					if (this.pollFailCount >= this.POLL_FAIL_THRESHOLD) {
 						this.safeSetState('info.connection', false, true);
 
@@ -421,7 +416,6 @@ class SchlueterThermostat extends utils.Adapter {
 						);
 					}
 				} else {
-					// no Communication Error: do not change connection state
 					this.log.warn(`Poll error (non-comm): ${err?.message || err}`);
 				}
 			})
