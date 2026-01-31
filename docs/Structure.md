@@ -1,150 +1,84 @@
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ Adapter Start │
-│ onReady() │
-└──────────────────────────────────────────────────────────────────────────────┘
-│
-│ 1) Config prüfen
-│ 2) client = new OJClient(...)
-│ 3) client.login()
-▼
-┌───────────────────────┐
-│ info.connection = true │
-└───────────────────────┘
-│
-│ 4) create groups root
-│ 5) optional legacyCleanup()
-│ 6) pollOnce() + Timer
-│ 7) subscribeStates('...apply._.apply')
-▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ Poll Loop │
-│ pollOnce() │
-└──────────────────────────────────────────────────────────────────────────────┘
-│
-│ client.getGroupContents()
-▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ For each Group (group) │
-└──────────────────────────────────────────────────────────────────────────────┘
-│
-│ ensureGroupObjects() ──► creates:
-│ groups.<gid> (device)
-│ groups.<gid>.thermostats (channel)
-▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ For each Thermostat (t) in group │
-│ upsertThermostat(group, t) │
-└──────────────────────────────────────────────────────────────────────────────┘
-│
-│ Cache:
-│ - thermostatSerial[tid] = SerialNumber
-│ - thermostatNameCache[tid] = ThermostatName
-│ - thermostatTimeZoneSec[tid] = TimeZone (e.g. 3600)
-▼
-┌───────────────────────────────────────────┐
-│ ensureThermostatObjects(devId, ...) │
-│ creates read-only objects/states: │
-│ .online .heating .thermostatName │
-│ .temperature._ .setpoint._ .regulationMode│
-│ .endTime._ .vacation._ .schedule .energy │
-└───────────────────────────────────────────┘
-│
-▼
-┌───────────────────────────────────────────┐
-│ ensureApplyObjects(devId) │
-│ creates writable apply states: │
-│ .apply.schedule._ │
-│ .apply.comfort._ │
-│ .apply.manual._ │
-│ .apply.boost._ │
-│ .apply.eco._ │
-│ .apply.name._ │
-│ .apply.vacation._ │
-└───────────────────────────────────────────┘
-│
-│ deleteOldWritableStates(devId) (1x)
-│ offline transition warning
-▼
-┌───────────────────────────────────────────┐
-│ time conversion (incoming) │
-│ cloud EndTime -> thermostat local no-Z │
-│ toThermostatLocalNoZFromAny(..., TZsec) │
-└───────────────────────────────────────────┘
-│
-▼
-┌───────────────────────────────────────────┐
-│ writeThermostatStates() │
-│ writes read-only states (ack=true) │
-│ online/heating/temps/setpoints/mode │
-│ endTime._ (local no-Z) │
-│ vacation._ (read-only) │
-└───────────────────────────────────────────┘
-│
-▼
-┌───────────────────────────────────────────┐
-│ prefillApplyNonDestructive() │
-│ sets apply fields only if empty │
-│ apply.name.value │
-│ apply.vacation.\* │
-└───────────────────────────────────────────┘
-│
-▼
-┌───────────────────────────────────────────┐
-│ writeScheduleStates() │
-│ writeEnergyStates() │
-└───────────────────────────────────────────┘
+# schlueter-thermostat Adapter – Program Structure Documentation
 
-────────────────────────────────────────────────────────────────────────────────
-User writes (apply-only)
-────────────────────────────────────────────────────────────────────────────────
+## High-Level Architecture
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ onStateChange(id,state) │
-└──────────────────────────────────────────────────────────────────────────────┘
-│
-│ only if: !state.ack AND id endsWith ".apply"
-▼
-┌───────────────────────────────────────────┐
-│ Guard: thermostat online? │
-│ offline -> reset button false (ack) │
-└───────────────────────────────────────────┘
-│
-│ get SerialNumber (cache or object native)
-▼
-┌───────────────────────────────────────────┐
-│ modeFolder = ...apply.<mode>.apply │
-│ applyRouter({modeFolder,...}) │
-└───────────────────────────────────────────┘
-│
-▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ Apply Handler Map │
-│ (lib/apply-handlers.js) │
-└──────────────────────────────────────────────────────────────────────────────┘
-│ │ │ │ │ │ │
-│schedule │comfort │manual │boost │eco │name │vacation
-▼ ▼ ▼ ▼ ▼ ▼ ▼
-updateThermostat(...) updateThermostat(...) updateThermostat(...) updateThermostat(...)
-(RegMode=1) (RegMode=2 + EndTime) (RegMode=8 + EndTime) (Vacation\*)
-EndTime outgoing:
-nowPlusMinutesUtcNoZ(dur)
-=> UTC without "Z" / without ms
+```mermaid
+flowchart TB
+  U[User / UI / Scripts] -->|write states| IO[(ioBroker States DB)]
+  IO -->|stateChange events| ADP[schlueter-thermostat Adapter]
 
-                  │
-                  ▼
-        ┌───────────────────────────────────────────┐
-        │ finally: reset apply button false (ack)    │
-        └───────────────────────────────────────────┘
+  ADP -->|HTTPS REST (read)| OWD5[OWD5 Cloud API (Read)]
+  ADP -->|HTTPS REST (write)| OCD5[OCD5 Cloud API (Write)]
+  OCD5 --> TH[Schlüter / OJ Thermostat]
+  OWD5 --> ADP
+```
 
-────────────────────────────────────────────────────────────────────────────────
-Shutdown
-────────────────────────────────────────────────────────────────────────────────
+## Runtime Lifecycle
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ onUnload() │
-└──────────────────────────────────────────────────────────────────────────────┘
-│
-│ unloading=true, stop timer
-│ wait for pollPromise (max 5s)
-▼
-callback()
+```mermaid
+sequenceDiagram
+  autonumber
+  participant I as ioBroker
+  participant A as Adapter
+  participant R as OWD5 (READ)
+  participant W as OCD5 (WRITE)
+
+  I->>A: onReady()
+  A->>W: login()
+  alt login ok
+    A->>I: info.connection = true
+    A->>A: pollOnce()
+    A->>R: getGroupContents()
+    R-->>A: groups + thermostats
+    A->>I: update states
+    loop polling
+      A->>R: getGroupContents()
+      R-->>A: new data
+      A->>I: update states
+    end
+  else login fail
+    A->>I: info.connection = false
+  end
+```
+
+## Object Tree
+
+```mermaid
+flowchart LR
+  ROOT[schlueter-thermostat.0] --> GR[groups]
+  GR --> GID[<GroupId>]
+  GID --> THS[thermostats]
+  THS --> TID[<ThermostatId>]
+  TID --> READ[Read-only states]
+  TID --> APPLY[apply.* controls]
+```
+
+## Apply Flow
+
+```mermaid
+flowchart TB
+  BTN[apply.<mode>.apply] --> EVT[onStateChange()]
+  EVT --> ROUTE[applyRouter()]
+  ROUTE --> API[updateThermostat()]
+  API --> TH[Cloud → Thermostat]
+```
+
+## Apply Modes
+
+```mermaid
+flowchart LR
+  SCHEDULE -->|Mode 1| API1
+  COMFORT -->|Mode 2 + EndTime| API2
+  MANUAL -->|Mode 3| API3
+  BOOST -->|Mode 8| API4
+  ECO -->|Mode 9| API5
+  VACATION -->|Vacation fields| API6
+```
+
+## Time Handling
+
+```mermaid
+flowchart TB
+  TZ[Thermostat TimeZone] --> IN[Incoming conversion]
+  TZ --> OUT[Outgoing EndTime calculation]
+```

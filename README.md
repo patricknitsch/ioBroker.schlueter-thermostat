@@ -11,212 +11,55 @@
 
 **Tests:** ![Test and Release](https://github.com/patricknitsch/ioBroker.schlueter-thermostat/workflows/Test%20and%20Release/badge.svg)
 
-## Schlueter Thermostat
+---
 
-Cloud adapter for **Schlüter / OJ Microline OWD5 thermostats**.\
-The adapter connects to the official **OWD5 (read)** and **OCD5
-(write)** cloud APIs to fully integrate thermostats into ioBroker.
+## 🌍 Overview
 
-This adapter is **cloud-only** --- no local gateway or Modbus required.
-The complete API can be tested at: https://ocd5.azurewebsites.net/swagger/ui/index#/
+This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
 
-### Attention:
+It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
 
-I only have one thermostat. So I'm not sure, how it looks like with multiple thermostats.
-I will check it, if I get a second one, especially for energy values of each thermostat.
+> **Cloud-only** — no local gateway, Modbus, or LAN API required.
 
 ---
 
-### 🧩 Architecture
+## Documentation
 
-    ioBroker
-       │
-       │  REST (HTTPS)
-       ▼
-    schlueter-thermostat Adapter
-       │
-       ├───────────────► OWD5 Cloud API (READ)
-       │                  - Groups
-       │                  - Thermostats
-       │                  - Schedule
-       │                  - Energy usage
-       │
-       └───────────────► OCD5 Cloud API (WRITE)
-                          - Setpoints
-                          - Modes
-                          - End times
-                          - Vacation
-                          - Thermostat name
-                               │
-                               ▼
-                     Schlüter / OJ Microline Thermostats
+[🇩🇪 Structure](./docs/Structure.md)
+
+[🇺🇸 Documentation](./docs/en/README.md)
+
+[🇩🇪 Dokumentation](./docs/de/README.md)
 
 ---
 
-### ⚙ How the Adapter Works
+## 🚀 How to Start
 
-1.  **Login** to OWD5 cloud with your credentials.
-2.  **Polling** at configured interval (default 60s):
-    - Reads **GroupContents**
-    - Creates/updates group & thermostat objects
-    - Reads temperatures, modes, setpoints, schedules
-    - Reads energy usage per thermostat (via SerialNumber)
-3.  When a writable state changes:
-    - Adapter builds full **UpdateThermostat payload**
-    - Sends it to **OCD5 cloud**
-4.  Cloud forwards the command to the thermostat.
+1. Install adapter in ioBroker
+2. Open instance configuration
+3. Enter:
 
----
+| Setting           | Description                   |
+| ----------------- | ----------------------------- |
+| Username          | Your Schlüter/OJ cloud login  |
+| Password          | Cloud password                |
+| API Key           | Default works in most cases   |
+| Customer ID       | Found in thermostat info      |
+| Client SW Version | Numeric value from thermostat |
+| Poll Interval     | Default: 60 seconds           |
 
-### 👤 Required User Data
-
-Setting Description
+4. Save & start adapter
 
 ---
 
-1. Username Your Schlüter/OJ cloud login -> **setted in your APP**
-2. Password Cloud password -> **setted in your APP**
-3. API Key Provided API key -> **use Default; It seems to work**
-4. Customer ID Your cloud customer ID -> **to find in you thermostat information**
-5. Client SW Version Required by API (numeric) -> **to find in your thermostat information**
-6. Poll Interval Seconds between cloud polls
+## 📌 Notes
+
+- Developed and tested with a single thermostat
+- Multi-device environments supported, but feedback welcome
 
 ---
 
-### 🏠 Object Structure
-
-    schlueter-thermostat.0
-    └─ groups
-       └─ <GroupId> (device)
-          └─ thermostats
-             └─ <ThermostatId> (device)
-
----
-
-### 🌡 What Can Be Read
-
-Category States
-
----
-
-- Temperatures Room, Floor
-- Setpoints Manual, Comfort
-- Modes RegulationMode
-- End Times ComfortEndTime, BoostEndTime
-- Vacation Enabled, Begin, End, Temperature
-- Schedule All days + events
-- Energy kWh history values
-
----
-
-### ✍ What Can Be Written
-
-State Description
-
----
-
-- setpoint.manualSet Manual temperature
-- setpoint.comfortSet Comfort temperature
-- regulationModeSet Mode change
-- thermostatNameSet Rename thermostat
-- endTime.comfortSet Comfort end time
-- endTime.boostSet Boost end time
-- vacation.enabledSet Enable vacation
-- vacation.beginSet Vacation start
-- vacation.endSet Vacation end
-- vacation.temperatureSet Vacation temperature
-
----
-
-### 🔥 Reglulation Mode Logic
-
-When `regulationModeSet = 1`:
-
-- Schedule Plan as defined in APP
-
-When `regulationModeSet = 2`:
-
-- Comfort Mode is active for setted Time in h
-- Temperature = setted Temperature
-
-When `regulationModeSet = 3`:
-
-- Manual Mode is active for undefined time
-- Temperature = setted Temperature
-
-When `regulationModeSet = 8`:
-
-- Boost end time = **now + 1 hour**
-- Temperature = thermostat maximum
-
-When `regulationModeSet = 9`:
-
-- Eco Mode is active
-- Temperature = 20 degrees
-
-There`s some more......
-
----
-
-### 🔁 State Flow Diagram
-
-                ┌──────────┐
-                │   AUTO   │
-                └─────┬────┘
-                      │
-              comfortSetpoint
-                      ▼
-                ┌──────────┐
-                │ COMFORT  │
-                └─────┬────┘
-                      │ manualSetpoint
-                      ▼
-                ┌──────────┐
-                │  MANUAL  │
-                └─────┬────┘
-                      │ regulationMode=8
-                      ▼
-                ┌──────────┐
-                │  BOOST   │
-                │ (1 hour) │
-                └─────┬────┘
-                      │ endTime reached
-                      ▼
-                back to previous mode
-
-Vacation overrides all heating modes when enabled.
-
----
-
-### ⚡ Energy
-
-Energy values are provided per thermostat:
-
-    energy.count
-    energy.value0
-    energy.value1
-    ...
-
-### **It starts with the Energy from today.**
-
-### 🛡 Stability
-
-- Safe object/state wrappers
-- Graceful shutdown
-- Poll protection
-- Debug logging
-
----
-
-### 🐛 Debug
-
-Enable **debug log level** to see cloud communication.
-
----
-
-### 📦 Version
-
-#### Changelog
+## Changelog
 
 <!--
 	Placeholder for the next version (at the beginning of the line):
@@ -227,6 +70,9 @@ Enable **debug log level** to see cloud communication.
 
 - (patricknitsch) Update Readme
 - (patricknitsch) Verify Polling if Thermostat give no Response
+- (patricknitsch) Complete Refactoring to handle functions better
+- (patricknitsch) encrypt all sensitive credentials -> Relogin necessary
+- (patricknitsch) Code Fixing for latest repo
 
 ### 0.2.4 (2026-01-28)
 
