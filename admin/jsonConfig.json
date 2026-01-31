@@ -30,30 +30,30 @@
 					"type": "text",
 					"label": "Username",
 					"xs": 12,
+					"sm": 12,
 					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4,
 					"newLine": true
 				},
 				"password": {
 					"type": "password",
 					"label": "Password",
 					"xs": 12,
-					"md": 4,
+					"sm": 12,
+					"md": 6,
 					"lg": 4,
-					"xl": 4,
-					"sm": 4
+					"xl": 4
 				},
 				"apiKey": {
 					"type": "text",
 					"label": "API Key",
 					"default": "f219aab4-9ac0-4343-8422-b72203e2fac9",
 					"xs": 12,
+					"sm": 12,
 					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 8,
 					"newLine": true
 				},
 				"customerId": {
@@ -61,20 +61,20 @@
 					"label": "Customer ID",
 					"default": 1,
 					"xs": 12,
-					"md": 4,
+					"sm": 12,
+					"md": 6,
 					"lg": 4,
-					"xl": 4,
-					"sm": 4
+					"xl": 4
 				},
 				"pollIntervalSec": {
 					"type": "number",
 					"label": "Poll interval (seconds)",
 					"default": 60,
 					"xs": 12,
-					"md": 4,
+					"sm": 12,
+					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4,
 					"newLine": true
 				},
 				"energyHistory": {
@@ -82,10 +82,10 @@
 					"label": "Energy History (0=current)",
 					"default": 0,
 					"xs": 12,
-					"md": 4,
+					"sm": 12,
+					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4,
 					"newLine": true
 				},
 				"energyViewType": {
@@ -93,26 +93,31 @@
 					"label": "Energy ViewType (2=week,3=month,4=year)",
 					"default": 2,
 					"xs": 12,
-					"md": 4,
+					"sm": 12,
+					"md": 6,
 					"lg": 4,
-					"xl": 4,
-					"sm": 4
+					"xl": 4
 				},
 				"legacyCleanup": {
 					"type": "checkbox",
 					"label": "Legacy Cleanup (1=enabled,0=disabled)",
 					"default": 1,
 					"xs": 12,
-					"md": 4,
+					"sm": 12,
+					"md": 6,
 					"lg": 4,
 					"xl": 4,
-					"sm": 4,
 					"newLine": true
 				},
 				"_help": {
 					"type": "staticText",
 					"newLine": true,
-					"text": "OWD5 cloud only. Devices are created per GroupId. Writeback uses Group/UpdateGroup. Energy uses EnergyUsage/GetEnergyUsage with ThermostatID (Thermostats[].Id)."
+					"text": "OWD5 cloud only. Devices are created per GroupId. Writeback uses Group/UpdateGroup. Energy uses EnergyUsage/GetEnergyUsage with ThermostatID (Thermostats[].Id).",
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
 				}
 			}
 		}

@@ -610,9 +610,19 @@ class SchlueterThermostat extends utils.Adapter {
 			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
-				// Use native setTimeout here to avoid:
-				// "setTimeout called, but adapter is shutting down"
-				await Promise.race([p, new Promise(resolve => setTimeout(resolve, 5000))]);
+				let timeoutId;
+
+				const timeoutPromise = new Promise(resolve => {
+					// Use native setTimeout to avoid:
+					// "setTimeout called, but adapter is shutting down"
+					timeoutId = setTimeout(resolve, 5000);
+				});
+
+				await Promise.race([p, timeoutPromise]);
+
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+				}
 			}
 
 			callback();
