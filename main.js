@@ -1,5 +1,33 @@
 'use strict';
 
+// ============================================================================
+// schlueter-thermostat
+// Cloud-only adapter for OJ Microline / Schlüter OWD5/OCD5
+//
+// Structure:
+// groups.<GroupId>              (device, name = GroupName)
+//   .thermostats                (channel)
+//     .<ThermostatId>           (device, name = ThermostatName)
+//        .temperature.*         (read-only)
+//        .setpoint.*            (read-only)
+//        .regulationMode        (read-only)
+//        .endTime.*             (read-only; shown as thermostat-local no-Z)
+//        .vacation.*            (read-only)
+//        .schedule.*            (read-only)
+//        .energy.*              (read-only)
+//        .apply.*               (writeable controls; apply-only)
+//
+// Robustness:
+// - Poll interval min 10s, clamp to Node max timer
+// - If poll fails, info.connection = false
+// - Warn once when thermostat turns offline
+// - Block ALL writes unless thermostat is online
+// - Apply-only concept: only pressing apply.*.apply sends data
+// - Time handling:
+//   - Incoming EndTimes from cloud -> displayed as thermostat-local no-Z using TimeZone (sec)
+//   - Outgoing EndTimes for comfort/boost -> sent as thermostat-local no-Z using TimeZone (sec)
+// ============================================================================
+
 const utils = require('@iobroker/adapter-core');
 const { OJClient } = require('./lib/oj-client');
 const { safeId } = require('./lib/util');
@@ -26,16 +54,24 @@ class SchlueterThermostat extends utils.Adapter {
 
 		this.client = null;
 
+		/** ThermostatId -> SerialNumber */
 		this.thermostatSerial = {};
+		/** ThermostatId -> GroupId */
 		this.thermostatGroup = {};
+		/** ThermostatId -> ThermostatName */
 		this.thermostatNameCache = {};
+		/** ThermostatId -> TimeZone seconds (e.g. 3600 / 7200) */
 		this.thermostatTimeZoneSec = {};
 
-		this.lastOnline = {};
-		this.warnedOffline = {};
-		this.legacyStatesDeleted = {};
-
+		/** GroupId -> GroupName */
 		this.groupNameCache = {};
+
+		/** ThermostatId -> last known online */
+		this.lastOnline = {};
+		/** ThermostatId -> did we already warn for current offline phase? */
+		this.warnedOffline = {};
+		/** devId -> legacy deleted */
+		this.legacyStatesDeleted = {};
 
 		this.pollTimer = null;
 		this.unloading = false;
@@ -117,48 +153,13 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
-	_getTzSec(thermostatId, t) {
-		const cached = this.thermostatTimeZoneSec[thermostatId];
-		if (Number.isFinite(cached)) {
-			return cached;
-		}
-
-		const parsed = Number(t?.TimeZone);
-		if (Number.isFinite(parsed)) {
-			return parsed;
-		}
-
-		return 0;
-	}
-
-	async _getSerialFromObject(groupId, thermostatId) {
-		const oid = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
-		const obj = await this.safeGetObject(oid);
-		return obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
-	}
-
-	async _isThermostatOnline(groupId, thermostatId) {
-		if (typeof this.lastOnline[thermostatId] === 'boolean') {
-			return this.lastOnline[thermostatId];
-		}
-
-		const devId = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
-		try {
-			const st = await this.getStateAsync(`${devId}.online`);
-			if (st && typeof st.val === 'boolean') {
-				return st.val;
-			}
-		} catch {
-			// ignore
-		}
-		return false;
-	}
-
 	// ============================================================================
 	// Legacy cleanup
 	// ============================================================================
 
 	async legacyCleanup() {
+		// Old root: schlueter-thermostat.0.thermostats.*
+		// New root: schlueter-thermostat.0.groups.*
 		try {
 			const legacyRoot = await this.safeGetObject('thermostats');
 			if (!legacyRoot) {
@@ -180,6 +181,7 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 		this.legacyStatesDeleted[devId] = true;
 
+		// Old direct-write states that should not exist anymore
 		const legacyIds = [
 			`${devId}.setpoint.manualSet`,
 			`${devId}.setpoint.comfortSet`,
@@ -204,7 +206,50 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// onReady
+	// Small helpers
+	// ============================================================================
+
+	_getTzSecFromThermostat(thermostatId, t) {
+		const cached = this.thermostatTimeZoneSec[thermostatId];
+		if (Number.isFinite(cached)) {
+			return cached;
+		}
+
+		const parsed = Number(t?.TimeZone);
+		if (Number.isFinite(parsed)) {
+			return parsed;
+		}
+
+		return 0;
+	}
+
+	async _getSerialFromObject(groupId, thermostatId) {
+		const oid = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		const obj = await this.safeGetObject(oid);
+		return obj?.native?.serialNumber ? String(obj.native.serialNumber) : '';
+	}
+
+	async _isThermostatOnline(groupId, thermostatId) {
+		// Prefer cache from poll (exact ThermostatId key, not safeId)
+		if (typeof this.lastOnline[thermostatId] === 'boolean') {
+			return this.lastOnline[thermostatId];
+		}
+
+		// Fallback: read state once
+		const devId = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		try {
+			const st = await this.getStateAsync(`${devId}.online`);
+			if (st && typeof st.val === 'boolean') {
+				return st.val;
+			}
+		} catch {
+			// ignore
+		}
+		return false;
+	}
+
+	// ============================================================================
+	// ON READY
 	// ============================================================================
 
 	async onReady() {
@@ -238,18 +283,17 @@ class SchlueterThermostat extends utils.Adapter {
 
 		await this.safeSetObjectNotExists('groups', { type: 'channel', common: { name: 'Groups' }, native: {} });
 
+		// Cleanup legacy object tree from old versions (optional via config)
 		if (this.config.legacyCleanup === true) {
 			await this.legacyCleanup();
 		} else {
 			this.log.debug('legacyCleanup(): disabled by config');
 		}
 
-		const MAX_TIMER_MS = 2147483647; // Node.js max setTimeout/setInterval delay (~24.8 days)
-
+		// Poll interval: min 10 seconds; clamp to Node max delay
+		const MAX_TIMER_MS = 2147483647;
 		const intervalSecRaw = Number(this.config.pollIntervalSec);
 		const intervalSec = Number.isFinite(intervalSecRaw) ? intervalSecRaw : 60;
-
-		// min 10s, max MAX_TIMER_MS
 		const intervalMs = Math.min(MAX_TIMER_MS, Math.max(10_000, Math.trunc(intervalSec * 1000)));
 
 		await this.pollOnce();
@@ -263,7 +307,7 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Poll
+	// POLL
 	// ============================================================================
 
 	async pollOnce() {
@@ -287,11 +331,6 @@ class SchlueterThermostat extends utils.Adapter {
 			for (const group of groups) {
 				if (this.unloading) {
 					break;
-				}
-
-				const groupId = String(group?.GroupId ?? '');
-				if (!groupId) {
-					continue;
 				}
 
 				await ensureGroupObjects(this, group);
@@ -319,7 +358,7 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Upsert thermostat
+	// UPSERT: THERMOSTAT
 	// ============================================================================
 
 	async upsertThermostat(group, t) {
@@ -331,7 +370,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const devId = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 
-		// Cache essentials
+		// Cache mappings
 		const serial = t?.SerialNumber ? String(t.SerialNumber) : '';
 		if (serial) {
 			this.thermostatSerial[thermostatId] = serial;
@@ -341,20 +380,18 @@ class SchlueterThermostat extends utils.Adapter {
 		const thermostatName = String(t?.ThermostatName || `Thermostat ${thermostatId}`);
 		this.thermostatNameCache[thermostatId] = thermostatName;
 
-		const parsedTz = Number(t?.TimeZone);
-		if (Number.isFinite(parsedTz)) {
-			this.thermostatTimeZoneSec[thermostatId] = parsedTz;
-		}
-		const tzSec = this._getTzSec(thermostatId, t);
+		// TimeZone seconds (finite!)
+		const tzSec = this._getTzSecFromThermostat(thermostatId, t);
+		this.thermostatTimeZoneSec[thermostatId] = tzSec;
 
-		// Ensure objects exist
+		// Ensure objects
 		await ensureThermostatObjects(this, devId, { groupId, thermostatId, serialNumber: serial }, thermostatName);
 		await ensureApplyObjects(this, devId);
 
 		// Delete legacy direct-write states once
 		await this.deleteOldWritableStates(devId);
 
-		// Online transition warn
+		// Online transition warning (once)
 		const onlineNow = Boolean(t?.Online);
 		const prevOnline = this.lastOnline[thermostatId];
 		if (prevOnline === true && onlineNow === false && !this.warnedOffline[thermostatId]) {
@@ -367,14 +404,14 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 		this.lastOnline[thermostatId] = onlineNow;
 
-		// EndTimes incoming -> thermostat local no-Z
+		// Incoming EndTimes shown as thermostat-local no-Z
 		const comfortEndLocal = toThermostatLocalNoZFromAny(t?.ComfortEndTime || '', tzSec);
 		const boostEndLocal = toThermostatLocalNoZFromAny(t?.BoostEndTime || '', tzSec);
 
 		// Write read-only states
 		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal });
 
-		// Non-destructive prefill of apply.* (does not overwrite user edits)
+		// Non-destructive prefill of apply.*
 		await prefillApplyNonDestructive(this, devId, t);
 
 		// Schedule
@@ -390,15 +427,18 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Apply-only writes
+	// ON STATE CHANGE (apply-only writes)
 	// ============================================================================
 
 	async onStateChange(id, state) {
 		this.log.debug(`onStateChange(): id=${id} val=${state?.val}`);
+
+		// ignore acked changes
 		if (!state || state.ack) {
 			return;
 		}
 
+		// only apply buttons
 		if (!id.endsWith('.apply')) {
 			return;
 		}
@@ -418,8 +458,9 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const groupId = parts[idxG + 1];
 		const thermostatId = parts[idxT + 1];
+		const modeFolder = parts[idxApply + 1];
 
-		// block writes if offline
+		// block writes if thermostat offline
 		const online = await this._isThermostatOnline(groupId, thermostatId);
 		if (!online) {
 			this.log.warn(`Write blocked: thermostat offline (ThermostatId=${thermostatId}) id=${id}`);
@@ -427,6 +468,7 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
+		// SerialNumber for writes (cache -> object fallback)
 		let serial = this.thermostatSerial[thermostatId];
 		if (!serial) {
 			serial = await this._getSerialFromObject(groupId, thermostatId);
@@ -442,7 +484,6 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
 		const baseName = this.thermostatNameCache[thermostatId] || `Thermostat ${thermostatId}`;
-		const modeFolder = parts[idxApply + 1];
 
 		try {
 			await this.applyRouter({
@@ -450,18 +491,19 @@ class SchlueterThermostat extends utils.Adapter {
 				id,
 				devPrefix,
 				serial,
-				thermostatId,
+				thermostatId, // IMPORTANT for TZ-based EndTime send
 				baseName,
 			});
 		} catch (e) {
 			this.log.error(`Apply failed for ${id}: ${e?.message || e}`);
 		} finally {
+			// reset button state even on error
 			this.safeSetState(id, { val: false, ack: true });
 		}
 	}
 
 	// ============================================================================
-	// onUnload
+	// ON UNLOAD
 	// ============================================================================
 
 	async onUnload(callback) {
@@ -476,26 +518,21 @@ class SchlueterThermostat extends utils.Adapter {
 			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
-				let timeoutId = null;
-
-				const timeoutPromise = new Promise(resolve => {
-					timeoutId = this.setTimeout(resolve, 5000, undefined);
-				});
-
-				await Promise.race([p, timeoutPromise]);
-
-				if (timeoutId) {
-					this.clearTimeout(timeoutId);
-				}
+				// Use native setTimeout here to avoid:
+				// "setTimeout called, but adapter is shutting down"
+				await Promise.race([p, new Promise(resolve => setTimeout(resolve, 5000))]);
 			}
 
 			callback();
-		} catch (e) {
-			this.log.error(`onUnload error: ${e?.message || e}`);
+		} catch {
 			callback();
 		}
 	}
 }
+
+// ============================================================================
+// START
+// ============================================================================
 
 if (require.main !== module) {
 	module.exports = options => new SchlueterThermostat(options);

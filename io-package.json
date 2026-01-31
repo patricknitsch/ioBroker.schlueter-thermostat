@@ -133,7 +133,7 @@
 		"baseUrlOcd5": "https://ocd5.azurewebsites.net",
 		"username": "",
 		"password": "",
-		"apiKey": "",
+		"apiKey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
 		"customerId": 1,
 		"pollIntervalSec": 60,
 		"energyHistory": 0,
