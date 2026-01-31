@@ -35,12 +35,16 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 | ----------------- | ----------------------------- |
 | Username          | Your Schlüter/OJ cloud login  |
 | Password          | Cloud password                |
-| API Key           | Default works in most cases   |
+| API Key           | Below works in most cases     |
 | Customer ID       | Found in thermostat info      |
 | Client SW Version | Numeric value from thermostat |
 | Poll Interval     | Default: 60 seconds           |
 
 4. Save & start adapter
+
+For API-Key you can try with: `f219aab4-9ac0-4343-8422-b72203e2fac9`.
+You can find this Key in Forum: `https://community.home-assistant.io/t/mwd5-wifi-thermostat-oj-electronics-microtemp/445601`, so it looks like a
+global Key.
 
 ##
 
@@ -103,6 +107,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
 ### 0.3.1 (2026-01-31)
 
 - (patricknitsch) Add Mode Frost Protection
