@@ -70,6 +70,8 @@ class SchlueterThermostat extends utils.Adapter {
 		this.lastOnline = {};
 		/** ThermostatId -> did we already warn for current offline phase? */
 		this.warnedOffline = {};
+		/** CloudOffline */
+		this.warnedNoCloud = false;
 		/** devId -> legacy deleted */
 		this.legacyStatesDeleted = {};
 
@@ -327,6 +329,12 @@ class SchlueterThermostat extends utils.Adapter {
 			const data = await client.getGroupContents();
 			const groups = Array.isArray(data?.GroupContents) ? data.GroupContents : [];
 			this.safeSetState('info.connection', true, true);
+			this.warnedNoCloud = false;
+
+			if (!this.warnedNoCloud) {
+				this.log.warn('Cloud communication failed. Adapter set info.connection=false.');
+				this.warnedNoCloud = true;
+			}
 
 			for (const group of groups) {
 				if (this.unloading) {
@@ -448,6 +456,23 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
+		try {
+			const conn = await this.getStateAsync('info.connection');
+			if (!conn || conn.val !== true) {
+				if (!this.warnedNoCloud) {
+					this.log.warn(`Write blocked: no cloud connection (info.connection=false) id=${id}`);
+					this.warnedNoCloud = true;
+				}
+				this.safeSetState(id, { val: false, ack: true });
+				return;
+			}
+		} catch {
+			// If we cannot read info.connection, be safe and block
+			this.log.warn(`Write blocked: unable to read info.connection id=${id}`);
+			this.safeSetState(id, { val: false, ack: true });
+			return;
+		}
+
 		const parts = id.split('.');
 		const idxG = parts.indexOf('groups');
 		const idxT = parts.indexOf('thermostats');
@@ -496,6 +521,7 @@ class SchlueterThermostat extends utils.Adapter {
 			});
 		} catch (e) {
 			this.log.error(`Apply failed for ${id}: ${e?.message || e}`);
+			this.safeSetState('info.connection', false, true);
 		} finally {
 			// reset button state even on error
 			this.safeSetState(id, { val: false, ack: true });
