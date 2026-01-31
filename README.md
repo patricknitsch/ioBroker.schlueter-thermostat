@@ -62,7 +62,7 @@ global Key.
 
 ![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
 ![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
-![Mode Support](https://img.shields.io/badge/Modes-Schedule%20Comfort%20Manual%20Boost%20Eco%20Vacation-orange?style=for-the-badge)
+![Mode Support](https://img.shields.io/badge/Modes-Schedule%20Comfort%20Manual%20Boost%20Eco%20Frost-Protection%20Vacation-orange?style=for-the-badge)
 
 ### Compact Program Structure
 
