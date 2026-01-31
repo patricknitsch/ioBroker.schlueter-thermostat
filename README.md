@@ -108,6 +108,10 @@ flowchart TB
 	### **WORK IN PROGRESS**
 -->
 
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Update from git to https
+
 ### 0.3.1 (2026-01-31)
 
 - (patricknitsch) Add Mode Frost Protection
