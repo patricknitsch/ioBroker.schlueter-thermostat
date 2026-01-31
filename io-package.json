@@ -140,7 +140,8 @@
 		"energyViewType": 2,
 		"legacyCleanup": false
 	},
-	"protectedNative": ["password", "apiKey", "customerId"],
+	"protectedNative": ["username", "password", "apiKey", "customerId"],
+	"encryptedNative": ["password", "apiKey"],
 	"objects": [],
 	"instanceObjects": [
 		{
