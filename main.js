@@ -71,6 +71,8 @@ class SchlueterThermostat extends utils.Adapter {
 		/** ThermostatId -> did we already warn for current offline phase? */
 		this.warnedOffline = {};
 		/** CloudOffline */
+		this.pollFailCount = 0;
+		this.POLL_FAIL_THRESHOLD = 3;
 		this.warnedNoCloud = false;
 		/** devId -> legacy deleted */
 		this.legacyStatesDeleted = {};
@@ -104,6 +106,41 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 			throw e;
 		}
+	}
+
+	_isCommError(err) {
+		const msg = String(err?.message || err).toLowerCase();
+
+		// typische Netzwerk-/Transportfehler
+		if (
+			msg.includes('econnrefused') ||
+			msg.includes('econnreset') ||
+			msg.includes('etimedout') ||
+			msg.includes('timeout') ||
+			msg.includes('enotfound') ||
+			msg.includes('eai_again') ||
+			msg.includes('socket hang up') ||
+			msg.includes('network') ||
+			msg.includes('getaddrinfo') ||
+			msg.includes('connection') ||
+			msg.includes('unable to connect')
+		) {
+			return true;
+		}
+
+		// falls deine OJClient Errors Statuscodes tragen
+		const status = err?.statusCode ?? err?.status ?? err?.response?.status;
+		if (Number.isFinite(status)) {
+			// 5xx = Server unreachable-ish, 401/403 = auth broken (auch "connection" im Sinne von nicht nutzbar)
+			if (status >= 500) {
+				return true;
+			}
+			if (status === 401 || status === 403) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	async safeSetObject(id, obj) {
@@ -255,7 +292,7 @@ class SchlueterThermostat extends utils.Adapter {
 	// ============================================================================
 
 	async onReady() {
-		this.log.debug('onReady(): starting adapter');
+		this.log.info('onReady(): starting adapter');
 		this.safeSetState('info.connection', false, true);
 
 		if (!this.config.username || !this.config.password || !this.config.apiKey || !this.config.customerId) {
@@ -329,7 +366,9 @@ class SchlueterThermostat extends utils.Adapter {
 			const data = await client.getGroupContents();
 			const groups = Array.isArray(data?.GroupContents) ? data.GroupContents : [];
 			this.safeSetState('info.connection', true, true);
+			this.pollFailCount = 0;
 			this.warnedNoCloud = false;
+			this.safeSetState('info.connection', true, true);
 
 			if (!this.warnedNoCloud) {
 				this.log.warn('Cloud communication failed. Adapter set info.connection=false.');
@@ -353,9 +392,37 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 		})()
 			.catch(err => {
-				if (!this.unloading) {
-					this.safeSetState('info.connection', false, true);
-					this.log.warn(`Poll error: ${err?.message || err}`);
+				if (this.unloading) {
+					return;
+				}
+
+				const comm = this._isCommError(err);
+
+				if (comm) {
+					this.pollFailCount += 1;
+
+					// failed too often: set connection false
+					if (this.pollFailCount >= this.POLL_FAIL_THRESHOLD) {
+						this.safeSetState('info.connection', false, true);
+
+						if (!this.warnedNoCloud) {
+							this.log.warn(
+								`Cloud communication failed ${this.pollFailCount}x. Adapter set info.connection=false. Last error: ${err?.message || err}`,
+							);
+							this.warnedNoCloud = true;
+						} else {
+							this.log.debug(
+								`Cloud communication still failing (${this.pollFailCount}x): ${err?.message || err}`,
+							);
+						}
+					} else {
+						this.log.warn(
+							`Cloud poll failed (${this.pollFailCount}/${this.POLL_FAIL_THRESHOLD}): ${err?.message || err}`,
+						);
+					}
+				} else {
+					// no Communication Error: do not change connection state
+					this.log.warn(`Poll error (non-comm): ${err?.message || err}`);
 				}
 			})
 			.finally(() => {
@@ -520,10 +587,15 @@ class SchlueterThermostat extends utils.Adapter {
 				baseName,
 			});
 		} catch (e) {
+			const comm = this._isCommError(e);
 			this.log.error(`Apply failed for ${id}: ${e?.message || e}`);
-			this.safeSetState('info.connection', false, true);
+
+			if (comm) {
+				// on communication error, set connection false
+				this.safeSetState('info.connection', false, true);
+				this.warnedNoCloud = false;
+			}
 		} finally {
-			// reset button state even on error
 			this.safeSetState(id, { val: false, ack: true });
 		}
 	}
@@ -534,7 +606,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 	async onUnload(callback) {
 		try {
-			this.log.debug('onUnload(): stopping adapter');
+			this.log.info('onUnload(): stopping adapter');
 			this.unloading = true;
 
 			if (this.pollTimer) {
