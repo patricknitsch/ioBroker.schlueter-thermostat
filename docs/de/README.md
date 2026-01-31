@@ -1,5 +1,3 @@
-![Logo](admin/schlueter-thermostat.png)
-
 # ioBroker.schlueter-thermostat
 
 Cloud‑Adapter für **Schlüter / OJ Microline OWD5 Thermostate**
@@ -144,7 +142,7 @@ Alle Aktionen laufen über **Apply‑Buttons**.
 | Schedule | 1      | Wochenplan                  |
 | Comfort  | 2      | Temporär erhöhte Temperatur |
 | Manual   | 3      | Feste Temperatur            |
-| Boost    | 8      | Kurzzeit-Boost              |
+| Boost    | 8      | Kurzzeit-Boost max. 60 Min. |
 | Eco      | 9      | Energiesparmodus            |
 
 ---
@@ -153,7 +151,7 @@ Alle Aktionen laufen über **Apply‑Buttons**.
 
 - Endzeiten werden in **Thermostat‑Lokalzeit** gesendet
 - Kein `Z` (kein UTC-Suffix)
-- Boost & Comfort unterstützen variable Dauer
+- Boost & Comfort unterstützen variable Dauer (Boost max. 60 Min.)
 - Thermostat‑Timezone wird berücksichtigt
 
 ---
