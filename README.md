@@ -13,6 +13,8 @@
 
 ---
 
+##
+
 ## 🌍 Overview
 
 This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
@@ -21,47 +23,7 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 
 > **Cloud-only** — no local gateway, Modbus, or LAN API required.
 
-# Compact Architecture Overview
-
-## Architecture Badges
-
-![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
-![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
-![Mode Support](https://img.shields.io/badge/Modes-Schedule%20Comfort%20Manual%20Boost%20Eco%20Vacation-orange?style=for-the-badge)
-
-## Compact Program Structure
-
-```mermaid
-flowchart LR
-  UI[User / UI] --> IO[ioBroker States]
-  IO --> ADP[Adapter]
-
-  ADP -->|read| OWD5[OWD5 Cloud]
-  ADP -->|write| OCD5[OCD5 Cloud]
-  OCD5 --> TH[Thermostat]
-
-  ADP --> OBJ[Object Tree]
-  OBJ --> RO[Read States]
-  OBJ --> AP[Apply Controls]
-```
-
-## Internal Flow (Mini)
-
-```mermaid
-flowchart TB
-  READY[onReady] --> LOGIN[Cloud Login]
-  LOGIN --> POLL[pollOnce]
-  POLL --> UPSERT[Update Objects + States]
-
-  APPLYBTN[Apply Button] --> ROUTER[applyRouter]
-  ROUTER --> API[updateThermostat]
-```
-
-## Documentation
-
-[🇺🇸 Documentation](./docs/en/README.md)
-
-[🇩🇪 Dokumentation](./docs/de/README.md)
+##
 
 ## 🚀 How to Start
 
@@ -80,10 +42,66 @@ flowchart TB
 
 4. Save & start adapter
 
+##
+
+## Documentation
+
+[🇺🇸 Documentation](./docs/en/README.md)
+
+[🇩🇪 Dokumentation](./docs/de/README.md)
+
+##
+
+### Compact Architecture Overview
+
+##
+
+### Architecture Badges
+
+![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
+![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
+![Mode Support](https://img.shields.io/badge/Modes-Schedule%20Comfort%20Manual%20Boost%20Eco%20Vacation-orange?style=for-the-badge)
+
+##
+
+### Compact Program Structure
+
+```mermaid
+flowchart LR
+  UI[User / UI] --> IO[ioBroker States]
+  IO --> ADP[Adapter]
+
+  ADP -->|read| OWD5[OWD5 Cloud]
+  ADP -->|write| OCD5[OCD5 Cloud]
+  OCD5 --> TH[Thermostat]
+
+  ADP --> OBJ[Object Tree]
+  OBJ --> RO[Read States]
+  OBJ --> AP[Apply Controls]
+```
+
+##
+
+### Internal Flow (Mini)
+
+```mermaid
+flowchart TB
+  READY[onReady] --> LOGIN[Cloud Login]
+  LOGIN --> POLL[pollOnce]
+  POLL --> UPSERT[Update Objects + States]
+
+  APPLYBTN[Apply Button] --> ROUTER[applyRouter]
+  ROUTER --> API[updateThermostat]
+```
+
+##
+
 ## 📌 Notes
 
 - Developed and tested with a single thermostat
 - Multi-device environments supported, but feedback welcome
+
+##
 
 ## Changelog
 
