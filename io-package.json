@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.3.2",
+    "version": "0.4.0",
     "news": {
+      "0.4.0": {
+        "en": "Fallback if Devices or Cloud offline",
+        "de": "Fallback, wenn Geräte oder Cloud offline",
+        "ru": "Fallback, если устройства или облако отключены",
+        "pt": "Recuar se dispositivos ou nuvem off-line",
+        "nl": "Terugvallen als apparaten of cloud offline",
+        "fr": "Retour en arrière si les périphériques ou Cloud hors ligne",
+        "it": "Fallback se dispositivi o cloud offline",
+        "es": "Fallback si Dispositivos o Cloud offline",
+        "pl": "Fallback jeśli urządzenia lub Cloud offline",
+        "uk": "Відшкодування, якщо пристрої або хмарний офлайн",
+        "zh-cn": "设备或云离线后退"
+      },
       "0.3.2": {
         "en": "Update from git to https",
         "de": "Update von git zu https",
@@ -80,19 +93,6 @@
         "pl": "Aktualizacja stanów dla ComfortMode\nWięcej debugowania",
         "uk": "Оновлення адаптерів для ComfortMode\nБільше пробудження",
         "zh-cn": "更新舒适模式设置状态\n更多调试"
-      },
-      "0.2.1": {
-        "en": "Fix JsonConfig",
-        "de": "JsonConfig",
-        "ru": "Исполнитель: JsonConfig",
-        "pt": "Corrigir o JsonConfig",
-        "nl": "Fix JsonConfig",
-        "fr": "Correction de JsonConfig",
-        "it": "Fissare JsonConfig",
-        "es": "Fix JsonConfig",
-        "pl": "Napraw JsonConfig",
-        "uk": "Фіксація JsonConfig",
-        "zh-cn": "修复 Json 连接"
       }
     },
     "titleLang": {
