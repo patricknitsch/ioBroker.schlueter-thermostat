@@ -87,6 +87,11 @@ flowchart TB
   READY[onReady] --> LOGIN[Cloud Login]
   LOGIN --> POLL[pollOnce]
   POLL --> UPSERT[Update Objects + States]
+  UPSERT --> BACKOFF{All offline?}
+  BACKOFF -- yes --> INC[Increase interval up to 1h then 12:00/00:00]
+  BACKOFF -- no --> RESET[Reset to base interval]
+  INC --> POLL
+  RESET --> POLL
 
   APPLYBTN[Apply Button] --> ROUTER[applyRouter]
   ROUTER --> API[updateThermostat]

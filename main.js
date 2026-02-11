@@ -20,6 +20,9 @@
 // Robustness:
 // - Poll interval min 10s, clamp to Node max timer
 // - If poll fails, info.connection = false
+// - Fallback polling: on connection error or all devices offline,
+//   interval doubles up to 1h, then falls back to 12:00/00:00 schedule.
+//   Resets to base interval when any device comes back online.
 // - Warn once when thermostat turns offline
 // - Block ALL writes unless thermostat is online
 // - Apply-only concept: only pressing apply.*.apply sends data
@@ -41,6 +44,8 @@ const {
 	writeEnergyStates,
 } = require('./lib/writers');
 const { createApplyRouter } = require('./lib/apply-handlers');
+
+const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
 class SchlueterThermostat extends utils.Adapter {
 	constructor(options) {
@@ -82,6 +87,17 @@ class SchlueterThermostat extends utils.Adapter {
 		this.pollInFlight = false;
 		this.pollPromise = null;
 
+		/** Fallback polling: base interval from config */
+		this.baseIntervalMs = 0;
+		/** Fallback polling: current (possibly increased) interval */
+		this.currentIntervalMs = 0;
+		/** Fallback polling: true when backoff exceeded 1h, polling at 12:00/00:00 */
+		this.inFixedSchedule = false;
+		/** Fallback polling: any thermostat online during current poll? */
+		this._anyOnlineThisPoll = false;
+		/** Fallback polling: any thermostat present during current poll? */
+		this._hadThermostatsThisPoll = false;
+
 		this.applyRouter = createApplyRouter(this);
 
 		this.on('ready', this.onReady.bind(this));
@@ -111,7 +127,7 @@ class SchlueterThermostat extends utils.Adapter {
 	_isCommError(err) {
 		const msg = String(err?.message || err).toLowerCase();
 
-		// typische Netzwerk-/Transportfehler
+		// typical network / transport errors
 		if (
 			msg.includes('econnrefused') ||
 			msg.includes('econnreset') ||
@@ -128,10 +144,10 @@ class SchlueterThermostat extends utils.Adapter {
 			return true;
 		}
 
-		// falls deine OJClient Errors Statuscodes tragen
+		// if OJClient errors carry HTTP status codes
 		const status = err?.statusCode ?? err?.status ?? err?.response?.status;
 		if (Number.isFinite(status)) {
-			// 5xx = Server unreachable-ish, 401/403 = auth broken (auch "connection" im Sinne von nicht nutzbar)
+			// 5xx = server unreachable, 401/403 = auth broken (connection unusable)
 			if (status >= 500) {
 				return true;
 			}
@@ -335,14 +351,103 @@ class SchlueterThermostat extends utils.Adapter {
 		const intervalSec = Number.isFinite(intervalSecRaw) ? intervalSecRaw : 60;
 		const intervalMs = Math.min(MAX_TIMER_MS, Math.max(10_000, Math.trunc(intervalSec * 1000)));
 
+		this.baseIntervalMs = intervalMs;
+		this.currentIntervalMs = intervalMs;
+
 		await this.pollOnce();
 
 		// Subscribe ONLY apply buttons
 		this.subscribeStates('groups.*.thermostats.*.apply.*.apply');
 
-		this.pollTimer = this.setInterval(() => {
-			this.pollOnce().catch(err => this.log.warn(`Poll error: ${err?.message || err}`));
-		}, intervalMs);
+		this._scheduleNextPoll();
+	}
+
+	// ============================================================================
+	// FALLBACK POLLING
+	// ============================================================================
+
+	_scheduleNextPoll() {
+		if (this.unloading) {
+			return;
+		}
+
+		let delayMs;
+
+		if (this.inFixedSchedule) {
+			delayMs = this._msUntilNextFixedSlot();
+			const nextTime = new Date(Date.now() + delayMs);
+			this.log.info(
+				`Fallback polling: next poll at fixed slot ${nextTime.toISOString()} (in ${Math.round(delayMs / 60000)} min)`,
+			);
+		} else if (this.currentIntervalMs > this.baseIntervalMs) {
+			delayMs = this.currentIntervalMs;
+			this.log.info(`Fallback polling: interval increased to ${Math.round(this.currentIntervalMs / 1000)}s`);
+		} else {
+			delayMs = this.currentIntervalMs;
+		}
+
+		this.pollTimer = this.setTimeout(() => {
+			this.pollOnce()
+				.catch(err => this.log.warn(`Poll error: ${err?.message || err}`))
+				.finally(() => this._scheduleNextPoll());
+		}, delayMs);
+	}
+
+	/**
+	 * Calculate milliseconds until the next fixed slot (12:00 or 00:00).
+	 */
+	_msUntilNextFixedSlot() {
+		const now = Date.now();
+		const d = new Date(now);
+
+		const today12 = new Date(d);
+		today12.setHours(12, 0, 0, 0);
+
+		const tomorrow0 = new Date(d);
+		tomorrow0.setDate(tomorrow0.getDate() + 1);
+		tomorrow0.setHours(0, 0, 0, 0);
+
+		const tomorrow12 = new Date(d);
+		tomorrow12.setDate(tomorrow12.getDate() + 1);
+		tomorrow12.setHours(12, 0, 0, 0);
+
+		// Pick the first candidate that is in the future
+		for (const candidate of [today12, tomorrow0, tomorrow12]) {
+			const ms = candidate.getTime() - now;
+			if (ms > 0) {
+				return ms;
+			}
+		}
+
+		// Fallback: 12 hours
+		return 12 * 60 * 60 * 1000;
+	}
+
+	_increasePollBackoff() {
+		if (this.inFixedSchedule) {
+			return; // already at maximum fallback level
+		}
+
+		if (this.currentIntervalMs >= BACKOFF_MAX_MS) {
+			// Reached 1h ceiling – switch to fixed 12:00/00:00 schedule
+			this.inFixedSchedule = true;
+			this.log.warn(
+				'Fallback polling: max backoff reached (1h). Switching to fixed schedule (next poll at 12:00 or 00:00).',
+			);
+		} else {
+			// Double the interval, cap at 1h
+			this.currentIntervalMs = Math.min(this.currentIntervalMs * 2, BACKOFF_MAX_MS);
+		}
+	}
+
+	_resetPollInterval() {
+		if (this.currentIntervalMs !== this.baseIntervalMs || this.inFixedSchedule) {
+			this.log.info(
+				`Fallback polling: device(s) reachable, resetting interval to ${Math.round(this.baseIntervalMs / 1000)}s`,
+			);
+		}
+		this.currentIntervalMs = this.baseIntervalMs;
+		this.inFixedSchedule = false;
 	}
 
 	// ============================================================================
@@ -361,6 +466,8 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		this.pollInFlight = true;
+		this._anyOnlineThisPoll = false;
+		this._hadThermostatsThisPoll = false;
 
 		this.pollPromise = (async () => {
 			const data = await client.getGroupContents();
@@ -386,6 +493,13 @@ class SchlueterThermostat extends utils.Adapter {
 					await this.upsertThermostat(group, t);
 				}
 			}
+
+			// Evaluate fallback polling after successful poll
+			if (this._anyOnlineThisPoll) {
+				this._resetPollInterval();
+			} else if (this._hadThermostatsThisPoll) {
+				this._increasePollBackoff();
+			}
 		})()
 			.catch(err => {
 				if (this.unloading) {
@@ -396,6 +510,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 				if (comm) {
 					this.pollFailCount += 1;
+					this._increasePollBackoff();
 
 					if (this.pollFailCount >= this.POLL_FAIL_THRESHOLD) {
 						this.safeSetState('info.connection', false, true);
@@ -460,8 +575,14 @@ class SchlueterThermostat extends utils.Adapter {
 		// Delete legacy direct-write states once
 		await this.deleteOldWritableStates(devId);
 
-		// Online transition warning (once)
+		// Track online status for fallback polling
 		const onlineNow = Boolean(t?.Online);
+		this._hadThermostatsThisPoll = true;
+		if (onlineNow) {
+			this._anyOnlineThisPoll = true;
+		}
+
+		// Online transition warning (once)
 		const prevOnline = this.lastOnline[thermostatId];
 		if (prevOnline === true && onlineNow === false && !this.warnedOffline[thermostatId]) {
 			const gName = this.groupNameCache[groupId] || `Group ${groupId}`;
@@ -604,7 +725,7 @@ class SchlueterThermostat extends utils.Adapter {
 			this.unloading = true;
 
 			if (this.pollTimer) {
-				this.clearInterval(this.pollTimer);
+				this.clearTimeout(this.pollTimer);
 			}
 
 			// Wait for in-flight poll (best effort)

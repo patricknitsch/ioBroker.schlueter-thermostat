@@ -179,6 +179,20 @@ Werte beginnen mit **heutigem Tag**.
 - Cloud‑Verbindungsüberwachung
 - Fehlerbehandlung bei Apply
 - Sauberes Shutdown
+- Fallback-Polling (automatisches Backoff, siehe unten)
+
+---
+
+## 🔁 Fallback-Polling
+
+Wenn die Cloud nicht erreichbar ist oder **alle** Thermostate offline sind, reduziert der Adapter automatisch die Abfragehäufigkeit:
+
+| Phase | Verhalten |
+| ----- | --------- |
+| Normal | Abfrage im konfigurierten Intervall (Standard: 60 s) |
+| Backoff | Bei jedem weiteren Fehler verdoppelt sich das Intervall (60 s → 120 s → 240 s → … → 1 h) |
+| Fester Zeitplan | Nach Erreichen von 1 h wechselt die Abfrage auf einen festen Zeitplan um **12:00** und **00:00** |
+| Wiederherstellung | Sobald mindestens ein Thermostat wieder online ist, wird das Intervall auf den konfigurierten Wert zurückgesetzt |
 
 ---
 
