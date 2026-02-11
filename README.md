@@ -112,6 +112,11 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (claude) Fallback if Devices or Cloud offline
+
 ### 0.3.2 (2026-01-31)
 
 - (patricknitsch) Update from git to https
