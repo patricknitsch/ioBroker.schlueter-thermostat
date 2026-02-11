@@ -179,6 +179,20 @@ Values start with **today**.
 - Cloud connection monitoring
 - Apply error handling
 - Graceful shutdown
+- Fallback polling (automatic backoff, see below)
+
+---
+
+## 🔁 Fallback Polling
+
+When the cloud is unreachable or **all** thermostats are offline, the adapter automatically reduces polling frequency to conserve resources:
+
+| Phase | Behavior |
+| ----- | -------- |
+| Normal | Polls at the configured interval (default: 60 s) |
+| Backoff | On each consecutive failure the interval doubles (60 s → 120 s → 240 s → … → 1 h) |
+| Fixed schedule | After reaching 1 h, polling switches to a fixed schedule at **12:00** and **00:00** |
+| Recovery | As soon as at least one thermostat is online again, the interval resets to the configured value |
 
 ---
 
