@@ -112,6 +112,11 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Update Packages and Workflow
+
 ### 0.4.0 (2026-02-11)
 
 - (claude) Fallback if Devices or Cloud offline
