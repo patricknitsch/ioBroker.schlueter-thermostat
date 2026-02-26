@@ -1,195 +1,209 @@
 {
-	"common": {
-		"name": "schlueter-thermostat",
-		"version": "0.4.0",
-		"news": {
-			"0.4.0": {
-				"en": "Fallback if Devices or Cloud offline",
-				"de": "Fallback, wenn Geräte oder Cloud offline",
-				"ru": "Fallback, если устройства или облако отключены",
-				"pt": "Recuar se dispositivos ou nuvem off-line",
-				"nl": "Terugvallen als apparaten of cloud offline",
-				"fr": "Retour en arrière si les périphériques ou Cloud hors ligne",
-				"it": "Fallback se dispositivi o cloud offline",
-				"es": "Fallback si Dispositivos o Cloud offline",
-				"pl": "Fallback jeśli urządzenia lub Cloud offline",
-				"uk": "Відшкодування, якщо пристрої або хмарний офлайн",
-				"zh-cn": "设备或云离线后退"
-			},
-			"0.3.2": {
-				"en": "Update from git to https",
-				"de": "Update von git zu https",
-				"ru": "Обновление от git до https",
-				"pt": "Atualizar do git para https",
-				"nl": "Bijwerken van git naar https",
-				"fr": "Mettre à jour de git à https",
-				"it": "Aggiornamento da git a https",
-				"es": "Actualización de git a https",
-				"pl": "Aktualizacja z git do https",
-				"uk": "Оновлення з git на HTTPS",
-				"zh-cn": "从 git 更新到 https"
-			},
-			"0.3.1": {
-				"en": "Add Mode Frost Protection\nShow Enum instead of Regulation Number",
-				"de": "Modus Frostschutz hinzufügen\nAnum anstelle der Regelungsnummer anzeigen",
-				"ru": "Добавить режим защиты от мороза\nПоказать номер вместо номера",
-				"pt": "Adicionar Modo de Proteção de Gelo\nMostrar o Enum em vez do Número de Regulação",
-				"nl": "Frostbescherming toevoegen\nEnum tonen in plaats van Reglementnummer",
-				"fr": "Ajouter une protection contre le gel en mode\nAfficher le nom au lieu du numéro de règlement",
-				"it": "Aggiungere la modalità di protezione del gelo\nMostra Enum invece del numero di regolamento",
-				"es": "Añadir Mode Frost Protection\nMostrar Enum en lugar del número de regulación",
-				"pl": "Dodaj tryb ochrony mróz\nPokaż Enum zamiast numeru regulaminu",
-				"uk": "Додайте режим захисту від загартування\nПоказати Enum замість номеру регулювання",
-				"zh-cn": "添加模式霜保护\n显示 Enum 而不是规章编号"
-			},
-			"0.3.0": {
-				"en": "Update Readme\nVerify Polling if Thermostat give no Response\nComplete Refactoring to handle functions better\nencrypt all sensitive credentials -> Relogin necessary\nCode Fixing for latest repo",
-				"de": "Update Reader\nVerifizieren Sie Polling, wenn Thermostat keine Antwort geben\nKomplette Refactoring, um Funktionen besser zu handhaben\nalle sensiblen Anmeldeinformationen verschlüsseln -> Relogin notwendig\nCode Fixing für die neueste Repo",
-				"ru": "Обновление Readme\nПроверить опрос, если термостат не дает ответа\nПолный рефакторинг для лучшего управления функциями\nшифровать все конфиденциальные учетные данные -> Необходимый логин\nИсправление кода для последнего репо",
-				"pt": "Actualizar a Leitura\nVerificar a sondagem se o termostato não dá resposta\nCompletar a Refatoração para lidar melhor com as funções\ncriptografar todas as credenciais sensíveis -> Relogina necessária\nCorrecção de código para o último recurso",
-				"nl": "Readme bijwerken\nControleer Polling als Thermostat geen respons geeft\nComplete refactoring om functies beter te verwerken\nversleutel alle gevoelige referenties -> Relogin nodig\nCodefixing voor laatste repo",
-				"fr": "Mettre à jour Readme\nVérifier le sondage si Thermostat ne donne aucune réponse\nRefactoring complet pour mieux gérer les fonctions\nchiffrer toutes les références sensibles -> Relogin nécessaire\nCorrection de code pour la dernière repo",
-				"it": "Aggiornamento\nVerificare Polling se Termostato non dare risposta\nRefactoring completo per gestire meglio le funzioni\ncrittografare tutte le credenziali sensibili -> Relogin necessario\nCodice Fissaggio per l'ultimo repo",
-				"es": "Actualización Readme\nVerificar la contaminación si el termostato no da respuesta\nRefactorización completa para manejar las funciones mejor\nencriptar todas las credenciales sensibles Relogin necesario\nCódigo de fijación para el último descanso",
-				"pl": "Aktualizacja Readme\nWeryfikacja badania, jeśli Thermostat nie odpowiada\nKompletna refakturowanie, aby lepiej obsługiwać funkcje\nszyfrowanie wszystkich wrażliwych dokumentów - > Relogin konieczny\nUstawienie kodu dla najnowszego repo",
-				"uk": "Оновлення Readme\nПеревірити поломку, якщо термостат не дає відповіді\nПовне рефакторинг для ручних функцій краще\nзашифрувати всі чутливі облікові дані -> Релогін необхідно\nВиправлення коду для останнього репо",
-				"zh-cn": "更新读取器\n如果热电机没有响应, 请验证投票\n完成更好地处理函数的配置\n加密所有敏感的证书 - > 需要重写\n最近重播的代码"
-			},
-			"0.2.4": {
-				"en": "Change Format of Times",
-				"de": "Format der Zeiten ändern",
-				"ru": "Изменение формата времени",
-				"pt": "Mudar o Formato dos Tempos",
-				"nl": "Formaat van tijden wijzigen",
-				"fr": "Modification du format des temps",
-				"it": "Cambia il formato dei tempi",
-				"es": "Formato de cambio de tiempos",
-				"pl": "Zmień format Times",
-				"uk": "Змінення форматів часу",
-				"zh-cn": "更改时间格式"
-			},
-			"0.2.3": {
-				"en": "Catch wrong values for Temperature and Regulation Mode",
-				"de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
-				"ru": "Улавливать неправильные значения температуры и режима регулирования",
-				"pt": "Valores errados de captura para a temperatura e o modo de regulação",
-				"nl": "Verkeerde vangwaarden voor temperatuur- en regelmodus",
-				"fr": "Capturer des valeurs erronées en mode température et régulation",
-				"it": "Cattura valori errati per la modalità Temperatura e Regolamento",
-				"es": "Obtener valores incorrectos para el modo de temperatura y regulación",
-				"pl": "Nieprawidłowe wartości połowu dla trybu temperatury i regulacji",
-				"uk": "Випадкові значення для режиму температури та регулювання",
-				"zh-cn": "获取温度和调节模式的错误值"
-			},
-			"0.2.2": {
-				"en": "Update setStates for ComfortMode\nMore Debugging",
-				"de": "Update setStates für ComfortMode\nMehr Debugging",
-				"ru": "Обновление setStates для ComfortMode\nБольше отладки",
-				"pt": "Atualizar os estados para o ComfortMode\nMais depuração",
-				"nl": "Update setStates voor ComfortMode\nMeer debuggen",
-				"fr": "Mettre à jour setStates for ComfortMode\nPlus de débogage",
-				"it": "Set di aggiornamentiStati per ComfortMode\nPiù Debug",
-				"es": "Estados de actualización para ComfortMode\nMás Debugging",
-				"pl": "Aktualizacja stanów dla ComfortMode\nWięcej debugowania",
-				"uk": "Оновлення адаптерів для ComfortMode\nБільше пробудження",
-				"zh-cn": "更新舒适模式设置状态\n更多调试"
-			}
-		},
-		"titleLang": {
-			"en": "Schlueter Ditra Heat Thermostat",
-			"de": "Schlüter Ditra Wärmethermostat",
-			"ru": "Тепловой термостат Schlueter Ditra",
-			"pt": "Termostato de calor Schlueter Ditra",
-			"nl": "Schlueter Ditra Heat-thermostaat",
-			"fr": "Thermostat de chaleur Schlueter Ditra",
-			"it": "Termostato termico Schlueter Ditra",
-			"es": "Termostato Schlueter Ditra Heat",
-			"pl": "Termostat grzewczy Schlueter Ditra",
-			"uk": "Тепловий термостат Schlueter Ditra",
-			"zh-cn": "Schlueter Ditra 热恒温器"
-		},
-		"desc": {
-			"en": "Floor heating controlled with Ditra Heat Thermostat",
-			"de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
-			"ru": "Подогрев пола контролируется термостатом Ditra Heat.",
-			"pt": "Aquecimento de piso controlado com termostato Ditra Heat",
-			"nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
-			"fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
-			"it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
-			"es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
-			"pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
-			"uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
-			"zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
-		},
-		"authors": ["patricknitsch <patricknitsch@web.de>"],
-		"keywords": ["ditra heat", "climate", "cloud"],
-		"licenseInformation": {
-			"type": "free",
-			"license": "MIT"
-		},
-		"platform": "Javascript/Node.js",
-		"icon": "schlueter-thermostat.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
-		"readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
-		"loglevel": "info",
-		"tier": 3,
-		"mode": "daemon",
-		"type": "climate-control",
-		"compact": true,
-		"connectionType": "cloud",
-		"dataSource": "poll",
-		"adminUI": {
-			"config": "json"
-		},
-		"dependencies": [
-			{
-				"js-controller": ">=6.0.11"
-			}
-		],
-		"globalDependencies": [
-			{
-				"admin": ">=7.6.20"
-			}
-		]
-	},
-	"native": {
-		"provider": "owd5",
-		"baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
-		"baseUrlOcd5": "https://ocd5.azurewebsites.net",
-		"username": "",
-		"password": "",
-		"apiKey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
-		"customerId": 1,
-		"pollIntervalSec": 60,
-		"energyHistory": 0,
-		"energyViewType": 2,
-		"legacyCleanup": false
-	},
-	"protectedNative": ["username", "password", "apiKey", "customerId"],
-	"encryptedNative": ["password", "apiKey"],
-	"objects": [],
-	"instanceObjects": [
-		{
-			"_id": "info",
-			"type": "channel",
-			"common": {
-				"name": "Information"
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.connection",
-			"type": "state",
-			"common": {
-				"role": "indicator.connected",
-				"name": "Device or service connected",
-				"type": "boolean",
-				"read": true,
-				"write": false,
-				"def": false
-			},
-			"native": {}
-		}
-	]
+  "common": {
+    "name": "schlueter-thermostat",
+    "version": "0.4.1",
+    "news": {
+      "0.4.1": {
+        "en": "Update Packages and Workflow",
+        "de": "Pakete und Workflow aktualisieren",
+        "ru": "Обновление пакетов и рабочего процесса",
+        "pt": "Atualizar pacotes e fluxo de trabalho",
+        "nl": "Pakketten en workflow bijwerken",
+        "fr": "Mettre à jour les paquets et le flux de travail",
+        "it": "Aggiornare i pacchetti e il flusso di lavoro",
+        "es": "Actualizar paquetes y flujo de trabajo",
+        "pl": "Aktualizacja pakietów i przepływu pracy",
+        "uk": "Оновлення пакетів та робочих процесів",
+        "zh-cn": "更新软件包和工作流程"
+      },
+      "0.4.0": {
+        "en": "Fallback if Devices or Cloud offline",
+        "de": "Fallback, wenn Geräte oder Cloud offline",
+        "ru": "Fallback, если устройства или облако отключены",
+        "pt": "Recuar se dispositivos ou nuvem off-line",
+        "nl": "Terugvallen als apparaten of cloud offline",
+        "fr": "Retour en arrière si les périphériques ou Cloud hors ligne",
+        "it": "Fallback se dispositivi o cloud offline",
+        "es": "Fallback si Dispositivos o Cloud offline",
+        "pl": "Fallback jeśli urządzenia lub Cloud offline",
+        "uk": "Відшкодування, якщо пристрої або хмарний офлайн",
+        "zh-cn": "设备或云离线后退"
+      },
+      "0.3.2": {
+        "en": "Update from git to https",
+        "de": "Update von git zu https",
+        "ru": "Обновление от git до https",
+        "pt": "Atualizar do git para https",
+        "nl": "Bijwerken van git naar https",
+        "fr": "Mettre à jour de git à https",
+        "it": "Aggiornamento da git a https",
+        "es": "Actualización de git a https",
+        "pl": "Aktualizacja z git do https",
+        "uk": "Оновлення з git на HTTPS",
+        "zh-cn": "从 git 更新到 https"
+      },
+      "0.3.1": {
+        "en": "Add Mode Frost Protection\nShow Enum instead of Regulation Number",
+        "de": "Modus Frostschutz hinzufügen\nAnum anstelle der Regelungsnummer anzeigen",
+        "ru": "Добавить режим защиты от мороза\nПоказать номер вместо номера",
+        "pt": "Adicionar Modo de Proteção de Gelo\nMostrar o Enum em vez do Número de Regulação",
+        "nl": "Frostbescherming toevoegen\nEnum tonen in plaats van Reglementnummer",
+        "fr": "Ajouter une protection contre le gel en mode\nAfficher le nom au lieu du numéro de règlement",
+        "it": "Aggiungere la modalità di protezione del gelo\nMostra Enum invece del numero di regolamento",
+        "es": "Añadir Mode Frost Protection\nMostrar Enum en lugar del número de regulación",
+        "pl": "Dodaj tryb ochrony mróz\nPokaż Enum zamiast numeru regulaminu",
+        "uk": "Додайте режим захисту від загартування\nПоказати Enum замість номеру регулювання",
+        "zh-cn": "添加模式霜保护\n显示 Enum 而不是规章编号"
+      },
+      "0.3.0": {
+        "en": "Update Readme\nVerify Polling if Thermostat give no Response\nComplete Refactoring to handle functions better\nencrypt all sensitive credentials -> Relogin necessary\nCode Fixing for latest repo",
+        "de": "Update Reader\nVerifizieren Sie Polling, wenn Thermostat keine Antwort geben\nKomplette Refactoring, um Funktionen besser zu handhaben\nalle sensiblen Anmeldeinformationen verschlüsseln -> Relogin notwendig\nCode Fixing für die neueste Repo",
+        "ru": "Обновление Readme\nПроверить опрос, если термостат не дает ответа\nПолный рефакторинг для лучшего управления функциями\nшифровать все конфиденциальные учетные данные -> Необходимый логин\nИсправление кода для последнего репо",
+        "pt": "Actualizar a Leitura\nVerificar a sondagem se o termostato não dá resposta\nCompletar a Refatoração para lidar melhor com as funções\ncriptografar todas as credenciais sensíveis -> Relogina necessária\nCorrecção de código para o último recurso",
+        "nl": "Readme bijwerken\nControleer Polling als Thermostat geen respons geeft\nComplete refactoring om functies beter te verwerken\nversleutel alle gevoelige referenties -> Relogin nodig\nCodefixing voor laatste repo",
+        "fr": "Mettre à jour Readme\nVérifier le sondage si Thermostat ne donne aucune réponse\nRefactoring complet pour mieux gérer les fonctions\nchiffrer toutes les références sensibles -> Relogin nécessaire\nCorrection de code pour la dernière repo",
+        "it": "Aggiornamento\nVerificare Polling se Termostato non dare risposta\nRefactoring completo per gestire meglio le funzioni\ncrittografare tutte le credenziali sensibili -> Relogin necessario\nCodice Fissaggio per l'ultimo repo",
+        "es": "Actualización Readme\nVerificar la contaminación si el termostato no da respuesta\nRefactorización completa para manejar las funciones mejor\nencriptar todas las credenciales sensibles Relogin necesario\nCódigo de fijación para el último descanso",
+        "pl": "Aktualizacja Readme\nWeryfikacja badania, jeśli Thermostat nie odpowiada\nKompletna refakturowanie, aby lepiej obsługiwać funkcje\nszyfrowanie wszystkich wrażliwych dokumentów - > Relogin konieczny\nUstawienie kodu dla najnowszego repo",
+        "uk": "Оновлення Readme\nПеревірити поломку, якщо термостат не дає відповіді\nПовне рефакторинг для ручних функцій краще\nзашифрувати всі чутливі облікові дані -> Релогін необхідно\nВиправлення коду для останнього репо",
+        "zh-cn": "更新读取器\n如果热电机没有响应, 请验证投票\n完成更好地处理函数的配置\n加密所有敏感的证书 - > 需要重写\n最近重播的代码"
+      },
+      "0.2.4": {
+        "en": "Change Format of Times",
+        "de": "Format der Zeiten ändern",
+        "ru": "Изменение формата времени",
+        "pt": "Mudar o Formato dos Tempos",
+        "nl": "Formaat van tijden wijzigen",
+        "fr": "Modification du format des temps",
+        "it": "Cambia il formato dei tempi",
+        "es": "Formato de cambio de tiempos",
+        "pl": "Zmień format Times",
+        "uk": "Змінення форматів часу",
+        "zh-cn": "更改时间格式"
+      },
+      "0.2.3": {
+        "en": "Catch wrong values for Temperature and Regulation Mode",
+        "de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
+        "ru": "Улавливать неправильные значения температуры и режима регулирования",
+        "pt": "Valores errados de captura para a temperatura e o modo de regulação",
+        "nl": "Verkeerde vangwaarden voor temperatuur- en regelmodus",
+        "fr": "Capturer des valeurs erronées en mode température et régulation",
+        "it": "Cattura valori errati per la modalità Temperatura e Regolamento",
+        "es": "Obtener valores incorrectos para el modo de temperatura y regulación",
+        "pl": "Nieprawidłowe wartości połowu dla trybu temperatury i regulacji",
+        "uk": "Випадкові значення для режиму температури та регулювання",
+        "zh-cn": "获取温度和调节模式的错误值"
+      }
+    },
+    "titleLang": {
+      "en": "Schlueter Ditra Heat Thermostat",
+      "de": "Schlüter Ditra Wärmethermostat",
+      "ru": "Тепловой термостат Schlueter Ditra",
+      "pt": "Termostato de calor Schlueter Ditra",
+      "nl": "Schlueter Ditra Heat-thermostaat",
+      "fr": "Thermostat de chaleur Schlueter Ditra",
+      "it": "Termostato termico Schlueter Ditra",
+      "es": "Termostato Schlueter Ditra Heat",
+      "pl": "Termostat grzewczy Schlueter Ditra",
+      "uk": "Тепловий термостат Schlueter Ditra",
+      "zh-cn": "Schlueter Ditra 热恒温器"
+    },
+    "desc": {
+      "en": "Floor heating controlled with Ditra Heat Thermostat",
+      "de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
+      "ru": "Подогрев пола контролируется термостатом Ditra Heat.",
+      "pt": "Aquecimento de piso controlado com termostato Ditra Heat",
+      "nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
+      "fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
+      "it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
+      "es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
+      "pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
+      "uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
+      "zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
+    },
+    "authors": [
+      "patricknitsch <patricknitsch@web.de>"
+    ],
+    "keywords": [
+      "ditra heat",
+      "climate",
+      "cloud"
+    ],
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
+    "platform": "Javascript/Node.js",
+    "icon": "schlueter-thermostat.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
+    "readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
+    "loglevel": "info",
+    "tier": 3,
+    "mode": "daemon",
+    "type": "climate-control",
+    "compact": true,
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "adminUI": {
+      "config": "json"
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=6.0.11"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=7.6.20"
+      }
+    ]
+  },
+  "native": {
+    "provider": "owd5",
+    "baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
+    "baseUrlOcd5": "https://ocd5.azurewebsites.net",
+    "username": "",
+    "password": "",
+    "apiKey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
+    "customerId": 1,
+    "pollIntervalSec": 60,
+    "energyHistory": 0,
+    "energyViewType": 2,
+    "legacyCleanup": false
+  },
+  "protectedNative": [
+    "username",
+    "password",
+    "apiKey",
+    "customerId"
+  ],
+  "encryptedNative": [
+    "password",
+    "apiKey"
+  ],
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Device or service connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }
