@@ -112,6 +112,12 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (claude) Fixed object hirarchy
+- (patricknitsch) Update Readme
+
 ### 0.4.1 (2026-02-26)
 
 - (patricknitsch) Update Packages and Workflow
