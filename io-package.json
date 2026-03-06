@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "news": {
+      "0.4.2": {
+        "en": "Fixed object hirarchy\nUpdate Readme",
+        "de": "Objekt hirarchie behoben\nUpdate Reader",
+        "ru": "Фиксированная объектная иерархия\nОбновление Readme",
+        "pt": "Hirarquia de objetos fixos\nActualizar a Leitura",
+        "nl": "Vaste objecthirarchie\nReadme bijwerken",
+        "fr": "Hirarchie d'objet fixe\nMettre à jour Readme",
+        "it": "Irarchy dell'oggetto fisso\nAggiornamento",
+        "es": "Hirarquía de objeto fijo\nActualización Readme",
+        "pl": "Naprawiono hirarchię obiektu\nAktualizacja Readme",
+        "uk": "Виправлено помилку об'єкта\nОновлення Readme",
+        "zh-cn": "固定对象结构\n更新读取器"
+      },
       "0.4.1": {
         "en": "Update Packages and Workflow",
         "de": "Pakete und Workflow aktualisieren",
@@ -80,19 +93,6 @@
         "pl": "Zmień format Times",
         "uk": "Змінення форматів часу",
         "zh-cn": "更改时间格式"
-      },
-      "0.2.3": {
-        "en": "Catch wrong values for Temperature and Regulation Mode",
-        "de": "Falsche Werte für Temperatur und Regelungsmodus einfangen",
-        "ru": "Улавливать неправильные значения температуры и режима регулирования",
-        "pt": "Valores errados de captura para a temperatura e o modo de regulação",
-        "nl": "Verkeerde vangwaarden voor temperatuur- en regelmodus",
-        "fr": "Capturer des valeurs erronées en mode température et régulation",
-        "it": "Cattura valori errati per la modalità Temperatura e Regolamento",
-        "es": "Obtener valores incorrectos para el modo de temperatura y regulación",
-        "pl": "Nieprawidłowe wartości połowu dla trybu temperatury i regulacji",
-        "uk": "Випадкові значення для режиму температури та регулювання",
-        "zh-cn": "获取温度和调节模式的错误值"
       }
     },
     "titleLang": {
