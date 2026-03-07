@@ -1,5 +1,3 @@
-<img src="admin/schlueter-thermostat.png" alt="Logo" width="256" />
-
 # ioBroker.schlueter-thermostat
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.schlueter-thermostat.svg)](https://www.npmjs.com/package/iobroker.schlueter-thermostat)
@@ -17,7 +15,8 @@
 
 ## 🌍 Overview
 
-This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
+<img align="left" src="admin/schlueter-thermostat.png" alt="image" width="128" />
+This adapter integrates <strong>Schlüter / OJ Microline OWD5 thermostats</strong> into ioBroker via the <strong>official cloud APIs</strong>.
 
 It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
 
