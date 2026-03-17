@@ -146,7 +146,16 @@
     "connectionType": "cloud",
     "dataSource": "poll",
     "adminUI": {
-      "config": "json"
+      "config": "json",
+      "tab": "html"
+    },
+    "adminTab": {
+      "singleton": false,
+      "name": {
+        "en": "Device Overview",
+        "de": "Geräteübersicht"
+      },
+      "icon": "schlueter-thermostat.png"
     },
     "dependencies": [
       {

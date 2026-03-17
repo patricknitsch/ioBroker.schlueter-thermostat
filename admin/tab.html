@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geräteübersicht</title>
+    <style>
+        :root {
+            --primary: #388e3c;
+            --primary-dark: #2e7d32;
+            --accent: #ff6f00;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #212121;
+            --text-secondary: #757575;
+            --border: #e0e0e0;
+            --success: #388e3c;
+            --warning: #f57c00;
+            --danger: #d32f2f;
+            --heating: #e53935;
+            --radius: 8px;
+            --shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+        body.dark {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --text-secondary: #9e9e9e;
+            --border: #333333;
+            --shadow: 0 2px 8px rgba(0,0,0,.5);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        /* ── TOOLBAR ── */
+        #toolbar {
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,.3);
+        }
+        #toolbar .logo {
+            font-size: 18px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        #toolbar select {
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.4);
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 13px;
+            cursor: pointer;
+            min-width: 160px;
+        }
+        #toolbar select option { background: var(--primary-dark); color: #fff; }
+        #toolbar label { font-size: 12px; opacity: .8; white-space: nowrap; }
+        #toolbar .spacer { flex: 1; }
+        #connStatus {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        #connStatus .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #9e9e9e;
+            display: inline-block;
+        }
+        #connStatus.online .dot  { background: #69f0ae; }
+        #connStatus.offline .dot { background: #ef5350; }
+        .btn-toolbar {
+            background: rgba(255,255,255,.2);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.5);
+            border-radius: 4px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background .2s;
+        }
+        .btn-toolbar:hover { background: rgba(255,255,255,.35); }
+
+        /* ── MAIN ── */
+        #main {
+            padding: 16px;
+            max-width: 1200px;
+        }
+
+        /* ── STATUS BANNER ── */
+        #statusBanner {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+        .stat-block { text-align: center; min-width: 90px; }
+        .stat-block .label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+        .stat-block .value { font-size: 22px; font-weight: 500; }
+        .stat-block .unit  { font-size: 12px; color: var(--text-secondary); }
+        #heatingIndicator {
+            display: flex; align-items: center; gap: 6px;
+            font-weight: 500;
+        }
+        #heatingIndicator .flame {
+            font-size: 20px;
+            opacity: 0.3;
+            transition: opacity .3s;
+        }
+        #heatingIndicator.active .flame { opacity: 1; color: var(--heating); }
+        #onlineIndicator {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        #onlineIndicator.online  { background: #e8f5e9; color: #2e7d32; }
+        #onlineIndicator.offline { background: #ffebee; color: #c62828; font-size: 14px; font-weight: 700; }
+        body.dark #onlineIndicator.online  { background: #1b3a1f; color: #69f0ae; }
+        body.dark #onlineIndicator.offline { background: #3e1010; color: #ff8a80; }
+        /* Offline warning banner */
+        #offlineBanner {
+            display: none;
+            background: #ffebee;
+            border-left: 4px solid #c62828;
+            color: #c62828;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            border-radius: 4px;
+        }
+        body.dark #offlineBanner { background: #3e1010; border-left-color: #ff5252; color: #ff8a80; }
+        #offlineBanner.visible { display: block; }
+        #regModeLabel {
+            background: var(--primary);
+            color: #fff;
+            border-radius: 12px;
+            padding: 3px 12px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* ── SECTION GRID ── */
+        .section-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 10px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+        }
+        .card-title .icon { font-size: 18px; }
+
+        /* ── FORM ELEMENTS ── */
+        .field { margin-bottom: 10px; }
+        .field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .field input[type=number],
+        .field input[type=text],
+        .field input[type=date] {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 7px 10px;
+            font-size: 14px;
+            color: var(--text);
+            background: var(--card-bg);
+            transition: border-color .2s;
+        }
+        .field input:focus { outline: none; border-color: var(--primary); }
+        .field .row { display: flex; gap: 8px; align-items: center; }
+        .field .unit-label { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+
+        /* checkbox */
+        .field input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+        .field .check-row { display: flex; align-items: center; gap: 8px; }
+        .field .check-row label { margin-bottom: 0; font-size: 13px; color: var(--text); }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .2s, opacity .2s;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .btn-primary  { background: var(--primary); color: #fff; }
+        .btn-primary:hover  { background: var(--primary-dark); }
+        .btn-accent   { background: var(--accent); color: #fff; }
+        .btn-accent:hover   { opacity: .85; }
+        .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #323232;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: transform .3s;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.error { background: var(--danger); }
+
+        /* ── PLACEHOLDER ── */
+        #placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        /* ── SCHEDULE TABLE ── */
+        .schedule-day { margin-bottom: 8px; }
+        .schedule-day summary { cursor: pointer; font-size: 13px; color: var(--primary); padding: 4px 0; }
+        .schedule-events { padding-left: 12px; }
+        .schedule-event { display: flex; gap: 8px; font-size: 12px; padding: 2px 0; }
+        .schedule-event span { color: var(--text-secondary); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 480px) {
+            #main { padding: 10px; }
+            .cards-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<!-- TOOLBAR -->
+<div id="toolbar">
+    <div class="logo">🌡️ Schlüter Thermostat</div>
+    <div>
+        <label for="groupSelect" data-i18n="gruppe"></label>
+        <select id="groupSelect" onchange="onGroupChange()"><option value="">—</option></select>
+    </div>
+    <div>
+        <label for="thermostatSelect" data-i18n="thermostat"></label>
+        <select id="thermostatSelect" onchange="onThermostatChange()"><option value="">—</option></select>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn-toolbar" id="btnConfig" onclick="openConfig()" data-i18n="konfiguration">Konfiguration</button>
+    <div id="connStatus">
+        <span class="dot"></span><span id="connLabel" data-i18n="verbinde">Verbinde…</span>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+    <!-- STATUS BANNER -->
+    <div id="statusBanner" style="display:none">
+        <div class="stat-block">
+            <div class="label" data-i18n="raumtemperatur">Raumtemperatur</div>
+            <div class="value" id="valRoomTemp">—</div>
+            <div class="unit">°C</div>
+        </div>
+        <div class="stat-block">
+            <div class="label" data-i18n="fussbodentemperatur">Fußbodentemperatur</div>
+            <div class="value" id="valFloorTemp">—</div>
+            <div class="unit">°C</div>
+        </div>
+        <div class="stat-block">
+            <div class="label" data-i18n="sollwert">Sollwert</div>
+            <div class="value" id="valSetpoint">—</div>
+            <div class="unit">°C</div>
+        </div>
+        <div class="stat-block">
+            <div class="label" data-i18n="komfortSollwert">Komfort-SP</div>
+            <div class="value" id="valComfortSP">—</div>
+            <div class="unit">°C</div>
+        </div>
+        <div class="stat-block">
+            <div class="label" data-i18n="verbrauchHeute">Verbrauch heute</div>
+            <div class="value" id="valEnergyToday">—</div>
+            <div class="unit">kWh</div>
+        </div>
+        <div id="heatingIndicator">
+            <span class="flame">🔥</span>
+            <span id="heatingLabel" data-i18n="standby">Standby</span>
+        </div>
+        <span id="regModeLabel">—</span>
+        <span id="onlineIndicator">●</span>
+    </div>
+
+    <!-- PLACEHOLDER -->
+    <div id="placeholder" data-i18n="thermostatAuswaehlen">Thermostat auswählen um Steuerungen anzuzeigen.</div>
+
+    <!-- OFFLINE BANNER -->
+    <div id="offlineBanner" data-i18n="geraetOffline">⚠ Gerät ist offline – Steuerungen deaktiviert</div>
+
+    <!-- CONTROLS (hidden until thermostat selected) -->
+    <div id="controls" style="display:none">
+
+        <!-- QUICK MODES -->
+        <div class="section-title" data-i18n="schnellmodi">Schnellmodi</div>
+        <div class="cards-grid">
+            <!-- Schedule -->
+            <div class="card">
+                <div class="card-title"><span class="icon">📅</span> <span data-i18n="zeitplanModus">Zeitplan-Modus</span></div>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px" data-i18n="zeitplanBeschreibung">
+                    Thermostat in den automatischen Zeitplan schalten (RegulationMode 1).
+                </p>
+                <button class="btn btn-primary" onclick="applySchedule()" data-i18n="zeitplanAktivieren">▶ Zeitplan aktivieren</button>
+            </div>
+
+            <!-- Eco -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🌿</span> <span data-i18n="ecoModus">Eco-Modus</span></div>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px" data-i18n="ecoBeschreibung">
+                    Thermostat in den Eco-Sparmodus schalten (RegulationMode 9).
+                </p>
+                <button class="btn btn-primary" onclick="applyEco()" data-i18n="ecoAktivieren">▶ Eco aktivieren</button>
+            </div>
+
+            <!-- Frost Protection -->
+            <div class="card">
+                <div class="card-title"><span class="icon">❄️</span> <span data-i18n="frostschutz">Frostschutz</span></div>
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px" data-i18n="frostBeschreibung">
+                    Frostschutzmodus aktivieren (RegulationMode 6).
+                </p>
+                <button class="btn btn-primary" onclick="applyFrost()" data-i18n="frostAktivieren">▶ Frostschutz aktivieren</button>
+            </div>
+        </div>
+
+        <!-- TEMPERATURE MODES -->
+        <div class="section-title" data-i18n="temperatursteuerung">Temperatursteuerung</div>
+        <div class="cards-grid">
+            <!-- Manual -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🎛️</span> <span data-i18n="manuellerModus">Manueller Modus</span></div>
+                <div class="field">
+                    <label data-i18n="sollwertGrad">Sollwert (°C)</label>
+                    <div class="row">
+                        <input type="number" id="manualSetpoint" min="12" max="35" step="0.5" value="21">
+                        <span class="unit-label">°C</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="applyManual()" data-i18n="manuellAktivieren">▶ Manuell aktivieren</button>
+            </div>
+
+            <!-- Comfort -->
+            <div class="card">
+                <div class="card-title"><span class="icon">☀️</span> <span data-i18n="komfortModus">Komfort-Modus</span></div>
+                <div class="field">
+                    <label data-i18n="sollwertGrad">Sollwert (°C)</label>
+                    <div class="row">
+                        <input type="number" id="comfortSetpoint" min="12" max="35" step="0.5" value="22">
+                        <span class="unit-label">°C</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <label data-i18n="dauerMinuten">Dauer (Minuten)</label>
+                    <div class="row">
+                        <input type="number" id="comfortDuration" min="1" max="1440" step="1" value="180">
+                        <span class="unit-label" data-i18n="min">min</span>
+                    </div>
+                </div>
+                <div class="field" id="comfortEndTimeRow" style="display:none">
+                    <label data-i18n="aktuellesEnde">Aktuelles Ende</label>
+                    <div style="font-size:13px;color:var(--text-secondary)" id="comfortEndTime">—</div>
+                </div>
+                <button class="btn btn-primary" onclick="applyComfort()" data-i18n="komfortAktivieren">▶ Komfort aktivieren</button>
+            </div>
+
+            <!-- Boost -->
+            <div class="card">
+                <div class="card-title"><span class="icon">🚀</span> <span data-i18n="boostModus">Boost-Modus</span></div>
+                <div class="field">
+                    <label data-i18n="dauerMinuten">Dauer (Minuten)</label>
+                    <div class="row">
+                        <input type="number" id="boostDuration" min="1" max="1440" step="1" value="60">
+                        <span class="unit-label" data-i18n="min">min</span>
+                    </div>
+                </div>
+                <div class="field" id="boostEndTimeRow" style="display:none">
+                    <label data-i18n="aktuellesEnde">Aktuelles Ende</label>
+                    <div style="font-size:13px;color:var(--text-secondary)" id="boostEndTime">—</div>
+                </div>
+                <button class="btn btn-accent" onclick="applyBoost()" data-i18n="boostAktivieren">▶ Boost aktivieren</button>
+            </div>
+        </div>
+
+        <!-- VACATION -->
+        <div class="section-title" data-i18n="urlaub">Urlaub</div>
+        <div class="cards-grid">
+            <div class="card" style="grid-column: span 2">
+                <div class="card-title"><span class="icon">✈️</span> <span data-i18n="urlaubseinstellungen">Urlaubseinstellungen</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                        <div class="field">
+                            <div class="check-row">
+                                <input type="checkbox" id="vacEnabled">
+                                <label for="vacEnabled" data-i18n="urlaubAktiv">Urlaub aktiv</label>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label data-i18n="beginn">Beginn (JJJJ-MM-TT)</label>
+                            <input type="date" id="vacBegin">
+                        </div>
+                        <div class="field">
+                            <label data-i18n="ende">Ende (JJJJ-MM-TT)</label>
+                            <input type="date" id="vacEnd">
+                        </div>
+                        <div class="field">
+                            <label data-i18n="temperaturGrad">Temperatur (°C)</label>
+                            <div class="row">
+                                <input type="number" id="vacTemp" min="5" max="35" step="0.5" value="12">
+                                <span class="unit-label">°C</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;justify-content:flex-end">
+                        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px" id="vacCurrentInfo" data-i18n="wirdGeladen">
+                            Aktuell: Wird geladen…
+                        </div>
+                        <button class="btn btn-primary" onclick="applyVacation()" data-i18n="urlaubAktivieren">▶ Urlaub aktivieren</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RENAME -->
+        <div class="section-title" data-i18n="thermostatname">Thermostatname</div>
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-title"><span class="icon">🏷️</span> <span data-i18n="thermostatUmbenennen">Thermostat umbenennen</span></div>
+                <div class="field">
+                    <label data-i18n="neuerName">Neuer Name</label>
+                    <input type="text" id="nameValue" maxlength="64" data-i18n-placeholder="thermostatnameLabel">
+                </div>
+                <button class="btn btn-primary" onclick="applyName()" data-i18n="namenSpeichern">▶ Namen speichern</button>
+            </div>
+        </div>
+
+        <!-- SCHEDULE VIEW -->
+        <div class="section-title" data-i18n="aktuellerZeitplan">Aktueller Zeitplan</div>
+        <div class="cards-grid">
+            <div class="card" style="grid-column:1/-1">
+                <div class="card-title"><span class="icon">🗓️</span> <span data-i18n="wochenplan">Wochenplan</span></div>
+                <div id="scheduleView">
+                    <span style="font-size:13px;color:var(--text-secondary)" data-i18n="zeitplanWirdGeladen">Zeitplan wird geladen…</span>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /#controls -->
+</div><!-- /#main -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* =============================================================
+ * Schlüter Thermostat – Admin Tab
+ * ============================================================= */
+
+'use strict';
+
+// ---- i18n ----
+
+const TRANSLATIONS = {
+    de: {
+        gruppe:               'Gruppe',
+        thermostat:           'Thermostat',
+        konfiguration:        'Konfiguration',
+        verbinde:             'Verbinde…',
+        verbunden:            'Verbunden',
+        getrennt:             'Getrennt',
+        socketNichtVerfuegbar:'Socket nicht verfügbar',
+        authFehler:           'Authentifizierung fehlgeschlagen',
+        raumtemperatur:       'Raumtemperatur',
+        fussbodentemperatur:  'Fußbodentemperatur',
+        sollwert:             'Sollwert',
+        komfortSollwert:      'Komfort-SP',
+        verbrauchHeute:       'Verbrauch heute',
+        heizen:               'Heizen',
+        standby:              'Standby',
+        online:               '● Online',
+        offline:              '⚠ Offline',
+        geraetOffline:        '⚠ Gerät ist offline – Steuerungen deaktiviert',
+        thermostatAuswaehlen: 'Thermostat auswählen um Steuerungen anzuzeigen.',
+        keineGruppen:         'Keine Gruppen',
+        keineGruppenGefunden: 'Keine Thermostatgruppen gefunden. Läuft der Adapter?',
+        keineThermostate:     'Keine Thermostate',
+        keineThermostatGefunden: 'Keine Thermostate in dieser Gruppe gefunden.',
+        gruppeAuswaehlen:     '— Gruppe auswählen —',
+        thermostatAuswaehlenOpt: '— Thermostat auswählen —',
+        schnellmodi:          'Schnellmodi',
+        zeitplanModus:        'Zeitplan-Modus',
+        zeitplanBeschreibung: 'Thermostat in den automatischen Zeitplan schalten (RegulationMode 1).',
+        zeitplanAktivieren:   '▶ Zeitplan aktivieren',
+        ecoModus:             'Eco-Modus',
+        ecoBeschreibung:      'Thermostat in den Eco-Sparmodus schalten (RegulationMode 9).',
+        ecoAktivieren:        '▶ Eco aktivieren',
+        frostschutz:          'Frostschutz',
+        frostBeschreibung:    'Frostschutzmodus aktivieren (RegulationMode 6).',
+        frostAktivieren:      '▶ Frostschutz aktivieren',
+        temperatursteuerung:  'Temperatursteuerung',
+        manuellerModus:       'Manueller Modus',
+        sollwertGrad:         'Sollwert (°C)',
+        manuellAktivieren:    '▶ Manuell aktivieren',
+        komfortModus:         'Komfort-Modus',
+        dauerMinuten:         'Dauer (Minuten)',
+        min:                  'min',
+        aktuellesEnde:        'Aktuelles Ende',
+        komfortAktivieren:    '▶ Komfort aktivieren',
+        boostModus:           'Boost-Modus',
+        boostAktivieren:      '▶ Boost aktivieren',
+        urlaub:               'Urlaub',
+        urlaubseinstellungen: 'Urlaubseinstellungen',
+        urlaubAktiv:          'Urlaub aktiv',
+        beginn:               'Beginn (JJJJ-MM-TT)',
+        ende:                 'Ende (JJJJ-MM-TT)',
+        temperaturGrad:       'Temperatur (°C)',
+        wirdGeladen:          'Aktuell: Wird geladen…',
+        urlaubAktivieren:     '▶ Urlaub aktivieren',
+        thermostatname:       'Thermostatname',
+        thermostatUmbenennen: 'Thermostat umbenennen',
+        neuerName:            'Neuer Name',
+        thermostatnameLabel:  'Thermostatname',
+        namenSpeichern:       '▶ Namen speichern',
+        aktuellerZeitplan:    'Aktueller Zeitplan',
+        wochenplan:           'Wochenplan',
+        zeitplanWirdGeladen:  'Zeitplan wird geladen…',
+        keineZeitplandaten:   'Keine Zeitplandaten verfügbar.',
+        keineZeitplanEintraege: 'Keine Zeitplaneinträge gefunden.',
+        urlaubDeaktiviert:    'Urlaub: deaktiviert',
+        urlaubAktivInfo:      'Aktiv:',
+        ereignis:             'Ereignis',
+        ereignisse:           'Ereignisse',
+        tage:                 ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'],
+        modus:                'Modus',
+        ungueltigeTemp:       'Ungültige Temperatur (12–35°C)',
+        ungueltigeDauer:      'Dauer muss 1–1440 min sein',
+        keinDatumEingabe:     'Bitte Begin- und Enddatum eingeben',
+        beginVorEnde:         'Beginndatum muss vor dem Enddatum liegen',
+        tempBereich:          'Temperatur muss 5–35°C sein',
+        keinName:             'Bitte einen Namen eingeben',
+        fehler:               'Fehler:',
+        zeitplanAktiviert:    'Zeitplan-Modus aktiviert',
+        ecoAktiviert:         'Eco-Modus aktiviert',
+        frostAktiviert:       'Frostschutz aktiviert',
+        manuellAktiviert:     'Manueller Modus aktiviert (Sollwert ',
+        komfortAktiviert:     'Komfort-Modus aktiviert (',
+        boostAktiviert:       'Boost-Modus aktiviert (',
+        urlaubAktiviert:      'Urlaubseinstellungen gespeichert',
+        nameAktiviert:        'Thermostat umbenannt in "',
+        regModus:             {1:'Zeitplan', 2:'Komfort', 3:'Manuell', 6:'Frostschutz', 8:'Boost', 9:'Eco'},
+    },
+    en: {
+        gruppe:               'Group',
+        thermostat:           'Thermostat',
+        konfiguration:        'Configuration',
+        verbinde:             'Connecting…',
+        verbunden:            'Connected',
+        getrennt:             'Disconnected',
+        socketNichtVerfuegbar:'Socket unavailable',
+        authFehler:           'Auth failed',
+        raumtemperatur:       'Room Temp',
+        fussbodentemperatur:  'Floor Temp',
+        sollwert:             'Setpoint',
+        komfortSollwert:      'Comfort SP',
+        verbrauchHeute:       'Energy Today',
+        heizen:               'Heating',
+        standby:              'Idle',
+        online:               '● Online',
+        offline:              '⚠ Offline',
+        geraetOffline:        '⚠ Device is offline – controls disabled',
+        thermostatAuswaehlen: 'Select a thermostat to see controls.',
+        keineGruppen:         'No groups',
+        keineGruppenGefunden: 'No thermostat groups found. Is the adapter running?',
+        keineThermostate:     'No thermostats',
+        keineThermostatGefunden: 'No thermostats found in this group.',
+        gruppeAuswaehlen:     '— Select group —',
+        thermostatAuswaehlenOpt: '— Select thermostat —',
+        schnellmodi:          'Quick Modes',
+        zeitplanModus:        'Schedule Mode',
+        zeitplanBeschreibung: 'Switch thermostat to automatic schedule (RegulationMode 1).',
+        zeitplanAktivieren:   '▶ Apply Schedule',
+        ecoModus:             'Eco Mode',
+        ecoBeschreibung:      'Switch thermostat to energy-saving eco mode (RegulationMode 9).',
+        ecoAktivieren:        '▶ Apply Eco',
+        frostschutz:          'Frost Protection',
+        frostBeschreibung:    'Activate frost protection mode (RegulationMode 6).',
+        frostAktivieren:      '▶ Apply Frost Protection',
+        temperatursteuerung:  'Temperature Control',
+        manuellerModus:       'Manual Mode',
+        sollwertGrad:         'Setpoint (°C)',
+        manuellAktivieren:    '▶ Apply Manual',
+        komfortModus:         'Comfort Mode',
+        dauerMinuten:         'Duration (minutes)',
+        min:                  'min',
+        aktuellesEnde:        'Current End Time',
+        komfortAktivieren:    '▶ Apply Comfort',
+        boostModus:           'Boost Mode',
+        boostAktivieren:      '▶ Apply Boost',
+        urlaub:               'Vacation',
+        urlaubseinstellungen: 'Vacation Settings',
+        urlaubAktiv:          'Vacation enabled',
+        beginn:               'Begin (YYYY-MM-DD)',
+        ende:                 'End (YYYY-MM-DD)',
+        temperaturGrad:       'Temperature (°C)',
+        wirdGeladen:          'Current: loading…',
+        urlaubAktivieren:     '▶ Apply Vacation',
+        thermostatname:       'Thermostat Name',
+        thermostatUmbenennen: 'Rename Thermostat',
+        neuerName:            'New Name',
+        thermostatnameLabel:  'Thermostat name',
+        namenSpeichern:       '▶ Apply Name',
+        aktuellerZeitplan:    'Current Schedule',
+        wochenplan:           'Weekly Schedule',
+        zeitplanWirdGeladen:  'Loading schedule…',
+        keineZeitplandaten:   'No schedule data available.',
+        keineZeitplanEintraege: 'No schedule entries found.',
+        urlaubDeaktiviert:    'Vacation: disabled',
+        urlaubAktivInfo:      'Active:',
+        ereignis:             'event',
+        ereignisse:           'events',
+        tage:                 ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+        modus:                'Mode',
+        ungueltigeTemp:       'Invalid temperature (12–35°C)',
+        ungueltigeDauer:      'Duration must be 1–1440 min',
+        keinDatumEingabe:     'Please enter begin and end dates',
+        beginVorEnde:         'Begin date must be before end date',
+        tempBereich:          'Temperature must be 5–35°C',
+        keinName:             'Please enter a name',
+        fehler:               'Error:',
+        zeitplanAktiviert:    'Schedule mode applied',
+        ecoAktiviert:         'Eco mode applied',
+        frostAktiviert:       'Frost protection applied',
+        manuellAktiviert:     'Manual mode applied (setpoint ',
+        komfortAktiviert:     'Comfort mode applied (',
+        boostAktiviert:       'Boost mode applied (',
+        urlaubAktiviert:      'Vacation settings applied',
+        nameAktiviert:        'Thermostat renamed to "',
+        regModus:             {1:'Schedule', 2:'Comfort', 3:'Manual', 6:'Frost Protection', 8:'Boost', 9:'Eco'},
+    },
+};
+
+let lang = 'de';
+
+function detectLang() {
+    try {
+        // Admin 7 exposes sysConfig on parent
+        const sysLang = window.parent?.sysConfig?.common?.language
+            || window.parent?.systemLang
+            || navigator.language || 'de';
+        lang = sysLang.toLowerCase().startsWith('de') ? 'de' : 'en';
+    } catch {
+        lang = navigator.language?.toLowerCase().startsWith('de') ? 'de' : 'en';
+    }
+}
+
+function t(key) {
+    const tr = TRANSLATIONS[lang] || TRANSLATIONS.de;
+    return tr[key] !== undefined ? tr[key] : (TRANSLATIONS.en[key] || key);
+}
+
+function translatePage() {
+    for (const el of document.querySelectorAll('[data-i18n]')) {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+    }
+    for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
+        const key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = t(key);
+    }
+}
+
+// ---- state ----
+let socket = null;
+let currentInstance  = null;  // 'schlueter-thermostat.0'
+let currentNamespace = null;  // 'schlueter-thermostat.0'
+let currentGroupId   = null;
+let currentThermostatId = null;
+let currentDevPrefix = null;  // 'schlueter-thermostat.0.groups.X.thermostats.Y'
+let subscribePattern = null;
+let currentIsOnline = true;
+
+// ---- theme detection ----
+// Admin 7 appends &react=dark|light|blue|colored to the iframe URL (AdminUtils.getHref).
+// Theme changes are persisted to localStorage keys App.theme / App.themeName via
+// Utils.setThemeName() from @iobroker/adapter-react-v5.  The tab iframe (same origin)
+// receives the 'storage' event when those keys are written.
+
+// Theme names / types treated as dark (from @iobroker/adapter-react-v5 Utils)
+const DARK_THEME_NAMES = ['dark', 'blue'];
+
+function applyTheme(isDark) {
+    document.body.classList.toggle('dark', !!isDark);
+}
+
+// Resolve current theme by reading all available signals.
+function resolveTheme() {
+    // 1. localStorage keys written by Utils.setThemeName() — same-origin, most accurate
+    try {
+        const t = localStorage.getItem('App.theme');       // 'dark' | 'light'
+        if (t) return t === 'dark';
+        const n = localStorage.getItem('App.themeName');   // 'dark' | 'light' | 'blue' | 'colored'
+        if (n) return DARK_THEME_NAMES.includes(n);
+    } catch { /* storage blocked */ }
+
+    // 2. DOM attributes on parent <body> / <html>
+    try {
+        const body = window.parent?.document?.body;
+        const html = window.parent?.document?.documentElement;
+        if (body) {
+            if ((body.className  || '').toLowerCase().includes('dark')) return true;
+            if ((html?.className || '').toLowerCase().includes('dark')) return true;
+            if (body.getAttribute('data-theme') === 'dark') return true;
+            if (html?.getAttribute('data-theme') === 'dark') return true;
+            if (body.getAttribute('data-bs-theme') === 'dark') return true;
+        }
+    } catch { /* cross-origin */ }
+
+    // 3. Computed background of the MUI root container — Admin 7 / MUI CssBaseline
+    //    applies the dark background on #root (not on <body>), so check that element too.
+    try {
+        const p = window.parent;
+        const candidates = [
+            p?.document?.getElementById('root'),
+            p?.document?.querySelector('.App'),
+            p?.document?.body,
+        ].filter(Boolean);
+        for (const el of candidates) {
+            const bg = p.getComputedStyle(el).backgroundColor;
+            // Match numbers including decimals for rgba(r,g,b,a)
+            const m = bg && bg.match(/[\d.]+/g);
+            if (m && m.length >= 3) {
+                const a = m.length >= 4 ? parseFloat(m[3]) : 1;
+                if (a > 0) { // skip fully transparent elements
+                    const avg = (parseInt(m[0]) + parseInt(m[1]) + parseInt(m[2])) / 3;
+                    if (avg < 80) return true; // dark if average RGB < 80
+                }
+            }
+        }
+    } catch { /* cross-origin */ }
+
+    return false;
+}
+
+function detectTheme() {
+    // Admin 7 appends &react=dark|light|blue|colored to the tab URL at load time.
+    // Use this URL param for the initial call; fall back to resolveTheme() for
+    // subsequent (live-update) calls where the URL no longer changes.
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const react = params.get('react');
+        if (react !== null) {
+            applyTheme(DARK_THEME_NAMES.includes(react));
+            return;
+        }
+    } catch { /* ignore */ }
+    applyTheme(resolveTheme());
+}
+
+function watchTheme() {
+    // A. storage event — fires in this iframe when parent window writes real localStorage
+    //    (Utils.setThemeName() writes 'App.theme' and 'App.themeName')
+    window.addEventListener('storage', e => {
+        if (e.key === 'App.theme') {
+            applyTheme(e.newValue === 'dark');
+        } else if (e.key === 'App.themeName') {
+            applyTheme(DARK_THEME_NAMES.includes(e.newValue));
+        }
+    });
+
+    // B. postMessage — Admin sends 'updateTheme' to the config iframe; we listen too
+    //    in case future Admin versions broadcast it to all iframes.
+    window.addEventListener('message', e => {
+        if (e.data === 'updateTheme') applyTheme(resolveTheme());
+    });
+
+    // C. MutationObserver on parent body/html for data-theme / class changes
+    try {
+        const targets = [
+            window.parent?.document?.body,
+            window.parent?.document?.documentElement,
+        ].filter(Boolean);
+        if (targets.length) {
+            const obs = new MutationObserver(() => applyTheme(resolveTheme()));
+            for (const el of targets) {
+                obs.observe(el, {
+                    attributes: true,
+                    attributeFilter: ['class', 'data-theme', 'data-bs-theme', 'style'],
+                });
+            }
+        }
+    } catch { /* cross-origin */ }
+
+    // D. Periodic poll — absolute fallback (5 s interval, very lightweight).
+    //    Only calls applyTheme() when the resolved value actually changes.
+    //    Catches any change not covered by the above, e.g. when Admin uses its
+    //    custom _localStorage and never writes to real localStorage.
+    let _lastDark = document.body.classList.contains('dark');
+    setInterval(() => {
+        const isDark = resolveTheme();
+        if (isDark !== _lastDark) {
+            _lastDark = isDark;
+            applyTheme(isDark);
+        }
+    }, 5000);
+}
+
+// ---- socket helpers ----
+
+async function socketCall(method, ...args) {
+    if (!socket) throw new Error('No socket');
+    // Admin 7 React: socket has direct methods that return Promises
+    if (typeof socket[method] === 'function') {
+        return socket[method](...args);
+    }
+    // Fallback: raw socket.io emit
+    return new Promise((resolve, reject) => {
+        socket.emit(method, ...args, (err, result) => {
+            if (err) reject(typeof err === 'string' ? new Error(err) : err);
+            else resolve(result);
+        });
+    });
+}
+
+async function getState(id) {
+    try {
+        return await socketCall('getState', id);
+    } catch {
+        return null;
+    }
+}
+
+async function setState(id, val) {
+    return socketCall('setState', id, { val, ack: false });
+}
+
+async function getStatesPattern(pattern) {
+    try {
+        return await socketCall('getStates', pattern) || {};
+    } catch {
+        return {};
+    }
+}
+
+// ---- socket init ----
+
+function initSocket() {
+    detectLang();
+    detectTheme();
+    watchTheme();
+    translatePage();
+
+    // Try Admin 7 React parent socket (polls up to 3 s)
+    let attempts = 0;
+    const check = () => {
+        if (window.parent && window.parent.socket) {
+            socket = window.parent.socket;
+            onSocketConnected();
+        } else if (attempts++ < 30) {
+            setTimeout(check, 100);
+        } else {
+            // Fallback: load socket.io from Admin
+            const s = document.createElement('script');
+            s.src = '../../lib/js/socket.io.js';
+            s.onload = () => connectSocketIO();
+            s.onerror = () => setConnStatus(false, t('socketNichtVerfuegbar'));
+            document.head.appendChild(s);
+        }
+    };
+    check();
+}
+
+function connectSocketIO() {
+    const loc = window.location;
+    const path = loc.pathname.replace(/\/[^\/]*$/, '/') + 'socket.io';
+    const io = window.io || window.socket_io;
+    if (!io) { setConnStatus(false, t('socketNichtVerfuegbar')); return; }
+    socket = io.connect(loc.origin, { path, query: 'ws=true' });
+    socket.on('connect', () => {
+        socket.emit('authenticate', (err, isOk, _version) => {
+            if (isOk) onSocketConnected();
+            else setConnStatus(false, t('authFehler'));
+        });
+    });
+    socket.on('disconnect', () => setConnStatus(false, t('getrennt')));
+}
+
+function onSocketConnected() {
+    setConnStatus(true, t('verbunden'));
+
+    // Detect instance from URL param ?instance=N
+    const urlParams = new URLSearchParams(window.location.search);
+    const instNum = urlParams.get('instance');
+    const instanceId = 'schlueter-thermostat.' + (instNum !== null ? instNum : '0');
+
+    currentInstance  = instanceId;
+    currentNamespace = instanceId;
+
+    // subscribe to state changes
+    if (typeof socket.on === 'function') {
+        socket.on('stateChange', (id, state) => {
+            if (currentDevPrefix && id.startsWith(currentNamespace + '.')) {
+                const localId = id.slice(currentNamespace.length + 1);
+                handleStateChange(localId, state);
+            }
+        });
+    }
+
+    loadGroups();
+}
+
+// ---- config button ----
+
+function openConfig() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const instNum = urlParams.get('instance') || '0';
+    const url = window.location.origin + '/#/tab-instances/schlueter-thermostat.' + instNum;
+    window.open(url, '_blank');
+}
+
+// ---- connection status ----
+
+function setConnStatus(online, label) {
+    const el = document.getElementById('connStatus');
+    el.className = online ? 'online' : 'offline';
+    document.getElementById('connLabel').textContent = label;
+}
+
+// ---- groups ----
+
+async function loadGroups() {
+    const ns = currentNamespace;
+    let groups = [];
+
+    // Discover group folders: objects of type 'folder' under <ns>.groups.*
+    try {
+        const view = await socketCall('getObjectView', 'system', 'folder', {
+            startkey: ns + '.groups.',
+            endkey:   ns + '.groups.\u9999',
+        });
+        if (view && view.rows) {
+            for (const row of view.rows) {
+                const obj = row.value;
+                if (!obj) continue;
+                // id pattern: ns.groups.<groupId>  (direct child, not ns.groups.<id>.thermostats)
+                const parts = obj._id.split('.');
+                // e.g. schlueter-thermostat.0.groups.<groupId>
+                const baseLen = ns.split('.').length + 2; // ns parts + 'groups' + groupId
+                if (parts.length === baseLen) {
+                    groups.push({ id: obj._id, name: obj.common?.name || parts[parts.length - 1] });
+                }
+            }
+        }
+    } catch { /* ignore */ }
+
+    // Fallback: getObjectView device
+    if (!groups.length) {
+        try {
+            const view = await socketCall('getObjectView', 'system', 'device', {
+                startkey: ns + '.groups.',
+                endkey:   ns + '.groups.\u9999',
+            });
+            if (view && view.rows) {
+                for (const row of view.rows) {
+                    const obj = row.value;
+                    if (!obj) continue;
+                    const parts = obj._id.split('.');
+                    const baseLen = ns.split('.').length + 2;
+                    if (parts.length === baseLen) {
+                        groups.push({ id: obj._id, name: obj.common?.name || parts[parts.length - 1] });
+                    }
+                }
+            }
+        } catch { /* ignore */ }
+    }
+
+    const sel = document.getElementById('groupSelect');
+    sel.innerHTML = '';
+    if (!groups.length) {
+        sel.innerHTML = '<option value="">' + t('keineGruppen') + '</option>';
+        showPlaceholder(t('keineGruppenGefunden'));
+        return;
+    }
+
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = t('gruppeAuswaehlen');
+    sel.appendChild(emptyOpt);
+
+    for (const g of groups) {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.name;
+        sel.appendChild(opt);
+    }
+
+    // auto-select first group
+    if (groups.length === 1) {
+        sel.value = groups[0].id;
+        await selectGroup(groups[0].id);
+    }
+}
+
+async function onGroupChange() {
+    const sel = document.getElementById('groupSelect');
+    if (sel.value) {
+        await selectGroup(sel.value);
+    } else {
+        document.getElementById('thermostatSelect').innerHTML = '<option value="">—</option>';
+        hideControls();
+    }
+}
+
+async function selectGroup(groupObjId) {
+    currentGroupId = groupObjId.split('.').pop();
+    currentThermostatId = null;
+    currentDevPrefix = null;
+
+    document.getElementById('thermostatSelect').innerHTML = '<option value="">' + t('thermostatAuswaehlenOpt') + '</option>';
+    hideControls();
+
+    await loadThermostats(groupObjId);
+}
+
+// ---- thermostats ----
+
+async function loadThermostats(groupObjId) {
+    let thermostats = [];
+
+    const thermostatsFolderPrefix = groupObjId + '.thermostats.';
+
+    try {
+        const view = await socketCall('getObjectView', 'system', 'device', {
+            startkey: thermostatsFolderPrefix,
+            endkey:   thermostatsFolderPrefix + '\u9999',
+        });
+        if (view && view.rows) {
+            for (const row of view.rows) {
+                const obj = row.value;
+                if (!obj) continue;
+                const parts = obj._id.split('.');
+                // Must be direct child of thermostats folder
+                if (parts.length === thermostatsFolderPrefix.split('.').length) {
+                    thermostats.push({ id: obj._id, name: obj.common?.name || parts[parts.length - 1] });
+                }
+            }
+        }
+    } catch { /* ignore */ }
+
+    const sel = document.getElementById('thermostatSelect');
+    sel.innerHTML = '';
+
+    if (!thermostats.length) {
+        sel.innerHTML = '<option value="">' + t('keineThermostate') + '</option>';
+        showPlaceholder(t('keineThermostatGefunden'));
+        return;
+    }
+
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = t('thermostatAuswaehlenOpt');
+    sel.appendChild(emptyOpt);
+
+    for (const th of thermostats) {
+        const opt = document.createElement('option');
+        opt.value = th.id;
+        opt.textContent = th.name;
+        sel.appendChild(opt);
+    }
+
+    if (thermostats.length === 1) {
+        sel.value = thermostats[0].id;
+        await selectThermostat(thermostats[0].id);
+    }
+}
+
+async function onThermostatChange() {
+    const sel = document.getElementById('thermostatSelect');
+    if (sel.value) {
+        await selectThermostat(sel.value);
+    } else {
+        hideControls();
+    }
+}
+
+async function selectThermostat(devObjId) {
+    // devObjId is the full ioBroker object id  e.g. schlueter-thermostat.0.groups.123.thermostats.456
+    currentThermostatId = devObjId.split('.').pop();
+    currentDevPrefix = devObjId; // full path used to read/write states
+
+    showControls();
+    await refreshAll();
+    subscribeToThermostat();
+}
+
+// ---- state subscription ----
+
+function subscribeToThermostat() {
+    if (!socket || !currentDevPrefix) return;
+    const pattern = currentDevPrefix + '.*';
+    if (subscribePattern !== pattern) {
+        if (subscribePattern) {
+            try { socketCall('unsubscribeStates', subscribePattern); } catch { /* ignore */ }
+        }
+        subscribePattern = pattern;
+        try { socketCall('subscribeStates', pattern); } catch { /* ignore */ }
+    }
+}
+
+function handleStateChange(localId, state) {
+    if (!state || !currentDevPrefix) return;
+    const ns = currentNamespace;
+    const full = ns + '.' + localId;
+    if (!full.startsWith(currentDevPrefix)) return;
+    const rel = full.slice(currentDevPrefix.length + 1);
+    const val = state.val;
+
+    switch (rel) {
+        case 'temperature.room':    setEl('valRoomTemp',  fmtTemp(val)); break;
+        case 'temperature.floor':   setEl('valFloorTemp', fmtTemp(val)); break;
+        case 'setpoint.manual':     setEl('valSetpoint',  fmtTemp(val)); break;
+        case 'setpoint.comfort':    setEl('valComfortSP', fmtTemp(val)); break;
+        case 'energy.value0':       setEl('valEnergyToday', fmtEnergy(val)); break;
+        case 'regulationMode':      updateRegMode(val); break;
+        case 'heating':             updateHeating(val); break;
+        case 'online':              updateOnline(val); break;
+        case 'thermostatName':      setInput('nameValue', val); break;
+        case 'endTime.comfort':     updateEndTime('comfort', val); break;
+        case 'endTime.boost':       updateEndTime('boost', val); break;
+        case 'vacation.enabled':    document.getElementById('vacEnabled').checked = !!val; updateVacInfo(); break;
+        case 'vacation.begin':      setInput('vacBegin', val); updateVacInfo(); break;
+        case 'vacation.end':        setInput('vacEnd', val); updateVacInfo(); break;
+        case 'vacation.temperature': setInput('vacTemp', fmtTemp(val)); updateVacInfo(); break;
+    }
+}
+
+// ---- refresh ----
+
+async function refreshAll() {
+    if (!currentDevPrefix) return;
+
+    // Read all states at once
+    const statesObj = await getStatesPattern(currentDevPrefix + '.*');
+
+    const get = id => statesObj[currentDevPrefix + '.' + id]?.val;
+
+    const roomTemp    = get('temperature.room');
+    const floorTemp   = get('temperature.floor');
+    const manualSP    = get('setpoint.manual');
+    const comfortSP   = get('setpoint.comfort');
+    const energyToday = get('energy.value0');
+    const regMode     = get('regulationMode');
+    const heating     = get('heating');
+    const online      = get('online');
+    const name        = get('thermostatName');
+    const comfortEnd  = get('endTime.comfort');
+    const boostEnd    = get('endTime.boost');
+    const vacEnabled  = get('vacation.enabled');
+    const vacBegin    = get('vacation.begin');
+    const vacEnd      = get('vacation.end');
+    const vacTemp     = get('vacation.temperature');
+    const applyManSP  = get('apply.manual.setpoint');
+    const applyCmfSP  = get('apply.comfort.setpoint');
+    const applyCmfDur = get('apply.comfort.durationMinutes');
+    const applyBstDur = get('apply.boost.durationMinutes');
+
+    setEl('valRoomTemp',    fmtTemp(roomTemp));
+    setEl('valFloorTemp',   fmtTemp(floorTemp));
+    setEl('valSetpoint',    fmtTemp(manualSP));
+    setEl('valComfortSP',   fmtTemp(comfortSP));
+    setEl('valEnergyToday', fmtEnergy(energyToday));
+    updateRegMode(regMode);
+    updateHeating(heating);
+    updateOnline(online);
+
+    if (name !== undefined && name !== null) {
+        setInput('nameValue', String(name));
+    }
+
+    // Pre-fill apply inputs with current values
+    if (applyManSP !== undefined && applyManSP !== null) setInput('manualSetpoint', applyManSP);
+    else if (manualSP !== undefined && manualSP !== null) setInput('manualSetpoint', manualSP);
+
+    if (applyCmfSP !== undefined && applyCmfSP !== null) setInput('comfortSetpoint', applyCmfSP);
+    else if (comfortSP !== undefined && comfortSP !== null) setInput('comfortSetpoint', comfortSP);
+
+    if (applyCmfDur !== undefined && applyCmfDur !== null) setInput('comfortDuration', applyCmfDur);
+    if (applyBstDur !== undefined && applyBstDur !== null) setInput('boostDuration', applyBstDur);
+
+    updateEndTime('comfort', comfortEnd);
+    updateEndTime('boost', boostEnd);
+
+    if (vacEnabled !== undefined) document.getElementById('vacEnabled').checked = !!vacEnabled;
+    if (vacBegin)  setInput('vacBegin', vacBegin);
+    if (vacEnd)    setInput('vacEnd', vacEnd);
+    if (vacTemp !== undefined && vacTemp !== null) setInput('vacTemp', vacTemp);
+    updateVacInfo();
+
+    // Load schedule
+    loadSchedule(statesObj);
+}
+
+// ---- apply actions ----
+
+async function applySchedule() {
+    await applyMode('schedule', 'schedule.apply', true, t('zeitplanAktiviert'));
+}
+
+async function applyEco() {
+    await applyMode('eco', 'eco.apply', true, t('ecoAktiviert'));
+}
+
+async function applyFrost() {
+    await applyMode('frostProtection', 'frostProtection.apply', true, t('frostAktiviert'));
+}
+
+async function applyManual() {
+    const sp = parseFloat(document.getElementById('manualSetpoint').value);
+    if (!isValidTemp(sp, 12, 35)) { showToast(t('ungueltigeTemp'), true); return; }
+    await setState(currentDevPrefix + '.apply.manual.setpoint', sp);
+    await applyMode('manual', 'manual.apply', true, t('manuellAktiviert') + sp + '°C)');
+}
+
+async function applyComfort() {
+    const sp  = parseFloat(document.getElementById('comfortSetpoint').value);
+    const dur = parseInt(document.getElementById('comfortDuration').value, 10);
+    if (!isValidTemp(sp, 12, 35)) { showToast(t('ungueltigeTemp'), true); return; }
+    if (!dur || dur < 1 || dur > 1440) { showToast(t('ungueltigeDauer'), true); return; }
+    await setState(currentDevPrefix + '.apply.comfort.setpoint', sp);
+    await setState(currentDevPrefix + '.apply.comfort.durationMinutes', dur);
+    await applyMode('comfort', 'comfort.apply', true, t('komfortAktiviert') + sp + '°C, ' + dur + ' min)');
+}
+
+async function applyBoost() {
+    const dur = parseInt(document.getElementById('boostDuration').value, 10);
+    if (!dur || dur < 1 || dur > 1440) { showToast(t('ungueltigeDauer'), true); return; }
+    await setState(currentDevPrefix + '.apply.boost.durationMinutes', dur);
+    await applyMode('boost', 'boost.apply', true, t('boostAktiviert') + dur + ' min)');
+}
+
+async function applyVacation() {
+    const enabled = document.getElementById('vacEnabled').checked;
+    const begin   = document.getElementById('vacBegin').value.trim();
+    const end     = document.getElementById('vacEnd').value.trim();
+    const temp    = parseFloat(document.getElementById('vacTemp').value);
+
+    if (enabled) {
+        if (!begin || !end) { showToast(t('keinDatumEingabe'), true); return; }
+        if (begin > end)    { showToast(t('beginVorEnde'), true); return; }
+    }
+    if (!isValidTemp(temp, 5, 35)) { showToast(t('tempBereich'), true); return; }
+
+    await setState(currentDevPrefix + '.apply.vacation.enabled', enabled);
+    await setState(currentDevPrefix + '.apply.vacation.begin', begin);
+    await setState(currentDevPrefix + '.apply.vacation.end', end);
+    await setState(currentDevPrefix + '.apply.vacation.temperature', temp);
+    await applyMode('vacation', 'vacation.apply', true, t('urlaubAktiviert'));
+}
+
+async function applyName() {
+    const name = document.getElementById('nameValue').value.trim();
+    if (!name) { showToast(t('keinName'), true); return; }
+    await setState(currentDevPrefix + '.apply.name.value', name);
+    await applyMode('name', 'name.apply', true, t('nameAktiviert') + name + '"');
+}
+
+async function applyMode(label, subPath, val, successMsg) {
+    if (!currentDevPrefix) return;
+    const id = currentDevPrefix + '.apply.' + subPath;
+    try {
+        disableButtons(true);
+        await setState(id, val);
+        showToast(successMsg);
+        // Refresh after short delay to pick up changes
+        setTimeout(() => refreshAll(), 2000);
+    } catch (e) {
+        showToast(t('fehler') + ' ' + (e.message || e), true);
+    } finally {
+        disableButtons(false);
+    }
+}
+
+// ---- schedule display ----
+
+function loadSchedule(statesObj) {
+    const schedDiv = document.getElementById('scheduleView');
+    const prefix = currentDevPrefix + '.schedule.';
+    const schedStates = {};
+    for (const [id, st] of Object.entries(statesObj)) {
+        if (id.startsWith(prefix)) {
+            schedStates[id.slice(prefix.length)] = st.val;
+        }
+    }
+
+    if (!Object.keys(schedStates).length) {
+        schedDiv.innerHTML = '<span style="font-size:13px;color:var(--text-secondary)">' + t('keineZeitplandaten') + '</span>';
+        return;
+    }
+
+    // Parse days: day0..day6, each has event0..eventN with time and temperature
+    let html = '';
+    const dayNames = t('tage');
+    for (let d = 0; d < 7; d++) {
+        const dayKey = 'day' + d;
+        const events = [];
+        for (let e = 0; e < 20; e++) {
+            const eKey = dayKey + '.event' + e;
+            const timeKey   = eKey + '.time';
+            const tempKey   = eKey + '.temperature';
+            if (schedStates[timeKey] !== undefined) {
+                events.push({ time: schedStates[timeKey], temp: schedStates[tempKey] });
+            }
+        }
+        if (!events.length) continue;
+        const evLabel = events.length === 1 ? t('ereignis') : t('ereignisse');
+        html += '<details class="schedule-day"><summary>' + dayNames[d] + ' (' + events.length + ' ' + evLabel + ')</summary>';
+        html += '<div class="schedule-events">';
+        for (const ev of events) {
+            html += '<div class="schedule-event"><span>' + (ev.time || '—') + '</span><span>→</span><strong>' + fmtTemp(ev.temp) + ' °C</strong></div>';
+        }
+        html += '</div></details>';
+    }
+
+    schedDiv.innerHTML = html || '<span style="font-size:13px;color:var(--text-secondary)">' + t('keineZeitplanEintraege') + '</span>';
+}
+
+// ---- UI helpers ----
+
+function showControls() {
+    document.getElementById('statusBanner').style.display = '';
+    document.getElementById('controls').style.display = '';
+    document.getElementById('placeholder').style.display = 'none';
+}
+
+function hideControls() {
+    document.getElementById('statusBanner').style.display = 'none';
+    document.getElementById('controls').style.display = 'none';
+    document.getElementById('placeholder').style.display = '';
+}
+
+function showPlaceholder(msg) {
+    hideControls();
+    document.getElementById('placeholder').textContent = msg;
+}
+
+function setEl(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+function setInput(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!val;
+    else el.value = (val === undefined || val === null) ? '' : val;
+}
+
+function fmtTemp(val) {
+    if (val === null || val === undefined || val === '') return '—';
+    const n = Number(val);
+    return Number.isFinite(n) ? n.toFixed(1) : '—';
+}
+
+function fmtEnergy(val) {
+    if (val === null || val === undefined || val === '') return '—';
+    const n = Number(val);
+    return Number.isFinite(n) ? n.toFixed(2) : '—';
+}
+
+function isValidTemp(val, min, max) {
+    return Number.isFinite(val) && val >= min && val <= max;
+}
+
+function updateRegMode(val) {
+    const modes = t('regModus');
+    const label = modes[val] || (val !== undefined && val !== null ? t('modus') + ' ' + val : '—');
+    setEl('regModeLabel', label);
+}
+
+function updateHeating(val) {
+    const el = document.getElementById('heatingIndicator');
+    if (el) {
+        el.className = val ? 'active' : '';
+        document.getElementById('heatingLabel').textContent = val ? t('heizen') : t('standby');
+    }
+}
+
+function updateOnline(val) {
+    currentIsOnline = !!val;
+    const el = document.getElementById('onlineIndicator');
+    if (el) {
+        el.className = val ? 'online' : 'offline';
+        el.textContent = val ? t('online') : t('offline');
+    }
+    // Show/hide offline warning banner
+    const banner = document.getElementById('offlineBanner');
+    if (banner) {
+        banner.classList.toggle('visible', !val);
+    }
+    // Disable / re-enable all apply buttons when offline
+    for (const btn of document.querySelectorAll('#controls .btn')) {
+        btn.disabled = !val;
+    }
+}
+
+function updateEndTime(mode, val) {
+    const rowId = mode + 'EndTimeRow';
+    const valId = mode + 'EndTime';
+    const row = document.getElementById(rowId);
+    const valEl = document.getElementById(valId);
+    if (!val) {
+        if (row) row.style.display = 'none';
+        return;
+    }
+    if (row) row.style.display = '';
+    if (valEl) valEl.textContent = val;
+}
+
+function updateVacInfo() {
+    const el = document.getElementById('vacCurrentInfo');
+    if (!el) return;
+    const enabled = document.getElementById('vacEnabled').checked;
+    const begin   = document.getElementById('vacBegin').value;
+    const end     = document.getElementById('vacEnd').value;
+    const temp    = document.getElementById('vacTemp').value;
+    if (!enabled) {
+        el.textContent = t('urlaubDeaktiviert');
+    } else {
+        el.textContent = t('urlaubAktivInfo') + ' ' + (begin || '?') + ' → ' + (end || '?') + ' @ ' + temp + '°C';
+    }
+}
+
+function disableButtons(disabled) {
+    for (const btn of document.querySelectorAll('.btn')) {
+        btn.disabled = disabled;
+    }
+}
+
+let toastTimer = null;
+function showToast(msg, isError) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = isError ? 'show error' : 'show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ---- boot ----
+initSocket();
+</script>
+</body>
+</html>

@@ -24,6 +24,28 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 
 ##
 
+## 🖥️ Admin Tab
+
+Each adapter instance exposes a dedicated **control panel** tab directly inside the ioBroker Admin UI.
+
+### Features
+
+| Area | What you can do |
+| ---- | --------------- |
+| **Status banner** | Live display of room temperature, floor temperature, setpoint, comfort setpoint, energy consumption today (kWh), heating state, regulation mode and online/offline status |
+| **Schnellmodi** | One-click switch to *Zeitplan* (Schedule), *Eco* or *Frostschutz* (Frost Protection) mode |
+| **Temperatursteuerung** | Set manual setpoint, activate Comfort mode (setpoint + duration) or Boost mode (duration) |
+| **Urlaub** | Enable vacation mode with begin/end dates and a target temperature |
+| **Thermostatname** | Rename the thermostat directly from the UI |
+| **Wochenplan** | Read-only view of the current weekly schedule (collapsible per-day event list) |
+| **Konfiguration** | Button that opens the adapter instance configuration page directly |
+
+### Language
+
+The tab detects the Admin UI language automatically and renders all labels in **German** (default) or English.
+
+##
+
 ## 🚀 How to Start
 
 1. Install adapter in ioBroker
@@ -111,6 +133,12 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+
+- (copilot) Add `admin/tab.html` control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and Konfiguration button
+- (copilot) Status banner now shows energy consumption for today (kWh)
+- (copilot) Instance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7
+
 ### 0.4.3 (2026-03-06)
 
 - (patricknitsch) Fix adapter type in io-package.json
