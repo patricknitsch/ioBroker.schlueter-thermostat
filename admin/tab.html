@@ -530,41 +530,48 @@ window.addEventListener('load', () => {
 ══════════════════════════════════════════════════════ */
 function getSocket() {
     return new Promise((resolve, reject) => {
-        // Admin 7 sets window.socket asynchronously during React app init.
-        // Poll for up to 3 s before falling back to a direct socket.io connection.
-        let attempts = 0;
-        function tryParent() {
-            attempts++;
-            try {
-                if (window.parent && window.parent !== window && window.parent.socket) {
-                    return resolve(window.parent.socket);
-                }
-            } catch (_) {}
-            try {
-                if (window.parent && window.parent.parent && window.parent.parent.socket) {
-                    return resolve(window.parent.parent.socket);
-                }
-            } catch (_) {}
+        // Admin 7 does NOT expose window.parent.socket.
+        // The correct approach for a tab iframe is to connect directly using the
+        // admin's own socket client (../../lib/js/socket.io.js = /lib/js/socket.io.js).
+        // The socket path is derived from window.location.pathname, exactly matching
+        // how @iobroker/socket-client's Connection.startSocket() computes it so that
+        // the admin server routes the connection to the correct socket.io endpoint.
+        // e.g. tab at /adapter/schlueter-thermostat/tab.html → path /adapter/schlueter-thermostat/socket.io
+        const pathname = window.location.pathname;
+        const pos = pathname.lastIndexOf('/');
+        const socketPath = (pos !== -1 ? pathname.substring(0, pos + 1) : '/') + 'socket.io';
 
-            if (attempts < 30) {
-                setTimeout(tryParent, 100);
-                return;
-            }
+        // Load the admin's @iobroker/ws-compatible socket client
+        loadScript('../../lib/js/socket.io.js')
+            .then(() => {
+                const connectFn = (typeof window.io === 'function' ? window.io
+                                 : typeof window.iob === 'object' && typeof window.iob.connect === 'function' ? window.iob.connect
+                                 : null);
+                if (!connectFn) {
+                    return reject('Socket.io library not available');
+                }
+                const sock = typeof window.io === 'function'
+                    ? window.io(window.location.origin, { path: socketPath, query: 'ws=true', transports: ['websocket', 'polling'] })
+                    : window.iob.connect(window.location.origin, { path: socketPath, query: 'ws=true', transports: ['websocket', 'polling'] });
 
-            // Final fallback: direct socket.io connection
-            loadScript('/socket.io/socket.io.js')
-                .then(() => {
-                    const sock = io(window.location.origin, {
-                        path: '/socket.io/',
-                        transports: ['websocket', 'polling']
-                    });
-                    sock.once('connect', () => resolve(sock));
-                    sock.once('connect_error', err => reject(err && err.message ? err.message : err));
-                    setTimeout(() => reject('timeout'), 8000);
-                })
-                .catch(reject);
-        }
-        tryParent();
+                let settled = false;
+                const done = (err, result) => {
+                    if (settled) { return; }
+                    settled = true;
+                    if (err) { reject(err); } else { resolve(result); }
+                };
+
+                sock.once('connect', () => {
+                    // ioBroker socket protocol: emit authenticate after connecting.
+                    // We resolve regardless of isOk for unsecured setups.
+                    sock.emit('authenticate', () => done(null, sock));
+                    // Safety: if server doesn't respond to authenticate in 2 s, resolve anyway
+                    setTimeout(() => done(null, sock), 2000);
+                });
+                sock.once('connect_error', err => done(err && err.message ? err.message : String(err)));
+                setTimeout(() => done('timeout'), 8000);
+            })
+            .catch(reject);
     });
 }
 
