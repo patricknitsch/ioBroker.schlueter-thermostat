@@ -733,68 +733,128 @@ let subscribePattern = null;
 let currentIsOnline = true;
 
 // ---- theme detection ----
+// Admin 7 appends &react=dark|light|blue|colored to the iframe URL (AdminUtils.getHref).
+// Theme changes are persisted to localStorage keys App.theme / App.themeName via
+// Utils.setThemeName() from @iobroker/adapter-react-v5.  The tab iframe (same origin)
+// receives the 'storage' event when those keys are written.
 
-function isParentDarkTheme() {
+// Theme names / types treated as dark (from @iobroker/adapter-react-v5 Utils)
+const DARK_THEME_NAMES = ['dark', 'blue'];
+
+function applyTheme(isDark) {
+    document.body.classList.toggle('dark', !!isDark);
+}
+
+// Resolve current theme by reading all available signals.
+function resolveTheme() {
+    // 1. localStorage keys written by Utils.setThemeName() — same-origin, most accurate
     try {
-        const parentBody = window.parent?.document?.body;
-        const parentHtml = window.parent?.document?.documentElement;
-        if (!parentBody) return false;
+        const t = localStorage.getItem('App.theme');       // 'dark' | 'light'
+        if (t) return t === 'dark';
+        const n = localStorage.getItem('App.themeName');   // 'dark' | 'light' | 'blue' | 'colored'
+        if (n) return DARK_THEME_NAMES.includes(n);
+    } catch { /* storage blocked */ }
 
-        // Check class / data-theme on <body> and <html> — Admin 7 may use either
-        const bodyClass  = parentBody.className  || '';
-        const htmlClass  = parentHtml ? (parentHtml.className  || '') : '';
-        const bodyTheme  = parentBody.getAttribute('data-theme')  || '';
-        const htmlTheme  = parentHtml ? (parentHtml.getAttribute('data-theme') || '') : '';
-        const bsTheme    = parentBody.getAttribute('data-bs-theme') || '';
-
-        if (bodyClass.toLowerCase().includes('dark') ||
-            htmlClass.toLowerCase().includes('dark') ||
-            bodyTheme === 'dark' || htmlTheme === 'dark' || bsTheme === 'dark') {
-            return true;
+    // 2. DOM attributes on parent <body> / <html>
+    try {
+        const body = window.parent?.document?.body;
+        const html = window.parent?.document?.documentElement;
+        if (body) {
+            if ((body.className  || '').toLowerCase().includes('dark')) return true;
+            if ((html?.className || '').toLowerCase().includes('dark')) return true;
+            if (body.getAttribute('data-theme') === 'dark') return true;
+            if (html?.getAttribute('data-theme') === 'dark') return true;
+            if (body.getAttribute('data-bs-theme') === 'dark') return true;
         }
+    } catch { /* cross-origin */ }
 
-        // Fallback: check Admin's localStorage preference (same-origin)
-        try {
-            const stored = window.parent.localStorage.getItem('App.nativeTheme')
-                        || window.parent.localStorage.getItem('Admin.nativeTheme')
-                        || window.parent.localStorage.getItem('nativeTheme');
-            if (stored && stored.toLowerCase().includes('dark')) return true;
-        } catch { /* storage blocked */ }
-
-        // Last resort: check computed background of parent body
-        const bg = window.parent.getComputedStyle(parentBody).backgroundColor;
-        if (bg) {
-            // Parse rgb(r, g, b) — dark if channel average < 80 (below mid-grey)
-            const m = bg.match(/\d+/g);
+    // 3. Computed background of the MUI root container — Admin 7 / MUI CssBaseline
+    //    applies the dark background on #root (not on <body>), so check that element too.
+    try {
+        const p = window.parent;
+        const candidates = [
+            p?.document?.getElementById('root'),
+            p?.document?.querySelector('.App'),
+            p?.document?.body,
+        ].filter(Boolean);
+        for (const el of candidates) {
+            const bg = p.getComputedStyle(el).backgroundColor;
+            // Match numbers including decimals for rgba(r,g,b,a)
+            const m = bg && bg.match(/[\d.]+/g);
             if (m && m.length >= 3) {
-                const avg = (parseInt(m[0]) + parseInt(m[1]) + parseInt(m[2])) / 3;
-                if (avg < 80) return true;
+                const a = m.length >= 4 ? parseFloat(m[3]) : 1;
+                if (a > 0) { // skip fully transparent elements
+                    const avg = (parseInt(m[0]) + parseInt(m[1]) + parseInt(m[2])) / 3;
+                    if (avg < 80) return true; // dark if average RGB < 80
+                }
             }
         }
-    } catch { /* cross-origin or missing */ }
+    } catch { /* cross-origin */ }
+
     return false;
 }
 
 function detectTheme() {
-    document.body.classList.toggle('dark', isParentDarkTheme());
+    // Admin 7 appends &react=dark|light|blue|colored to the tab URL at load time.
+    // Use this URL param for the initial call; fall back to resolveTheme() for
+    // subsequent (live-update) calls where the URL no longer changes.
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const react = params.get('react');
+        if (react !== null) {
+            applyTheme(DARK_THEME_NAMES.includes(react));
+            return;
+        }
+    } catch { /* ignore */ }
+    applyTheme(resolveTheme());
 }
 
 function watchTheme() {
+    // A. storage event — fires in this iframe when parent window writes real localStorage
+    //    (Utils.setThemeName() writes 'App.theme' and 'App.themeName')
+    window.addEventListener('storage', e => {
+        if (e.key === 'App.theme') {
+            applyTheme(e.newValue === 'dark');
+        } else if (e.key === 'App.themeName') {
+            applyTheme(DARK_THEME_NAMES.includes(e.newValue));
+        }
+    });
+
+    // B. postMessage — Admin sends 'updateTheme' to the config iframe; we listen too
+    //    in case future Admin versions broadcast it to all iframes.
+    window.addEventListener('message', e => {
+        if (e.data === 'updateTheme') applyTheme(resolveTheme());
+    });
+
+    // C. MutationObserver on parent body/html for data-theme / class changes
     try {
         const targets = [
             window.parent?.document?.body,
-            window.parent?.document?.documentElement
+            window.parent?.document?.documentElement,
         ].filter(Boolean);
-        if (!targets.length) return;
-
-        const observer = new MutationObserver(() => detectTheme());
-        for (const el of targets) {
-            observer.observe(el, {
-                attributes: true,
-                attributeFilter: ['class', 'data-theme', 'data-bs-theme', 'style']
-            });
+        if (targets.length) {
+            const obs = new MutationObserver(() => applyTheme(resolveTheme()));
+            for (const el of targets) {
+                obs.observe(el, {
+                    attributes: true,
+                    attributeFilter: ['class', 'data-theme', 'data-bs-theme', 'style'],
+                });
+            }
         }
-    } catch { /* cross-origin; no live updates */ }
+    } catch { /* cross-origin */ }
+
+    // D. Periodic poll — absolute fallback (5 s interval, very lightweight).
+    //    Only calls applyTheme() when the resolved value actually changes.
+    //    Catches any change not covered by the above, e.g. when Admin uses its
+    //    custom _localStorage and never writes to real localStorage.
+    let _lastDark = document.body.classList.contains('dark');
+    setInterval(() => {
+        const isDark = resolveTheme();
+        if (isDark !== _lastDark) {
+            _lastDark = isDark;
+            applyTheme(isDark);
+        }
+    }, 5000);
 }
 
 // ---- socket helpers ----
