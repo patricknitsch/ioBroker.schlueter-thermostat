@@ -38,7 +38,7 @@
             flex-wrap: wrap;
         }
         #header label { font-size: 0.82rem; color: #8fa5c0; }
-        #instanceSelect {
+        #groupSelect, #thermostatSelect {
             background: #1e3050;
             border: 1px solid #2d4a70;
             color: #e0e6f0;
@@ -343,8 +343,10 @@
     <img src="schlueter-thermostat.png" alt="Schlüter" />
     <h1 id="pageTitle">Schlüter Thermostat</h1>
     <div class="header-right">
-        <label for="instanceSelect" id="instanceLabel">Instance:</label>
-        <select id="instanceSelect"></select>
+        <label for="groupSelect" id="groupLabel">Group:</label>
+        <select id="groupSelect"></select>
+        <label for="thermostatSelect" id="thermostatLabel">Thermostat:</label>
+        <select id="thermostatSelect"></select>
         <a id="instanceLink" href="#" target="_blank">⚙ Config</a>
     </div>
 </div>
@@ -383,11 +385,14 @@
 const TRANSLATIONS = {
     de: {
         pageTitle:       'Schlüter Thermostat Übersicht',
-        instance:        'Instanz:',
+        group:           'Gruppe:',
+        thermostat:      'Thermostat:',
         openConfig:      '⚙ Konfiguration',
         notConfigured:   'Die Thermostat-Übersichtsseite ist nicht aktiviert.\nBitte in der Instanzkonfiguration aktivieren.',
         openConfigBtn:   'Konfiguration öffnen',
         noInstances:     'Keine Schlüter Thermostat Instanzen gefunden.\nBitte zuerst eine Instanz erstellen.',
+        noGroups:        'Keine Gruppen gefunden.',
+        noThermostats:   'Keine Thermostate gefunden.',
         errorText:       'Verbindung zum ioBroker Socket nicht möglich.',
         loading:         'Thermostate werden geladen…',
         online:          'ONLINE',
@@ -418,11 +423,14 @@ const TRANSLATIONS = {
     },
     en: {
         pageTitle:       'Schlüter Thermostat Overview',
-        instance:        'Instance:',
+        group:           'Group:',
+        thermostat:      'Thermostat:',
         openConfig:      '⚙ Config',
         notConfigured:   'The Thermostat Overview Tab is not enabled.\nPlease enable it in the instance configuration.',
         openConfigBtn:   'Open Configuration',
         noInstances:     'No Schlueter Thermostat instances found.\nPlease create an instance first.',
+        noGroups:        'No groups found.',
+        noThermostats:   'No thermostats found.',
         errorText:       'Cannot connect to ioBroker socket.',
         loading:         'Loading thermostats…',
         online:          'ONLINE',
@@ -498,7 +506,8 @@ let subscribed = null;
    Entry point
 ══════════════════════════════════════════════════════ */
 document.getElementById('pageTitle').textContent = T.pageTitle;
-document.getElementById('instanceLabel').textContent = T.instance;
+document.getElementById('groupLabel').textContent = T.group;
+document.getElementById('thermostatLabel').textContent = T.thermostat;
 document.getElementById('instanceLink').textContent = T.openConfig;
 document.getElementById('notConfiguredText').textContent = T.notConfigured;
 document.getElementById('configLink').textContent = T.openConfigBtn;
@@ -562,7 +571,7 @@ function loadScript(src) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Instance management
+   Instance & navigation
 ══════════════════════════════════════════════════════ */
 function loadInstances() {
     socketCall('getObjectView', 'system', 'instance', {
@@ -572,25 +581,25 @@ function loadInstances() {
         const rows = (res && res.rows) ? res.rows : [];
         if (!rows.length) { showOnly('noInstances'); return; }
 
-        const select = document.getElementById('instanceSelect');
-        select.innerHTML = '';
-        rows.forEach(r => {
-            const num = r.id.replace('system.adapter.schlueter-thermostat.', '');
-            const opt = document.createElement('option');
-            opt.value = num;
-            opt.textContent = 'schlueter-thermostat.' + num;
-            select.appendChild(opt);
-        });
+        // Auto-detect instance: prefer the one with showTab=true, else first
+        let instanceRow = rows.find(r => r.value && r.value.native && r.value.native.showTab);
+        if (!instanceRow) instanceRow = rows[0];
+        const instanceNum = instanceRow.id.replace('system.adapter.schlueter-thermostat.', '');
 
-        select.addEventListener('change', () => selectInstance(select.value));
-        selectInstance(select.value);
+        currentInstance = instanceNum;
+        setConfigUrl(instanceNum);
+
+        const showTab = instanceRow.value && instanceRow.value.native && instanceRow.value.native.showTab;
+        if (!showTab) {
+            showOnly('notConfigured');
+            return;
+        }
+
+        loadGroups(instanceNum);
     });
 }
 
-function selectInstance(num) {
-    currentInstance = num;
-
-    // Detect whether the admin uses React Router style (#/) or legacy (#)
+function setConfigUrl(num) {
     let baseUrl = window.location.origin;
     let hashPrefix = '/#';
     try {
@@ -603,74 +612,116 @@ function selectInstance(num) {
     const configUrl = baseUrl + hashPrefix + 'tab-instances/schlueter-thermostat.' + num;
     document.getElementById('instanceLink').href = configUrl;
     document.getElementById('configLink').href = configUrl;
-
-    // Unsubscribe from previous instance
-    if (subscribed) {
-        socketCall('unsubscribeStates', subscribed, () => {});
-        subscribed = null;
-    }
-
-    socketCall('getObject', 'system.adapter.schlueter-thermostat.' + num, (err, obj) => {
-        const showTab = obj && obj.native && obj.native.showTab;
-        if (!showTab) {
-            showOnly('notConfigured');
-            return;
-        }
-        loadThermostats(num);
-    });
 }
 
-/* ═══════════════════════════════════════════════════════
-   Thermostat loading
-══════════════════════════════════════════════════════ */
-function loadThermostats(instance) {
-    showOnly('loading');
-    thermostats = {};
-
-    // Get thermostat device objects
-    socketCall('getObjectView', 'system', 'device', {
-        startkey: 'schlueter-thermostat.' + instance + '.groups.',
-        endkey:   'schlueter-thermostat.' + instance + '.groups.\u9999'
+function loadGroups(instance) {
+    const prefix = 'schlueter-thermostat.' + instance + '.groups.';
+    socketCall('getObjectView', 'system', 'folder', {
+        startkey: prefix,
+        endkey:   prefix + '\u9999'
     }, (err, res) => {
         const rows = (res && res.rows) ? res.rows : [];
-        const tRows = rows.filter(r => r.id.includes('.thermostats.'));
+        // Keep only direct group children (no dots after the prefix = one level deep)
+        const groupRows = rows.filter(r => !r.id.slice(prefix.length).includes('.'));
 
-        if (!tRows.length) {
+        if (!groupRows.length) {
             document.getElementById('thermostats').innerHTML =
-                '<p style="color:#5a8aaa;padding:40px;text-align:center">No thermostats found for instance ' + instance + '</p>';
+                '<p style="color:#5a8aaa;padding:40px;text-align:center">' + T.noGroups + '</p>';
             showOnly('thermostats');
             return;
         }
 
-        tRows.forEach(r => { thermostats[r.id] = { obj: r.value, states: {} }; });
+        const groupSelect = document.getElementById('groupSelect');
+        groupSelect.innerHTML = '';
+        groupRows.forEach(r => {
+            const pathId = r.id.slice(prefix.length);
+            const name = r.value && r.value.common && r.value.common.name ? r.value.common.name : pathId;
+            const opt = document.createElement('option');
+            opt.value = pathId;
+            opt.textContent = name;
+            groupSelect.appendChild(opt);
+        });
 
-        // Get all states under this instance.
-        // Admin 7 Connection may expose getForeignStates or getStates; raw socket.io uses emit fallback.
+        groupSelect.onchange = () => loadThermostatList(instance, groupSelect.value);
+        loadThermostatList(instance, groupSelect.value);
+    });
+}
+
+function loadThermostatList(instance, groupPathId) {
+    const thermostatSelect = document.getElementById('thermostatSelect');
+    thermostatSelect.innerHTML = '';
+    thermostatSelect.onchange = null;
+
+    const prefix = 'schlueter-thermostat.' + instance + '.groups.' + groupPathId + '.thermostats.';
+    socketCall('getObjectView', 'system', 'device', {
+        startkey: prefix,
+        endkey:   prefix + '\u9999'
+    }, (err, res) => {
+        const rows = (res && res.rows) ? res.rows : [];
+
+        if (!rows.length) {
+            document.getElementById('thermostats').innerHTML =
+                '<p style="color:#5a8aaa;padding:40px;text-align:center">' + T.noThermostats + '</p>';
+            showOnly('thermostats');
+            return;
+        }
+
+        rows.forEach(r => {
+            const pathId = r.id.slice(prefix.length);
+            const name = r.value && r.value.common && r.value.common.name ? r.value.common.name : pathId;
+            const opt = document.createElement('option');
+            opt.value = pathId;
+            opt.textContent = name;
+            thermostatSelect.appendChild(opt);
+        });
+
+        thermostatSelect.onchange = () => showThermostatCard(instance, groupPathId, thermostatSelect.value);
+        showThermostatCard(instance, groupPathId, thermostatSelect.value);
+    });
+}
+
+function showThermostatCard(instance, groupPathId, thermostatPathId) {
+    const tid = 'schlueter-thermostat.' + instance + '.groups.' + groupPathId + '.thermostats.' + thermostatPathId;
+
+    // Unsubscribe from previous thermostat
+    if (subscribed) {
+        socketCall('unsubscribeStates', subscribed, () => {});
+        subscribed = null;
+    }
+    removeStateListener();
+
+    showOnly('loading');
+    thermostats = {};
+
+    socketCall('getObject', tid, (err, obj) => {
+        if (!obj) {
+            document.getElementById('thermostats').innerHTML =
+                '<p style="color:#5a8aaa;padding:40px;text-align:center">' + T.noThermostats + '</p>';
+            showOnly('thermostats');
+            return;
+        }
+        thermostats[tid] = { obj: obj, states: {} };
+
         const statesMethod = typeof socket.getForeignStates === 'function' ? 'getForeignStates'
             : typeof socket.getStates === 'function' ? 'getStates'
-            : 'getForeignStates'; // socketCall will fall through to emit for raw socket.io
-        const pattern = 'schlueter-thermostat.' + instance + '.*';
+            : 'getForeignStates';
+        const pattern = tid + '.*';
         socketCall(statesMethod, pattern, (err2, states) => {
             if (states) {
                 Object.entries(states).forEach(([id, state]) => {
-                    // Assign state to matching thermostat
-                    for (const tid of Object.keys(thermostats)) {
-                        if (id.startsWith(tid + '.')) {
-                            const key = id.slice(tid.length + 1);
-                            thermostats[tid].states[key] = state ? state.val : null;
-                        }
+                    if (id.startsWith(tid + '.')) {
+                        const key = id.slice(tid.length + 1);
+                        thermostats[tid].states[key] = state ? state.val : null;
                     }
                 });
             }
-
             renderAll();
-            subscribeStates(instance);
+            subscribeStates(pattern);
         });
     });
 }
 
-function subscribeStates(instance) {
-    const pattern = 'schlueter-thermostat.' + instance + '.*';
+function subscribeStates(pattern) {
     subscribed = pattern;
     socketCall('subscribeStates', pattern, () => {});
 
