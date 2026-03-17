@@ -318,13 +318,12 @@ class SchlueterThermostat extends utils.Adapter {
 
 			const wantTab = !!this.config.showTab;
 			const currentTab = obj.common.adminTab;
-			// Admin 7 (React) does NOT substitute %s in the link; it appends ?instance=N itself.
-			// The link must be just the HTML filename — no query params.
-			const desiredLink = 'tab.html';
 
 			if (wantTab) {
-				// Update if tab is absent OR if settings are outdated (singleton/link changed)
-				if (currentTab && currentTab.singleton === false && currentTab.link === desiredLink) {
+				// Admin auto-discovers tab.html from the adapter's admin folder when no link is set.
+				// A non-empty link is used as-is (e.g. 'tab.html' → '/tab.html' = 404).
+				// Update if tab is absent OR if outdated (singleton changed or a stale link is still set)
+				if (currentTab && currentTab.singleton === false && !currentTab.link) {
 					return;
 				}
 				obj.common.adminTab = {
@@ -342,7 +341,6 @@ class SchlueterThermostat extends utils.Adapter {
 						uk: 'Огляд термостату',
 						'zh-cn': '温控器概览',
 					},
-					link: desiredLink,
 				};
 			} else {
 				if (!currentTab) {
