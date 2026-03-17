@@ -312,12 +312,15 @@ class SchlueterThermostat extends utils.Adapter {
 		try {
 			const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
 			if (!obj) {
+				this.log.warn(`_updateAdminTab(): adapter object system.adapter.${this.namespace} not found`);
 				return;
 			}
 
 			const wantTab = !!this.config.showTab;
 			const currentTab = obj.common.adminTab;
-			const desiredLink = 'tab.html?instance=%s';
+			// Admin 7 (React) does NOT substitute %s in the link; it appends ?instance=N itself.
+			// The link must be just the HTML filename — no query params.
+			const desiredLink = 'tab.html';
 
 			if (wantTab) {
 				// Update if tab is absent OR if settings are outdated (singleton/link changed)
