@@ -305,54 +305,24 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// ADMIN TAB VISIBILITY
+	// ADMIN TAB MIGRATION
 	// ============================================================================
 
-	async _updateAdminTab() {
+	async _cleanupAdminTab() {
+		// adminTab is now declared statically in io-package.json.
+		// Remove any dynamic adminTab that older adapter versions wrote into
+		// system.adapter.X.N — the per-instance object overrides io-package.json,
+		// so leftover entries (especially stale link fields) must be cleared.
 		try {
 			const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
-			if (!obj) {
-				this.log.warn(`_updateAdminTab(): adapter object system.adapter.${this.namespace} not found`);
+			if (!obj || !obj.common.adminTab) {
 				return;
 			}
-
-			const wantTab = !!this.config.showTab;
-			const currentTab = obj.common.adminTab;
-
-			if (wantTab) {
-				// Admin auto-discovers tab.html from the adapter's admin folder when no link is set.
-				// A non-empty link is used as-is (e.g. 'tab.html' → '/tab.html' = 404).
-				// Update if tab is absent OR if outdated (singleton changed or a stale link is still set)
-				if (currentTab && currentTab.singleton === false && !currentTab.link) {
-					return;
-				}
-				obj.common.adminTab = {
-					singleton: false,
-					name: {
-						en: 'Thermostat Overview',
-						de: 'Thermostat Übersicht',
-						ru: 'Обзор термостата',
-						pt: 'Visão geral do termostato',
-						nl: 'Thermostaat Overzicht',
-						fr: 'Aperçu du thermostat',
-						it: 'Panoramica termostato',
-						es: 'Resumen del termostato',
-						pl: 'Przegląd termostatu',
-						uk: 'Огляд термостату',
-						'zh-cn': '温控器概览',
-					},
-				};
-			} else {
-				if (!currentTab) {
-					return;
-				}
-				delete obj.common.adminTab;
-			}
-
+			delete obj.common.adminTab;
 			await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
-			this.log.debug(`_updateAdminTab(): adminTab ${wantTab ? 'enabled' : 'disabled'}`);
+			this.log.debug('_cleanupAdminTab(): removed legacy adminTab from adapter object');
 		} catch (e) {
-			this.log.warn(`_updateAdminTab(): ${e?.message || e}`);
+			this.log.warn(`_cleanupAdminTab(): ${e?.message || e}`);
 		}
 	}
 
@@ -364,8 +334,8 @@ class SchlueterThermostat extends utils.Adapter {
 		this.log.info('onReady(): starting adapter');
 		this.safeSetState('info.connection', false, true);
 
-		// Dynamically show/hide the admin tab based on config
-		await this._updateAdminTab();
+		// Remove any legacy dynamic adminTab so io-package.json takes effect
+		await this._cleanupAdminTab();
 
 		if (!this.config.username || !this.config.password || !this.config.apiKey || !this.config.customerId) {
 			this.log.error('Missing config (username/password/apiKey/customerId).');

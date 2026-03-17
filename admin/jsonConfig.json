@@ -109,16 +109,6 @@
 					"xl": 4,
 					"newLine": true
 				},
-				"showTab": {
-					"type": "checkbox",
-					"label": "Show Tab",
-					"default": false,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4
-				},
 				"_help": {
 					"type": "staticText",
 					"newLine": true,

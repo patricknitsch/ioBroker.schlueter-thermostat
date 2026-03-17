@@ -530,32 +530,41 @@ window.addEventListener('load', () => {
 ══════════════════════════════════════════════════════ */
 function getSocket() {
     return new Promise((resolve, reject) => {
-        // 1) Try parent window socket (ioBroker admin iframe)
-        try {
-            if (window.parent && window.parent !== window && window.parent.socket) {
-                return resolve(window.parent.socket);
-            }
-        } catch (_) {}
+        // Admin 7 sets window.socket asynchronously during React app init.
+        // Poll for up to 3 s before falling back to a direct socket.io connection.
+        let attempts = 0;
+        function tryParent() {
+            attempts++;
+            try {
+                if (window.parent && window.parent !== window && window.parent.socket) {
+                    return resolve(window.parent.socket);
+                }
+            } catch (_) {}
+            try {
+                if (window.parent && window.parent.parent && window.parent.parent.socket) {
+                    return resolve(window.parent.parent.socket);
+                }
+            } catch (_) {}
 
-        // 2) Try grandparent (double-nested iframe)
-        try {
-            if (window.parent && window.parent.parent && window.parent.parent.socket) {
-                return resolve(window.parent.parent.socket);
+            if (attempts < 30) {
+                setTimeout(tryParent, 100);
+                return;
             }
-        } catch (_) {}
 
-        // 3) Direct socket.io connection
-        loadScript('/socket.io/socket.io.js')
-            .then(() => {
-                const sock = io(window.location.origin, {
-                    path: '/socket.io/',
-                    transports: ['websocket', 'polling']
-                });
-                sock.once('connect', () => resolve(sock));
-                sock.once('connect_error', err => reject(err && err.message ? err.message : err));
-                setTimeout(() => reject('timeout'), 8000);
-            })
-            .catch(reject);
+            // Final fallback: direct socket.io connection
+            loadScript('/socket.io/socket.io.js')
+                .then(() => {
+                    const sock = io(window.location.origin, {
+                        path: '/socket.io/',
+                        transports: ['websocket', 'polling']
+                    });
+                    sock.once('connect', () => resolve(sock));
+                    sock.once('connect_error', err => reject(err && err.message ? err.message : err));
+                    setTimeout(() => reject('timeout'), 8000);
+                })
+                .catch(reject);
+        }
+        tryParent();
     });
 }
 
@@ -579,14 +588,13 @@ function loadInstances() {
     const urlInstance = urlParams.get('instance');
 
     if (urlInstance !== null && urlInstance !== '') {
-        // The tab is already open for this instance — no need to re-check showTab.
         currentInstance = urlInstance;
         setConfigUrl(urlInstance);
         loadGroups(urlInstance);
         return;
     }
 
-    // Fallback: auto-detect the first instance (no URL param = legacy singleton tab or dev mode)
+    // Fallback: auto-detect the first instance (no URL param = dev / legacy mode)
     socketCall('getObjectView', 'system', 'instance', {
         startkey: 'system.adapter.schlueter-thermostat.',
         endkey:   'system.adapter.schlueter-thermostat.\uffff'  // \uffff = max range-query boundary
@@ -595,11 +603,7 @@ function loadInstances() {
                    : (Array.isArray(res) ? res : []);
         if (!rows.length) { showOnly('noInstances'); return; }
 
-        // Prefer the one with showTab=true, else use first
-        let instanceRow = rows.find(r => r.value && r.value.native && r.value.native.showTab);
-        if (!instanceRow) instanceRow = rows[0];
-        const instanceNum = instanceRow.id.replace('system.adapter.schlueter-thermostat.', '');
-
+        const instanceNum = rows[0].id.replace('system.adapter.schlueter-thermostat.', '');
         currentInstance = instanceNum;
         setConfigUrl(instanceNum);
         loadGroups(instanceNum);
@@ -607,18 +611,9 @@ function loadInstances() {
 }
 
 function setConfigUrl(num) {
-    let origin = window.location.origin;
-    // Admin 7+ (React Router) always uses #/ routing; fall back to legacy #/ if explicitly detected otherwise
-    let hashSlash = true;
-    try {
-        if (window.parent && window.parent !== window) {
-            origin = window.parent.location.origin || origin;
-            const ph = window.parent.location.hash || '';
-            // Legacy Admin 5/6: hash like "#tab-instances" (no slash after #)
-            if (ph.length > 1 && !ph.startsWith('#/')) hashSlash = false;
-        }
-    } catch(_) {}
-    const configUrl = origin + (hashSlash ? '/#/' : '/#') + 'tab-instances/schlueter-thermostat.' + num;
+    // tab.html is served by Admin on the same origin → window.location.origin is the Admin URL.
+    // Admin >= 7.6.20 always uses React Router (#/) for navigation.
+    const configUrl = window.location.origin + '/#/tab-instances/schlueter-thermostat.' + num;
     document.getElementById('instanceLink').href = configUrl;
     document.getElementById('configLink').href = configUrl;
 }
