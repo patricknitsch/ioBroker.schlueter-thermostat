@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.4.3",
+    "version": "0.5.0",
     "news": {
+      "0.5.0": {
+        "en": "Add `admin/tab.html` control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and Konfiguration button\nStatus banner now shows energy consumption for today (kWh)\nInstance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7",
+        "de": "Fügen Sie `admin/tab.html` Bedienfeld mit grünem Thema, i18n (DE/EN), Live-Status-Banner, Schnellmodi, Temperatursteuerung, Urlaub, Schedule Viewer und Konfigurationstaste hinzu\nStatusbanner zeigt jetzt Energieverbrauch für heute (kWh)\nInstanz-Selektor entfernt — Instanz wird automatisch vom `? Beispiel=N` URL-Parameter von Admin 7 übergeben",
+        "ru": "Добавьте панель управления «admin/tab.html» с зеленой темой, i18n (DE/EN), баннером с живым статусом, быстрыми режимами, контролем температуры, отпуском, просмотром расписания и кнопкой Konfiguration\nСтатусный баннер показывает потребление энергии на сегодня (кВтч)\nСелектор инстанций удален - экземпляр автоматически обнаруживается из '? Пример = параметр URL N, переданный администратором 7",
+        "pt": "Adicionar `admin/tab.html` painel de controle com tema verde, i18n (DE/EN), banner de status ao vivo, modos rápidos, controle de temperatura, férias, visualizador de agenda e botão Konfiguration\nBanner de status agora mostra consumo de energia para hoje (kWh)\nSelector de instância removido — a instância é automaticamente detectada a partir do `? parâmetro URL instance=N` passado pelo Admin 7",
+        "nl": "Addmin/tab.html\nStatus banner toont nu energieverbruik voor vandaag (kWh)\nInstance selector verwijderde instantie wordt automatisch gedetecteerd van de  instance=N",
+        "fr": "Ajouter `admin/tab.html` panneau de contrôle avec thème vert, i18n (DE/EN), bannière de statut en direct, modes rapides, contrôle de température, vacances, visionneuse de calendrier et bouton Konfiguration\nLa bannière Status affiche maintenant la consommation d'énergie pour aujourd'hui (kWh)\nLe sélecteur d'instance est supprimé — l'instance est automatiquement détectée de la `? instance=N` paramètre URL passé par Admin 7",
+        "it": "Aggiungi `admin/tab.html` pannello di controllo con tema verde, i18n (DE/EN), banner di stato dal vivo, modalità rapide, controllo della temperatura, vacanza, visualizzatore di programma e pulsante Konfiguration\nIl banner di stato mostra ora il consumo energetico per oggi (kWh)\nSelettore di caso rimosso — l'istanza è auto-detected dal `? istanza=N` parametro URL passato da Admin 7",
+        "es": "Añadir `admin/tab.html` panel de control con tema verde, i18n (DE/EN), estandarte de estado en vivo, modos rápidos, control de temperatura, vacaciones, visor horario y botón de Konfiguration\nEstandarte de estado ahora muestra consumo de energía para hoy (kWh)\nSelector de instalación eliminado - ejemplo es auto-detectado de la `? ejemplo=N` parámetro URL aprobado por Admin 7",
+        "pl": "Dodaj panel sterowania 'admin / tab.html' z motywem zielonym, i18n (DE / EN), baner statusu na żywo, szybkie tryby, kontrola temperatury, wakacje, przeglądarka harmonogramu i przycisk Konfiguracja\nBaner stanu pokazuje zużycie energii na dziś (kWh)\nUsunięty selektor pola widzenia - instancja jest automatycznie wykrywana z '? instance = N' Parametr URL przekazywany przez Admin 7",
+        "uk": "Додати панель керування `admin/tab.html з зеленою темою, i18n (DE/EN), банер стану життя, швидкий режим, контроль температури, відпочинок, графік перегляду та налаштування кнопки\nСтатус банера тепер показує споживання енергії на сьогодні (kWh)\nВиданий інстанційний селекціонер — екземпляр автоматично виводиться з `? екземпляр=N` параметр URL, переданий Адміністратором 7",
+        "zh-cn": "添加“ admin/ tab.html” 控制面板, 绿色主题, i18n( DE/ EN), 实况状态标语、 快速模式、 温度控制、 休假、 排程查看器和 Konfiguration 按钮\n状态标语显示今天的能耗(千瓦时)\n实例选择器被删除——实例是从`自动发现的? exact=N ' URL 参数,由管理员 7通过"
+      },
       "0.4.3": {
         "en": "Fix adapter type in io-package.json",
         "de": "Fix Adaptertyp in io-Package. Json",
@@ -80,19 +93,6 @@
         "pl": "Dodaj tryb ochrony mróz\nPokaż Enum zamiast numeru regulaminu",
         "uk": "Додайте режим захисту від загартування\nПоказати Enum замість номеру регулювання",
         "zh-cn": "添加模式霜保护\n显示 Enum 而不是规章编号"
-      },
-      "0.3.0": {
-        "en": "Update Readme\nVerify Polling if Thermostat give no Response\nComplete Refactoring to handle functions better\nencrypt all sensitive credentials -> Relogin necessary\nCode Fixing for latest repo",
-        "de": "Update Reader\nVerifizieren Sie Polling, wenn Thermostat keine Antwort geben\nKomplette Refactoring, um Funktionen besser zu handhaben\nalle sensiblen Anmeldeinformationen verschlüsseln -> Relogin notwendig\nCode Fixing für die neueste Repo",
-        "ru": "Обновление Readme\nПроверить опрос, если термостат не дает ответа\nПолный рефакторинг для лучшего управления функциями\nшифровать все конфиденциальные учетные данные -> Необходимый логин\nИсправление кода для последнего репо",
-        "pt": "Actualizar a Leitura\nVerificar a sondagem se o termostato não dá resposta\nCompletar a Refatoração para lidar melhor com as funções\ncriptografar todas as credenciais sensíveis -> Relogina necessária\nCorrecção de código para o último recurso",
-        "nl": "Readme bijwerken\nControleer Polling als Thermostat geen respons geeft\nComplete refactoring om functies beter te verwerken\nversleutel alle gevoelige referenties -> Relogin nodig\nCodefixing voor laatste repo",
-        "fr": "Mettre à jour Readme\nVérifier le sondage si Thermostat ne donne aucune réponse\nRefactoring complet pour mieux gérer les fonctions\nchiffrer toutes les références sensibles -> Relogin nécessaire\nCorrection de code pour la dernière repo",
-        "it": "Aggiornamento\nVerificare Polling se Termostato non dare risposta\nRefactoring completo per gestire meglio le funzioni\ncrittografare tutte le credenziali sensibili -> Relogin necessario\nCodice Fissaggio per l'ultimo repo",
-        "es": "Actualización Readme\nVerificar la contaminación si el termostato no da respuesta\nRefactorización completa para manejar las funciones mejor\nencriptar todas las credenciales sensibles Relogin necesario\nCódigo de fijación para el último descanso",
-        "pl": "Aktualizacja Readme\nWeryfikacja badania, jeśli Thermostat nie odpowiada\nKompletna refakturowanie, aby lepiej obsługiwać funkcje\nszyfrowanie wszystkich wrażliwych dokumentów - > Relogin konieczny\nUstawienie kodu dla najnowszego repo",
-        "uk": "Оновлення Readme\nПеревірити поломку, якщо термостат не дає відповіді\nПовне рефакторинг для ручних функцій краще\nзашифрувати всі чутливі облікові дані -> Релогін необхідно\nВиправлення коду для останнього репо",
-        "zh-cn": "更新读取器\n如果热电机没有响应, 请验证投票\n完成更好地处理函数的配置\n加密所有敏感的证书 - > 需要重写\n最近重播的代码"
       }
     },
     "titleLang": {
