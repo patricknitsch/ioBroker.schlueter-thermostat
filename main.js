@@ -305,24 +305,43 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// ADMIN TAB MIGRATION
+	// ADMIN TAB
 	// ============================================================================
 
-	async _cleanupAdminTab() {
-		// adminTab is now declared statically in io-package.json.
-		// Remove any dynamic adminTab that older adapter versions wrote into
-		// system.adapter.X.N — the per-instance object overrides io-package.json,
-		// so leftover entries (especially stale link fields) must be cleared.
+	async _ensureAdminTab() {
+		// Admin 7 Drawer reads adminTab from per-instance objects via getCompactInstances().
+		// Make sure the per-instance object always has the correct adminTab, either because
+		// js-controller already propagated it from io-package.json or because we set it here.
 		try {
 			const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
-			if (!obj || !obj.common.adminTab) {
+			if (!obj) {
 				return;
 			}
-			delete obj.common.adminTab;
+			if (obj.common.adminTab && !obj.common.adminTab.link) {
+				// Already correct (no stale link field) — nothing to do.
+				return;
+			}
+			// Set correct adminTab (matches io-package.json common.adminTab, no link field).
+			obj.common.adminTab = {
+				singleton: false,
+				name: {
+					en: 'Thermostat Overview',
+					de: 'Thermostat Übersicht',
+					ru: 'Обзор термостата',
+					pt: 'Visão geral do termostato',
+					nl: 'Thermostaat Overzicht',
+					fr: 'Aperçu du thermostat',
+					it: 'Panoramica termostato',
+					es: 'Resumen del termostato',
+					pl: 'Przegląd termostatu',
+					uk: 'Огляд термостату',
+					'zh-cn': '温控器概览',
+				},
+			};
 			await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
-			this.log.debug('_cleanupAdminTab(): removed legacy adminTab from adapter object');
+			this.log.debug('_ensureAdminTab(): set adminTab on adapter instance object');
 		} catch (e) {
-			this.log.warn(`_cleanupAdminTab(): ${e?.message || e}`);
+			this.log.warn(`_ensureAdminTab(): ${e?.message || e}`);
 		}
 	}
 
@@ -334,8 +353,8 @@ class SchlueterThermostat extends utils.Adapter {
 		this.log.info('onReady(): starting adapter');
 		this.safeSetState('info.connection', false, true);
 
-		// Remove any legacy dynamic adminTab so io-package.json takes effect
-		await this._cleanupAdminTab();
+		// Ensure the per-instance object has the correct adminTab so Admin 7 shows the tab.
+		await this._ensureAdminTab();
 
 		if (!this.config.username || !this.config.password || !this.config.apiKey || !this.config.customerId) {
 			this.log.error('Missing config (username/password/apiKey/customerId).');
