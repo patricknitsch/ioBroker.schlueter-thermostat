@@ -589,15 +589,24 @@ function loadInstances() {
 
 function selectInstance(num) {
     currentInstance = num;
-    const baseUrl = window.location.origin;
-    document.getElementById('instanceLink').href =
-        baseUrl + '/#tab-instances/schlueter-thermostat.' + num;
-    document.getElementById('configLink').href =
-        baseUrl + '/#tab-instances/schlueter-thermostat.' + num;
+
+    // Detect whether the admin uses React Router style (#/) or legacy (#)
+    let baseUrl = window.location.origin;
+    let hashPrefix = '/#';
+    try {
+        if (window.parent && window.parent !== window) {
+            baseUrl = window.parent.location.origin || baseUrl;
+            const ph = window.parent.location.hash || '';
+            if (ph.startsWith('#/')) hashPrefix = '/#/';
+        }
+    } catch(_) {}
+    const configUrl = baseUrl + hashPrefix + 'tab-instances/schlueter-thermostat.' + num;
+    document.getElementById('instanceLink').href = configUrl;
+    document.getElementById('configLink').href = configUrl;
 
     // Unsubscribe from previous instance
     if (subscribed) {
-        socketCall('unsubscribeStates', subscribed, null, null, () => {});
+        socketCall('unsubscribeStates', subscribed, () => {});
         subscribed = null;
     }
 
@@ -635,9 +644,13 @@ function loadThermostats(instance) {
 
         tRows.forEach(r => { thermostats[r.id] = { obj: r.value, states: {} }; });
 
-        // Get all states under this instance
+        // Get all states under this instance.
+        // Admin 7 Connection may expose getForeignStates or getStates; raw socket.io uses emit fallback.
+        const statesMethod = typeof socket.getForeignStates === 'function' ? 'getForeignStates'
+            : typeof socket.getStates === 'function' ? 'getStates'
+            : 'getForeignStates'; // socketCall will fall through to emit for raw socket.io
         const pattern = 'schlueter-thermostat.' + instance + '.*';
-        socketCall('getForeignStates', pattern, (err2, states) => {
+        socketCall(statesMethod, pattern, (err2, states) => {
             if (states) {
                 Object.entries(states).forEach(([id, state]) => {
                     // Assign state to matching thermostat
@@ -659,7 +672,7 @@ function loadThermostats(instance) {
 function subscribeStates(instance) {
     const pattern = 'schlueter-thermostat.' + instance + '.*';
     subscribed = pattern;
-    socketCall('subscribeStates', pattern, null, null, () => {});
+    socketCall('subscribeStates', pattern, () => {});
 
     // Listen for state changes
     removeStateListener();
@@ -1098,34 +1111,52 @@ function applyVacation(tid, params) {
 }
 
 function setVal(id, val, cb) {
-    socketCall('setForeignState', id, { val: val, ack: false }, null, (err) => {
-        if (cb) cb();
-    });
+    const state = { val: val, ack: false };
+    // Admin 7 Connection exposes setState (wraps setForeignState server-side).
+    // If setForeignState is a direct method, prefer it; otherwise use setState.
+    // For raw socket.io (no direct methods), use emit as the final fallback.
+    if (typeof socket.setForeignState === 'function') {
+        socketCall('setForeignState', id, state, cb || (() => {}));
+    } else if (typeof socket.setState === 'function') {
+        socketCall('setState', id, state, cb || (() => {}));
+    } else if (typeof socket.emit === 'function') {
+        socket.emit('setForeignState', id, state, cb || (() => {}));
+    } else if (cb) {
+        cb('No write method available');
+    }
 }
 
 /* ═══════════════════════════════════════════════════════
-   Socket wrapper (handles both object.emit and direct methods)
+   Socket wrapper (handles both Promise-based Admin 7 Connection
+   and legacy socket.io emit-style sockets)
 ══════════════════════════════════════════════════════ */
 function socketCall(method, ...args) {
-    // Last arg is always callback (may be null)
+    // Extract callback if the last argument is a function
     const cb = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
 
     if (!socket) { if (cb) cb('No socket'); return; }
 
     if (typeof socket[method] === 'function') {
-        // Direct method call (parent socket from admin)
-        if (cb) {
-            socket[method](...args, cb);
-        } else {
-            socket[method](...args);
+        // The socket object has this method directly (Admin 7 Connection).
+        // Call without cb: Promise-based methods return a Promise; cb is wired up below.
+        let result;
+        try {
+            result = socket[method](...args);
+        } catch(e) {
+            if (cb) cb(e);
+            return;
+        }
+        if (result && typeof result.then === 'function') {
+            // Promise-based API (Admin 7 Connection)
+            result.then(d => { if (cb) cb(null, d); }).catch(e => { if (cb) cb(e); });
+        } else if (cb) {
+            // Synchronous or no-return method (unlikely but handled gracefully)
+            cb(null, result);
         }
     } else if (typeof socket.emit === 'function') {
-        // socket.io emit style
-        if (cb) {
-            socket.emit(method, ...args, cb);
-        } else {
-            socket.emit(method, ...args);
-        }
+        // Raw socket.io: use emit to send the request to the server
+        if (cb) socket.emit(method, ...args, cb);
+        else socket.emit(method, ...args);
     } else if (cb) {
         cb('Unsupported socket type');
     }

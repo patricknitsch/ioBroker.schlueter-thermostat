@@ -305,12 +305,61 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
+	// ADMIN TAB VISIBILITY
+	// ============================================================================
+
+	async _updateAdminTab() {
+		try {
+			const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+			if (!obj) {
+				return;
+			}
+
+			const wantTab = !!this.config.showTab;
+			const hasTab = !!obj.common.adminTab;
+			if (wantTab === hasTab) {
+				return;
+			}
+
+			if (wantTab) {
+				obj.common.adminTab = {
+					singleton: true,
+					name: {
+						en: 'Thermostat Overview',
+						de: 'Thermostat Übersicht',
+						ru: 'Обзор термостата',
+						pt: 'Visão geral do termostato',
+						nl: 'Thermostaat Overzicht',
+						fr: 'Aperçu du thermostat',
+						it: 'Panoramica termostato',
+						es: 'Resumen del termostato',
+						pl: 'Przegląd termostatu',
+						uk: 'Огляд термостату',
+						'zh-cn': '温控器概览',
+					},
+					link: '',
+				};
+			} else {
+				delete obj.common.adminTab;
+			}
+
+			await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
+			this.log.debug(`_updateAdminTab(): adminTab ${wantTab ? 'enabled' : 'disabled'}`);
+		} catch (e) {
+			this.log.warn(`_updateAdminTab(): ${e?.message || e}`);
+		}
+	}
+
+	// ============================================================================
 	// ON READY
 	// ============================================================================
 
 	async onReady() {
 		this.log.info('onReady(): starting adapter');
 		this.safeSetState('info.connection', false, true);
+
+		// Dynamically show/hide the admin tab based on config
+		await this._updateAdminTab();
 
 		if (!this.config.username || !this.config.password || !this.config.apiKey || !this.config.customerId) {
 			this.log.error('Missing config (username/password/apiKey/customerId).');

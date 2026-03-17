@@ -148,23 +148,6 @@
     "adminUI": {
       "config": "json"
     },
-    "adminTab": {
-      "singleton": true,
-      "name": {
-        "en": "Thermostat Overview",
-        "de": "Thermostat Übersicht",
-        "ru": "Обзор термостата",
-        "pt": "Visão geral do termostato",
-        "nl": "Thermostaat Overzicht",
-        "fr": "Aperçu du thermostat",
-        "it": "Panoramica termostato",
-        "es": "Resumen del termostato",
-        "pl": "Przegląd termostatu",
-        "uk": "Огляд термостату",
-        "zh-cn": "温控器概览"
-      },
-      "link": ""
-    },
     "dependencies": [
       {
         "js-controller": ">=6.0.11"
