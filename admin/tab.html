@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schlüter Thermostat</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #0f1724;
+            color: #e0e6f0;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        #header {
+            background: #162035;
+            border-bottom: 1px solid #1e3050;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        #header img { height: 30px; flex-shrink: 0; }
+        #header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #7eb8f7;
+            flex: 1;
+        }
+        #header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        #header label { font-size: 0.82rem; color: #8fa5c0; }
+        #instanceSelect {
+            background: #1e3050;
+            border: 1px solid #2d4a70;
+            color: #e0e6f0;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        #instanceLink {
+            background: #1e4d8c;
+            color: #7eb8f7;
+            text-decoration: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        #instanceLink:hover { background: #235caa; }
+
+        /* ── Notification banners ── */
+        #notConfigured, #noInstances, #errorMsg {
+            display: none;
+            margin: 40px auto;
+            max-width: 520px;
+            background: #162035;
+            border: 1px solid #2d4a70;
+            border-radius: 12px;
+            padding: 30px 28px;
+            text-align: center;
+        }
+        #notConfigured .icon, #noInstances .icon, #errorMsg .icon {
+            font-size: 2.5rem;
+            margin-bottom: 14px;
+        }
+        #notConfigured p, #noInstances p, #errorMsg p {
+            color: #8fa5c0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: #1e4d8c;
+            color: #7eb8f7;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #235caa; }
+
+        /* ── Loading ── */
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            color: #4a7aaa;
+            font-size: 0.95rem;
+        }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid #1e3050;
+            border-top-color: #3a7bd5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Thermostat grid ── */
+        #thermostats {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* ── Thermostat Card ── */
+        .thermostat-card {
+            background: #162035;
+            border: 1px solid #1e3050;
+            border-radius: 14px;
+            width: 340px;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .thermostat-card:hover {
+            box-shadow: 0 4px 20px rgba(58, 123, 213, 0.2);
+        }
+
+        /* Card header */
+        .card-header {
+            padding: 14px 16px 10px;
+            background: #1a2a45;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #cde0f7;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .badge-group { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .badge-online  { background: #0d3d21; color: #34d073; border: 1px solid #1b6b3a; }
+        .badge-offline { background: #3a1a1a; color: #e05050; border: 1px solid #6b2020; }
+        .badge-heating { background: #3d2000; color: #ff8800; border: 1px solid #6b3a00; }
+
+        /* Mode badge */
+        .mode-badge {
+            font-size: 0.72rem;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .mode-1  { background: #0d2a50; color: #5ab0ff; border: 1px solid #1e4d8c; }  /* Schedule */
+        .mode-2  { background: #3d2000; color: #ffaa33; border: 1px solid #7a4a00; }  /* Comfort */
+        .mode-3  { background: #0d3524; color: #34d073; border: 1px solid #1b6b3a; }  /* Manual */
+        .mode-4  { background: #28003d; color: #cc88ff; border: 1px solid #5a1a8a; }  /* Vacation */
+        .mode-6  { background: #003040; color: #33ccff; border: 1px solid #005f7a; }  /* Frost */
+        .mode-8  { background: #3d1010; color: #ff5555; border: 1px solid #7a2020; }  /* Boost */
+        .mode-9  { background: #1a2e00; color: #88dd33; border: 1px solid #3a5a00; }  /* Eco */
+        .mode-unknown { background: #1e2a3a; color: #8fa5c0; border: 1px solid #2d4a70; }
+
+        /* Temperature display */
+        .card-temps {
+            padding: 18px 16px 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .temp-main {
+            flex: 1;
+            text-align: center;
+        }
+        .temp-main .temp-val {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #7eb8f7;
+            line-height: 1;
+        }
+        .temp-main .temp-unit { font-size: 1.3rem; color: #5a8aaa; }
+        .temp-main .temp-label {
+            font-size: 0.72rem;
+            color: #5a8aaa;
+            margin-top: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .temp-secondary {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.83rem;
+        }
+        .temp-row { display: flex; gap: 6px; align-items: center; }
+        .temp-row .lbl { color: #5a8aaa; }
+        .temp-row .val { color: #b0d0f0; font-weight: 600; }
+
+        /* Info section */
+        .card-info {
+            padding: 6px 16px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 16px;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #1e3050;
+        }
+        .info-item { display: flex; gap: 4px; align-items: center; }
+        .info-item .lbl { color: #5a8aaa; }
+        .info-item .val { color: #b0d0f0; font-weight: 500; }
+
+        /* Controls section */
+        .card-controls { padding: 12px 16px; }
+        .controls-label {
+            font-size: 0.72rem;
+            color: #4a6a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+        .mode-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .mode-btn {
+            font-size: 0.75rem;
+            padding: 5px 11px;
+            border-radius: 8px;
+            border: 1px solid #2d4a70;
+            background: #1a2a45;
+            color: #7eb8f7;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-weight: 500;
+        }
+        .mode-btn:hover { background: #1e3a60; border-color: #3a6aaa; }
+        .mode-btn.active {
+            background: #1e4d8c;
+            border-color: #3a7bd5;
+            color: #cde0f7;
+        }
+        .mode-btn.quick-btn:hover { background: #163a28; border-color: #2a6a44; color: #44ee88; }
+        .mode-btn.boost-btn:hover { background: #3d1010; border-color: #7a2020; color: #ff8888; }
+        .mode-btn.eco-btn:hover { background: #1a3000; border-color: #4a7a00; color: #88dd33; }
+        .mode-btn.frost-btn:hover { background: #003040; border-color: #005f7a; color: #33ccff; }
+
+        /* Expandable mode panels */
+        .mode-panel {
+            display: none;
+            background: #0f1d30;
+            border: 1px solid #1e3050;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+        }
+        .mode-panel.visible { display: block; }
+        .mode-panel-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #5ab0ff;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .form-row:last-child { margin-bottom: 0; }
+        .form-row label { font-size: 0.78rem; color: #8fa5c0; min-width: 70px; }
+        .form-row input[type="number"],
+        .form-row input[type="date"],
+        .form-row input[type="checkbox"] {
+            background: #162035;
+            border: 1px solid #2d4a70;
+            color: #e0e6f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.82rem;
+            width: 80px;
+            outline: none;
+        }
+        .form-row input[type="date"] { width: 130px; }
+        .form-row input[type="checkbox"] { width: auto; cursor: pointer; }
+        .form-row input:focus { border-color: #3a7bd5; }
+        .apply-btn {
+            background: #1e4d8c;
+            color: #7eb8f7;
+            border: 1px solid #3a7bd5;
+            border-radius: 7px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-left: auto;
+        }
+        .apply-btn:hover { background: #235caa; color: #cde0f7; }
+        .apply-btn:active { transform: scale(0.97); }
+
+        /* End-time info */
+        .endtime-info {
+            font-size: 0.73rem;
+            color: #5a8aaa;
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .thermostat-card { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div id="header">
+    <img src="schlueter-thermostat.png" alt="Schlüter" />
+    <h1 id="pageTitle">Schlüter Thermostat</h1>
+    <div class="header-right">
+        <label for="instanceSelect" id="instanceLabel">Instance:</label>
+        <select id="instanceSelect"></select>
+        <a id="instanceLink" href="#" target="_blank">⚙ Config</a>
+    </div>
+</div>
+
+<!-- ── Banners ── -->
+<div id="notConfigured">
+    <div class="icon">⚙️</div>
+    <p id="notConfiguredText">The Thermostat Overview Tab is not enabled.<br>Please enable it in the instance configuration.</p>
+    <a id="configLink" href="#" target="_blank" class="btn-primary">Open Configuration</a>
+</div>
+
+<div id="noInstances">
+    <div class="icon">🔌</div>
+    <p id="noInstancesText">No Schlueter Thermostat instances found.<br>Please create an instance first.</p>
+</div>
+
+<div id="errorMsg">
+    <div class="icon">⚠️</div>
+    <p id="errorText">Cannot connect to ioBroker socket.</p>
+</div>
+
+<!-- ── Loading ── -->
+<div id="loading">
+    <div class="spinner"></div>
+    <span id="loadingText">Loading thermostats…</span>
+</div>
+
+<!-- ── Thermostat cards ── -->
+<div id="thermostats"></div>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   Translations
+══════════════════════════════════════════════════════ */
+const TRANSLATIONS = {
+    de: {
+        pageTitle:       'Schlüter Thermostat Übersicht',
+        instance:        'Instanz:',
+        openConfig:      '⚙ Konfiguration',
+        notConfigured:   'Die Thermostat-Übersichtsseite ist nicht aktiviert.\nBitte in der Instanzkonfiguration aktivieren.',
+        openConfigBtn:   'Konfiguration öffnen',
+        noInstances:     'Keine Schlüter Thermostat Instanzen gefunden.\nBitte zuerst eine Instanz erstellen.',
+        errorText:       'Verbindung zum ioBroker Socket nicht möglich.',
+        loading:         'Thermostate werden geladen…',
+        online:          'ONLINE',
+        offline:         'OFFLINE',
+        heating:         'HEIZT',
+        roomTemp:        'Raum',
+        floorTemp:       'Boden',
+        setpointManual:  'Soll (Manuell)',
+        setpointComfort: 'Soll (Komfort)',
+        energy:          'Energie',
+        endTime:         'Ende',
+        vacFrom:         'Von',
+        vacTo:           'Bis',
+        vacTemp:         'Temp',
+        controls:        'Steuerung',
+        apply:           'Anwenden',
+        setpoint:        'Sollwert (°C)',
+        duration:        'Dauer (min)',
+        vacEnabled:      'Aktiviert',
+        modes: {
+            1: 'Zeitplan', 2: 'Komfort', 3: 'Manuell', 4: 'Urlaub',
+            5: 'Unbekannt', 6: 'Frostschutz', 7: 'Unbekannt', 8: 'Boost', 9: 'Eco'
+        },
+        modeBtn: {
+            1: '🗓 Zeitplan', 2: '🌡 Komfort', 3: '✋ Manuell', 4: '✈ Urlaub',
+            6: '❄ Frostschutz', 8: '🔥 Boost', 9: '🌿 Eco'
+        }
+    },
+    en: {
+        pageTitle:       'Schlüter Thermostat Overview',
+        instance:        'Instance:',
+        openConfig:      '⚙ Config',
+        notConfigured:   'The Thermostat Overview Tab is not enabled.\nPlease enable it in the instance configuration.',
+        openConfigBtn:   'Open Configuration',
+        noInstances:     'No Schlueter Thermostat instances found.\nPlease create an instance first.',
+        errorText:       'Cannot connect to ioBroker socket.',
+        loading:         'Loading thermostats…',
+        online:          'ONLINE',
+        offline:         'OFFLINE',
+        heating:         'HEATING',
+        roomTemp:        'Room',
+        floorTemp:       'Floor',
+        setpointManual:  'Setpoint (Manual)',
+        setpointComfort: 'Setpoint (Comfort)',
+        energy:          'Energy',
+        endTime:         'Until',
+        vacFrom:         'From',
+        vacTo:           'To',
+        vacTemp:         'Temp',
+        controls:        'Controls',
+        apply:           'Apply',
+        setpoint:        'Setpoint (°C)',
+        duration:        'Duration (min)',
+        vacEnabled:      'Enabled',
+        modes: {
+            1: 'Schedule', 2: 'Comfort', 3: 'Manual', 4: 'Vacation',
+            5: 'Unknown', 6: 'Frost Protection', 7: 'Unknown', 8: 'Boost', 9: 'Eco'
+        },
+        modeBtn: {
+            1: '🗓 Schedule', 2: '🌡 Comfort', 3: '✋ Manual', 4: '✈ Vacation',
+            6: '❄ Frost', 8: '🔥 Boost', 9: '🌿 Eco'
+        }
+    }
+};
+
+function getLang() {
+    const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    return TRANSLATIONS[nav] ? nav : 'en';
+}
+const T = TRANSLATIONS[getLang()];
+
+/* ═══════════════════════════════════════════════════════
+   Mode helpers
+══════════════════════════════════════════════════════ */
+const MODE_CLASS = { 1:'mode-1', 2:'mode-2', 3:'mode-3', 4:'mode-4', 6:'mode-6', 8:'mode-8', 9:'mode-9' };
+
+function modeLabel(m) { return T.modes[m] || T.modes[5]; }
+function modeClass(m) { return MODE_CLASS[m] || 'mode-unknown'; }
+
+function fmtTemp(v) {
+    if (v === null || v === undefined) return '–';
+    return Number(v).toFixed(1) + ' °C';
+}
+
+function fmtEnergy(v) {
+    if (v === null || v === undefined) return '–';
+    return Number(v).toFixed(2) + ' kWh';
+}
+
+function fmtTime(iso) {
+    if (!iso) return null;
+    try {
+        const d = new Date(iso);
+        if (isNaN(d)) return null;
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (_) { return null; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   State
+══════════════════════════════════════════════════════ */
+let socket = null;
+let currentInstance = null;
+let thermostats = {};   // id -> { obj, states }
+let subscribed = null;
+
+/* ═══════════════════════════════════════════════════════
+   Entry point
+══════════════════════════════════════════════════════ */
+document.getElementById('pageTitle').textContent = T.pageTitle;
+document.getElementById('instanceLabel').textContent = T.instance;
+document.getElementById('instanceLink').textContent = T.openConfig;
+document.getElementById('notConfiguredText').textContent = T.notConfigured;
+document.getElementById('configLink').textContent = T.openConfigBtn;
+document.getElementById('noInstancesText').textContent = T.noInstances;
+document.getElementById('errorText').textContent = T.errorText;
+document.getElementById('loadingText').textContent = T.loading;
+
+window.addEventListener('load', () => {
+    getSocket().then(sock => {
+        socket = sock;
+        loadInstances();
+    }).catch(err => {
+        document.getElementById('errorText').textContent = T.errorText + ' (' + err + ')';
+        showOnly('errorMsg');
+    });
+});
+
+/* ═══════════════════════════════════════════════════════
+   Socket acquisition
+══════════════════════════════════════════════════════ */
+function getSocket() {
+    return new Promise((resolve, reject) => {
+        // 1) Try parent window socket (ioBroker admin iframe)
+        try {
+            if (window.parent && window.parent !== window && window.parent.socket) {
+                return resolve(window.parent.socket);
+            }
+        } catch (_) {}
+
+        // 2) Try grandparent (double-nested iframe)
+        try {
+            if (window.parent && window.parent.parent && window.parent.parent.socket) {
+                return resolve(window.parent.parent.socket);
+            }
+        } catch (_) {}
+
+        // 3) Direct socket.io connection
+        loadScript('/socket.io/socket.io.js')
+            .then(() => {
+                const sock = io(window.location.origin, {
+                    path: '/socket.io/',
+                    transports: ['websocket', 'polling']
+                });
+                sock.once('connect', () => resolve(sock));
+                sock.once('connect_error', err => reject(err && err.message ? err.message : err));
+                setTimeout(() => reject('timeout'), 8000);
+            })
+            .catch(reject);
+    });
+}
+
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector('script[src="' + src + '"]')) return resolve();
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => reject('Cannot load ' + src);
+        document.head.appendChild(s);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   Instance management
+══════════════════════════════════════════════════════ */
+function loadInstances() {
+    socketCall('getObjectView', 'system', 'instance', {
+        startkey: 'system.adapter.schlueter-thermostat.',
+        endkey:   'system.adapter.schlueter-thermostat.\u9999'
+    }, (err, res) => {
+        const rows = (res && res.rows) ? res.rows : [];
+        if (!rows.length) { showOnly('noInstances'); return; }
+
+        const select = document.getElementById('instanceSelect');
+        select.innerHTML = '';
+        rows.forEach(r => {
+            const num = r.id.replace('system.adapter.schlueter-thermostat.', '');
+            const opt = document.createElement('option');
+            opt.value = num;
+            opt.textContent = 'schlueter-thermostat.' + num;
+            select.appendChild(opt);
+        });
+
+        select.addEventListener('change', () => selectInstance(select.value));
+        selectInstance(select.value);
+    });
+}
+
+function selectInstance(num) {
+    currentInstance = num;
+    const baseUrl = window.location.origin;
+    document.getElementById('instanceLink').href =
+        baseUrl + '/#tab-instances/schlueter-thermostat.' + num;
+    document.getElementById('configLink').href =
+        baseUrl + '/#tab-instances/schlueter-thermostat.' + num;
+
+    // Unsubscribe from previous instance
+    if (subscribed) {
+        socketCall('unsubscribeStates', subscribed, null, null, () => {});
+        subscribed = null;
+    }
+
+    socketCall('getObject', 'system.adapter.schlueter-thermostat.' + num, (err, obj) => {
+        const showTab = obj && obj.native && obj.native.showTab;
+        if (!showTab) {
+            showOnly('notConfigured');
+            return;
+        }
+        loadThermostats(num);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   Thermostat loading
+══════════════════════════════════════════════════════ */
+function loadThermostats(instance) {
+    showOnly('loading');
+    thermostats = {};
+
+    // Get thermostat device objects
+    socketCall('getObjectView', 'system', 'device', {
+        startkey: 'schlueter-thermostat.' + instance + '.groups.',
+        endkey:   'schlueter-thermostat.' + instance + '.groups.\u9999'
+    }, (err, res) => {
+        const rows = (res && res.rows) ? res.rows : [];
+        const tRows = rows.filter(r => r.id.includes('.thermostats.'));
+
+        if (!tRows.length) {
+            document.getElementById('thermostats').innerHTML =
+                '<p style="color:#5a8aaa;padding:40px;text-align:center">No thermostats found for instance ' + instance + '</p>';
+            showOnly('thermostats');
+            return;
+        }
+
+        tRows.forEach(r => { thermostats[r.id] = { obj: r.value, states: {} }; });
+
+        // Get all states under this instance
+        const pattern = 'schlueter-thermostat.' + instance + '.*';
+        socketCall('getForeignStates', pattern, (err2, states) => {
+            if (states) {
+                Object.entries(states).forEach(([id, state]) => {
+                    // Assign state to matching thermostat
+                    for (const tid of Object.keys(thermostats)) {
+                        if (id.startsWith(tid + '.')) {
+                            const key = id.slice(tid.length + 1);
+                            thermostats[tid].states[key] = state ? state.val : null;
+                        }
+                    }
+                });
+            }
+
+            renderAll();
+            subscribeStates(instance);
+        });
+    });
+}
+
+function subscribeStates(instance) {
+    const pattern = 'schlueter-thermostat.' + instance + '.*';
+    subscribed = pattern;
+    socketCall('subscribeStates', pattern, null, null, () => {});
+
+    // Listen for state changes
+    removeStateListener();
+    addStateListener((id, state) => {
+        for (const tid of Object.keys(thermostats)) {
+            if (id.startsWith(tid + '.')) {
+                const key = id.slice(tid.length + 1);
+                thermostats[tid].states[key] = state ? state.val : null;
+                updateCardState(tid, key);
+                break;
+            }
+        }
+    });
+}
+
+let _stateListener = null;
+function addStateListener(fn) {
+    _stateListener = fn;
+    if (socket.on) socket.on('stateChange', _stateListener);
+}
+function removeStateListener() {
+    if (_stateListener && socket.off) socket.off('stateChange', _stateListener);
+    _stateListener = null;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Rendering
+══════════════════════════════════════════════════════ */
+function renderAll() {
+    const container = document.getElementById('thermostats');
+    container.innerHTML = '';
+
+    Object.entries(thermostats).forEach(([tid, t]) => {
+        container.appendChild(buildCard(tid, t.obj, t.states));
+    });
+
+    showOnly('thermostats');
+}
+
+function buildCard(tid, obj, states) {
+    const name       = obj && obj.common && obj.common.name ? obj.common.name : tid.split('.').pop();
+    const online     = !!states['online'];
+    const heating    = !!states['heating'];
+    const mode       = states['regulationMode'];
+    const roomT      = states['temperature.room'];
+    const floorT     = states['temperature.floor'];
+    const spManual   = states['setpoint.manual'];
+    const spComfort  = states['setpoint.comfort'];
+    const energy0    = states['energy.value0'];
+    const endComfort = states['endTime.comfort'];
+    const endBoost   = states['endTime.boost'];
+    const vacFrom    = states['vacation.begin'];
+    const vacTo      = states['vacation.end'];
+    const vacTemp    = states['vacation.temperature'];
+
+    const card = document.createElement('div');
+    card.className = 'thermostat-card';
+    card.dataset.tid = tid;
+
+    // ── Card header ──
+    const header = document.createElement('div');
+    header.className = 'card-header';
+
+    const title = document.createElement('div');
+    title.className = 'card-title';
+    title.textContent = name;
+    title.title = tid;
+    header.appendChild(title);
+
+    const badges = document.createElement('div');
+    badges.className = 'badge-group';
+
+    const badgeOnline = document.createElement('span');
+    badgeOnline.className = 'badge ' + (online ? 'badge-online' : 'badge-offline');
+    badgeOnline.dataset.key = 'badge-online';
+    badgeOnline.textContent = online ? T.online : T.offline;
+    badges.appendChild(badgeOnline);
+
+    const badgeHeat = document.createElement('span');
+    badgeHeat.className = 'badge badge-heating';
+    badgeHeat.dataset.key = 'badge-heating';
+    badgeHeat.textContent = T.heating;
+    badgeHeat.style.display = heating ? '' : 'none';
+    badges.appendChild(badgeHeat);
+
+    const badgeMode = document.createElement('span');
+    badgeMode.className = 'badge mode-badge ' + modeClass(mode);
+    badgeMode.dataset.key = 'badge-mode';
+    badgeMode.textContent = modeLabel(mode);
+    badges.appendChild(badgeMode);
+
+    header.appendChild(badges);
+    card.appendChild(header);
+
+    // ── Temperatures ──
+    const temps = document.createElement('div');
+    temps.className = 'card-temps';
+
+    const mainTemp = document.createElement('div');
+    mainTemp.className = 'temp-main';
+    mainTemp.innerHTML =
+        '<div class="temp-val" data-key="temperature.room">' +
+        (roomT !== null && roomT !== undefined ? Number(roomT).toFixed(1) : '–') +
+        '<span class="temp-unit">°C</span></div>' +
+        '<div class="temp-label">' + T.roomTemp + '</div>';
+    temps.appendChild(mainTemp);
+
+    const secTemps = document.createElement('div');
+    secTemps.className = 'temp-secondary';
+    secTemps.innerHTML =
+        '<div class="temp-row"><span class="lbl">' + T.floorTemp + ':</span>' +
+        '<span class="val" data-key="temperature.floor">' + (floorT !== null && floorT !== undefined ? Number(floorT).toFixed(1) + ' °C' : '–') + '</span></div>' +
+        '<div class="temp-row"><span class="lbl">' + T.setpointManual + ':</span>' +
+        '<span class="val" data-key="setpoint.manual">' + (spManual !== null && spManual !== undefined ? Number(spManual).toFixed(1) + ' °C' : '–') + '</span></div>' +
+        '<div class="temp-row"><span class="lbl">' + T.setpointComfort + ':</span>' +
+        '<span class="val" data-key="setpoint.comfort">' + (spComfort !== null && spComfort !== undefined ? Number(spComfort).toFixed(1) + ' °C' : '–') + '</span></div>';
+    temps.appendChild(secTemps);
+
+    card.appendChild(temps);
+
+    // ── Info ──
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'card-info';
+
+    if (energy0 !== null && energy0 !== undefined) {
+        infoDiv.innerHTML +=
+            '<div class="info-item"><span class="lbl">⚡ ' + T.energy + ':</span>' +
+            '<span class="val" data-key="energy.value0">' + fmtEnergy(energy0) + '</span></div>';
+    }
+
+    const endTime = mode === 2 ? endComfort : (mode === 8 ? endBoost : null);
+    if (endTime) {
+        const t = fmtTime(endTime);
+        if (t) {
+            infoDiv.innerHTML +=
+                '<div class="info-item"><span class="lbl">⏱ ' + T.endTime + ':</span>' +
+                '<span class="val" data-key="endtime-display">' + t + '</span></div>';
+        }
+    }
+
+    if (mode === 4 && vacFrom && vacTo) {
+        infoDiv.innerHTML +=
+            '<div class="info-item"><span class="lbl">✈ ' + T.vacFrom + ':</span>' +
+            '<span class="val">' + (vacFrom || '–') + '</span></div>' +
+            '<div class="info-item"><span class="lbl">' + T.vacTo + ':</span>' +
+            '<span class="val">' + (vacTo || '–') + '</span></div>';
+        if (vacTemp !== null && vacTemp !== undefined) {
+            infoDiv.innerHTML +=
+                '<div class="info-item"><span class="lbl">' + T.vacTemp + ':</span>' +
+                '<span class="val">' + fmtTemp(vacTemp) + '</span></div>';
+        }
+    }
+
+    if (infoDiv.innerHTML) card.appendChild(infoDiv);
+
+    // ── Controls ──
+    const controls = document.createElement('div');
+    controls.className = 'card-controls';
+
+    const ctrlLabel = document.createElement('div');
+    ctrlLabel.className = 'controls-label';
+    ctrlLabel.textContent = T.controls;
+    controls.appendChild(ctrlLabel);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'mode-buttons';
+
+    function addBtn(modeNum, extraClass, clickFn) {
+        const btn = document.createElement('button');
+        btn.className = 'mode-btn ' + (extraClass || '');
+        if (mode === modeNum) btn.classList.add('active');
+        btn.dataset.mode = modeNum;
+        btn.textContent = T.modeBtn[modeNum];
+        btn.addEventListener('click', clickFn);
+        btnRow.appendChild(btn);
+        return btn;
+    }
+
+    // Schedule (quick)
+    addBtn(1, 'quick-btn', () => applyQuick(tid, 'schedule'));
+
+    // Manual (expand panel)
+    const manBtn = addBtn(3, '', () => togglePanel(controls, 'panel-manual'));
+
+    // Comfort (expand panel)
+    addBtn(2, '', () => togglePanel(controls, 'panel-comfort'));
+
+    // Boost (expand panel)
+    addBtn(8, 'boost-btn', () => togglePanel(controls, 'panel-boost'));
+
+    // Eco (quick)
+    addBtn(9, 'eco-btn', () => applyQuick(tid, 'eco'));
+
+    // Frost (quick)
+    addBtn(6, 'frost-btn', () => applyQuick(tid, 'frostProtection'));
+
+    // Vacation (expand panel)
+    addBtn(4, '', () => togglePanel(controls, 'panel-vacation'));
+
+    controls.appendChild(btnRow);
+
+    // Manual panel
+    controls.appendChild(buildManualPanel(tid, spManual));
+
+    // Comfort panel
+    controls.appendChild(buildComfortPanel(tid, spComfort));
+
+    // Boost panel
+    controls.appendChild(buildBoostPanel(tid));
+
+    // Vacation panel
+    controls.appendChild(buildVacationPanel(tid, states));
+
+    card.appendChild(controls);
+
+    return card;
+}
+
+function togglePanel(controls, panelId) {
+    const panels = controls.querySelectorAll('.mode-panel');
+    panels.forEach(p => {
+        if (p.dataset.panel === panelId) {
+            p.classList.toggle('visible');
+        } else {
+            p.classList.remove('visible');
+        }
+    });
+}
+
+function buildManualPanel(tid, currentSp) {
+    const panel = document.createElement('div');
+    panel.className = 'mode-panel';
+    panel.dataset.panel = 'panel-manual';
+
+    const sp = currentSp !== null && currentSp !== undefined ? Number(currentSp).toFixed(1) : 22;
+
+    panel.innerHTML =
+        '<div class="mode-panel-title">✋ ' + T.modeBtn[3] + '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.setpoint + '</label>' +
+        '<input type="number" class="inp-manual-sp" value="' + sp + '" min="12" max="35" step="0.5" />' +
+        '<button class="apply-btn">' + T.apply + '</button>' +
+        '</div>';
+
+    panel.querySelector('.apply-btn').addEventListener('click', () => {
+        const spVal = parseFloat(panel.querySelector('.inp-manual-sp').value);
+        applyManual(tid, spVal);
+    });
+
+    return panel;
+}
+
+function buildComfortPanel(tid, currentSp) {
+    const panel = document.createElement('div');
+    panel.className = 'mode-panel';
+    panel.dataset.panel = 'panel-comfort';
+
+    const sp = currentSp !== null && currentSp !== undefined ? Number(currentSp).toFixed(1) : 22;
+
+    panel.innerHTML =
+        '<div class="mode-panel-title">🌡 ' + T.modeBtn[2] + '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.setpoint + '</label>' +
+        '<input type="number" class="inp-comfort-sp" value="' + sp + '" min="12" max="35" step="0.5" />' +
+        '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.duration + '</label>' +
+        '<input type="number" class="inp-comfort-dur" value="180" min="1" max="1440" step="1" />' +
+        '<button class="apply-btn">' + T.apply + '</button>' +
+        '</div>';
+
+    panel.querySelector('.apply-btn').addEventListener('click', () => {
+        const spVal  = parseFloat(panel.querySelector('.inp-comfort-sp').value);
+        const durVal = parseInt(panel.querySelector('.inp-comfort-dur').value, 10);
+        applyComfort(tid, spVal, durVal);
+    });
+
+    return panel;
+}
+
+function buildBoostPanel(tid) {
+    const panel = document.createElement('div');
+    panel.className = 'mode-panel';
+    panel.dataset.panel = 'panel-boost';
+
+    panel.innerHTML =
+        '<div class="mode-panel-title">🔥 ' + T.modeBtn[8] + '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.duration + '</label>' +
+        '<input type="number" class="inp-boost-dur" value="60" min="1" max="1440" step="1" />' +
+        '<button class="apply-btn">' + T.apply + '</button>' +
+        '</div>';
+
+    panel.querySelector('.apply-btn').addEventListener('click', () => {
+        const durVal = parseInt(panel.querySelector('.inp-boost-dur').value, 10);
+        applyBoost(tid, durVal);
+    });
+
+    return panel;
+}
+
+function buildVacationPanel(tid, states) {
+    const panel = document.createElement('div');
+    panel.className = 'mode-panel';
+    panel.dataset.panel = 'panel-vacation';
+
+    const today  = new Date().toISOString().slice(0, 10);
+    const future = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+
+    const vacFrom    = states['vacation.begin'] || today;
+    const vacTo      = states['vacation.end'] || future;
+    const vacTemp    = states['vacation.temperature'];
+    const vacEnabled = !!states['vacation.enabled'];
+    const tempVal    = vacTemp !== null && vacTemp !== undefined ? Number(vacTemp).toFixed(1) : 18;
+
+    panel.innerHTML =
+        '<div class="mode-panel-title">✈ ' + T.modeBtn[4] + '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.vacEnabled + '</label>' +
+        '<input type="checkbox" class="inp-vac-enabled"' + (vacEnabled ? ' checked' : '') + ' />' +
+        '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.vacFrom + '</label>' +
+        '<input type="date" class="inp-vac-from" value="' + vacFrom + '" />' +
+        '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.vacTo + '</label>' +
+        '<input type="date" class="inp-vac-to" value="' + vacTo + '" />' +
+        '</div>' +
+        '<div class="form-row">' +
+        '<label>' + T.setpoint + '</label>' +
+        '<input type="number" class="inp-vac-temp" value="' + tempVal + '" min="5" max="35" step="0.5" />' +
+        '<button class="apply-btn">' + T.apply + '</button>' +
+        '</div>';
+
+    panel.querySelector('.apply-btn').addEventListener('click', () => {
+        applyVacation(tid, {
+            enabled:     panel.querySelector('.inp-vac-enabled').checked,
+            begin:       panel.querySelector('.inp-vac-from').value,
+            end:         panel.querySelector('.inp-vac-to').value,
+            temperature: parseFloat(panel.querySelector('.inp-vac-temp').value)
+        });
+    });
+
+    return panel;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reactive card updates (state changes)
+══════════════════════════════════════════════════════ */
+function updateCardState(tid, key) {
+    const card = document.querySelector('.thermostat-card[data-tid="' + CSS.escape(tid) + '"]');
+    if (!card) return;
+
+    const states = thermostats[tid].states;
+    const val = states[key];
+
+    // Update elements with matching data-key
+    const el = card.querySelector('[data-key="' + key + '"]');
+    if (el) {
+        if (key === 'temperature.room') {
+            el.innerHTML = (val !== null && val !== undefined ? Number(val).toFixed(1) : '–') + '<span class="temp-unit">°C</span>';
+        } else if (key === 'temperature.floor' || key.startsWith('setpoint.')) {
+            el.textContent = (val !== null && val !== undefined ? Number(val).toFixed(1) + ' °C' : '–');
+        } else if (key === 'energy.value0') {
+            el.textContent = fmtEnergy(val);
+        }
+    }
+
+    if (key === 'online') {
+        const b = card.querySelector('[data-key="badge-online"]');
+        if (b) {
+            b.className = 'badge ' + (val ? 'badge-online' : 'badge-offline');
+            b.textContent = val ? T.online : T.offline;
+        }
+    }
+
+    if (key === 'heating') {
+        const b = card.querySelector('[data-key="badge-heating"]');
+        if (b) b.style.display = val ? '' : 'none';
+    }
+
+    if (key === 'regulationMode') {
+        const b = card.querySelector('[data-key="badge-mode"]');
+        if (b) {
+            b.className = 'badge mode-badge ' + modeClass(val);
+            b.textContent = modeLabel(val);
+        }
+        // Update active button
+        card.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.mode, 10) === val);
+        });
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Apply commands
+══════════════════════════════════════════════════════ */
+function applyQuick(tid, mode) {
+    setVal(tid + '.apply.' + mode + '.apply', true);
+}
+
+function applyManual(tid, setpoint) {
+    setVal(tid + '.apply.manual.setpoint', setpoint, () => {
+        setVal(tid + '.apply.manual.apply', true);
+    });
+}
+
+function applyComfort(tid, setpoint, durationMinutes) {
+    setVal(tid + '.apply.comfort.setpoint', setpoint, () => {
+        setVal(tid + '.apply.comfort.durationMinutes', durationMinutes, () => {
+            setVal(tid + '.apply.comfort.apply', true);
+        });
+    });
+}
+
+function applyBoost(tid, durationMinutes) {
+    setVal(tid + '.apply.boost.durationMinutes', durationMinutes, () => {
+        setVal(tid + '.apply.boost.apply', true);
+    });
+}
+
+function applyVacation(tid, params) {
+    const steps = [
+        [tid + '.apply.vacation.enabled',    params.enabled],
+        [tid + '.apply.vacation.begin',       params.begin],
+        [tid + '.apply.vacation.end',         params.end],
+        [tid + '.apply.vacation.temperature', params.temperature],
+        [tid + '.apply.vacation.apply',       true]
+    ];
+    function runNext(i) {
+        if (i >= steps.length) return;
+        setVal(steps[i][0], steps[i][1], () => runNext(i + 1));
+    }
+    runNext(0);
+}
+
+function setVal(id, val, cb) {
+    socketCall('setForeignState', id, { val: val, ack: false }, null, (err) => {
+        if (cb) cb();
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   Socket wrapper (handles both object.emit and direct methods)
+══════════════════════════════════════════════════════ */
+function socketCall(method, ...args) {
+    // Last arg is always callback (may be null)
+    const cb = (typeof args[args.length - 1] === 'function') ? args.pop() : null;
+
+    if (!socket) { if (cb) cb('No socket'); return; }
+
+    if (typeof socket[method] === 'function') {
+        // Direct method call (parent socket from admin)
+        if (cb) {
+            socket[method](...args, cb);
+        } else {
+            socket[method](...args);
+        }
+    } else if (typeof socket.emit === 'function') {
+        // socket.io emit style
+        if (cb) {
+            socket.emit(method, ...args, cb);
+        } else {
+            socket.emit(method, ...args);
+        }
+    } else if (cb) {
+        cb('Unsupported socket type');
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   UI helpers
+══════════════════════════════════════════════════════ */
+function showOnly(id) {
+    ['notConfigured', 'noInstances', 'errorMsg', 'loading', 'thermostats']
+        .forEach(name => {
+            const el = document.getElementById(name);
+            if (el) el.style.display = name === id ? '' : 'none';
+        });
+}
+</script>
+</body>
+</html>
