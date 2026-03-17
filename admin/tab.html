@@ -578,20 +578,15 @@ function loadInstances() {
     const urlParams = new URLSearchParams(window.location.search);
     const urlInstance = urlParams.get('instance');
 
-    if (urlInstance !== null) {
+    if (urlInstance !== null && urlInstance !== '') {
+        // The tab is already open for this instance — no need to re-check showTab.
         currentInstance = urlInstance;
         setConfigUrl(urlInstance);
-        socketCall('getObject', 'system.adapter.schlueter-thermostat.' + urlInstance, (err, obj) => {
-            if (!obj || !(obj.native && obj.native.showTab)) {
-                showOnly('notConfigured');
-                return;
-            }
-            loadGroups(urlInstance);
-        });
+        loadGroups(urlInstance);
         return;
     }
 
-    // Fallback: auto-detect the first instance with showTab=true
+    // Fallback: auto-detect the first instance (no URL param = legacy singleton tab or dev mode)
     socketCall('getObjectView', 'system', 'instance', {
         startkey: 'system.adapter.schlueter-thermostat.',
         endkey:   'system.adapter.schlueter-thermostat.\uffff'  // \uffff = max range-query boundary
@@ -607,13 +602,6 @@ function loadInstances() {
 
         currentInstance = instanceNum;
         setConfigUrl(instanceNum);
-
-        const showTab = instanceRow.value && instanceRow.value.native && instanceRow.value.native.showTab;
-        if (!showTab) {
-            showOnly('notConfigured');
-            return;
-        }
-
         loadGroups(instanceNum);
     });
 }

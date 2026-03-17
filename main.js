@@ -316,12 +316,14 @@ class SchlueterThermostat extends utils.Adapter {
 			}
 
 			const wantTab = !!this.config.showTab;
-			const hasTab = !!obj.common.adminTab;
-			if (wantTab === hasTab) {
-				return;
-			}
+			const currentTab = obj.common.adminTab;
+			const desiredLink = 'tab.html?instance=%s';
 
 			if (wantTab) {
+				// Update if tab is absent OR if settings are outdated (singleton/link changed)
+				if (currentTab && currentTab.singleton === false && currentTab.link === desiredLink) {
+					return;
+				}
 				obj.common.adminTab = {
 					singleton: false,
 					name: {
@@ -337,9 +339,12 @@ class SchlueterThermostat extends utils.Adapter {
 						uk: 'Огляд термостату',
 						'zh-cn': '温控器概览',
 					},
-					link: 'tab.html?instance=%s',
+					link: desiredLink,
 				};
 			} else {
+				if (!currentTab) {
+					return;
+				}
 				delete obj.common.adminTab;
 			}
 
