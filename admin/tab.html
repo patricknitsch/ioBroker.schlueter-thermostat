@@ -734,19 +734,67 @@ let currentIsOnline = true;
 
 // ---- theme detection ----
 
-function detectTheme() {
+function isParentDarkTheme() {
     try {
-        // Admin 7 sets data-theme="dark"/"light" or class "dark"/"light" on its body
         const parentBody = window.parent?.document?.body;
-        const isDark = parentBody
-            ? (parentBody.getAttribute('data-theme') === 'dark'
-                || parentBody.classList.contains('dark')
-                || parentBody.classList.contains('theme-dark'))
-            : false;
-        document.body.classList.toggle('dark', isDark);
-    } catch {
-        // cross-origin or no parent; leave as-is
-    }
+        const parentHtml = window.parent?.document?.documentElement;
+        if (!parentBody) return false;
+
+        // Check class / data-theme on <body> and <html> — Admin 7 may use either
+        const bodyClass  = parentBody.className  || '';
+        const htmlClass  = parentHtml ? (parentHtml.className  || '') : '';
+        const bodyTheme  = parentBody.getAttribute('data-theme')  || '';
+        const htmlTheme  = parentHtml ? (parentHtml.getAttribute('data-theme') || '') : '';
+        const bsTheme    = parentBody.getAttribute('data-bs-theme') || '';
+
+        if (bodyClass.toLowerCase().includes('dark') ||
+            htmlClass.toLowerCase().includes('dark') ||
+            bodyTheme === 'dark' || htmlTheme === 'dark' || bsTheme === 'dark') {
+            return true;
+        }
+
+        // Fallback: check Admin's localStorage preference (same-origin)
+        try {
+            const stored = window.parent.localStorage.getItem('App.nativeTheme')
+                        || window.parent.localStorage.getItem('Admin.nativeTheme')
+                        || window.parent.localStorage.getItem('nativeTheme');
+            if (stored && stored.toLowerCase().includes('dark')) return true;
+        } catch { /* storage blocked */ }
+
+        // Last resort: check computed background of parent body
+        const bg = window.parent.getComputedStyle(parentBody).backgroundColor;
+        if (bg) {
+            // Parse rgb(r, g, b) — dark if channel average < 80 (below mid-grey)
+            const m = bg.match(/\d+/g);
+            if (m && m.length >= 3) {
+                const avg = (parseInt(m[0]) + parseInt(m[1]) + parseInt(m[2])) / 3;
+                if (avg < 80) return true;
+            }
+        }
+    } catch { /* cross-origin or missing */ }
+    return false;
+}
+
+function detectTheme() {
+    document.body.classList.toggle('dark', isParentDarkTheme());
+}
+
+function watchTheme() {
+    try {
+        const targets = [
+            window.parent?.document?.body,
+            window.parent?.document?.documentElement
+        ].filter(Boolean);
+        if (!targets.length) return;
+
+        const observer = new MutationObserver(() => detectTheme());
+        for (const el of targets) {
+            observer.observe(el, {
+                attributes: true,
+                attributeFilter: ['class', 'data-theme', 'data-bs-theme', 'style']
+            });
+        }
+    } catch { /* cross-origin; no live updates */ }
 }
 
 // ---- socket helpers ----
@@ -791,6 +839,7 @@ async function getStatesPattern(pattern) {
 function initSocket() {
     detectLang();
     detectTheme();
+    watchTheme();
     translatePage();
 
     // Try Admin 7 React parent socket (polls up to 3 s)
