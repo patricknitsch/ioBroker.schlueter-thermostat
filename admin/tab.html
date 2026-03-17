@@ -574,14 +574,33 @@ function loadScript(src) {
    Instance & navigation
 ══════════════════════════════════════════════════════ */
 function loadInstances() {
+    // Non-singleton tab: admin passes ?instance=N in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlInstance = urlParams.get('instance');
+
+    if (urlInstance !== null) {
+        currentInstance = urlInstance;
+        setConfigUrl(urlInstance);
+        socketCall('getObject', 'system.adapter.schlueter-thermostat.' + urlInstance, (err, obj) => {
+            if (!obj || !(obj.native && obj.native.showTab)) {
+                showOnly('notConfigured');
+                return;
+            }
+            loadGroups(urlInstance);
+        });
+        return;
+    }
+
+    // Fallback: auto-detect the first instance with showTab=true
     socketCall('getObjectView', 'system', 'instance', {
         startkey: 'system.adapter.schlueter-thermostat.',
-        endkey:   'system.adapter.schlueter-thermostat.\u9999'
+        endkey:   'system.adapter.schlueter-thermostat.\uffff'  // \uffff = max range-query boundary
     }, (err, res) => {
-        const rows = (res && res.rows) ? res.rows : [];
+        const rows = (res && Array.isArray(res.rows)) ? res.rows
+                   : (Array.isArray(res) ? res : []);
         if (!rows.length) { showOnly('noInstances'); return; }
 
-        // Auto-detect instance: prefer the one with showTab=true, else first
+        // Prefer the one with showTab=true, else use first
         let instanceRow = rows.find(r => r.value && r.value.native && r.value.native.showTab);
         if (!instanceRow) instanceRow = rows[0];
         const instanceNum = instanceRow.id.replace('system.adapter.schlueter-thermostat.', '');
@@ -600,31 +619,47 @@ function loadInstances() {
 }
 
 function setConfigUrl(num) {
-    let baseUrl = window.location.origin;
-    let hashPrefix = '/#';
+    let origin = window.location.origin;
+    // Admin 7+ (React Router) always uses #/ routing; fall back to legacy #/ if explicitly detected otherwise
+    let hashSlash = true;
     try {
         if (window.parent && window.parent !== window) {
-            baseUrl = window.parent.location.origin || baseUrl;
+            origin = window.parent.location.origin || origin;
             const ph = window.parent.location.hash || '';
-            if (ph.startsWith('#/')) hashPrefix = '/#/';
+            // Legacy Admin 5/6: hash like "#tab-instances" (no slash after #)
+            if (ph.length > 1 && !ph.startsWith('#/')) hashSlash = false;
         }
     } catch(_) {}
-    const configUrl = baseUrl + hashPrefix + 'tab-instances/schlueter-thermostat.' + num;
+    const configUrl = origin + (hashSlash ? '/#/' : '/#') + 'tab-instances/schlueter-thermostat.' + num;
     document.getElementById('instanceLink').href = configUrl;
     document.getElementById('configLink').href = configUrl;
 }
 
 function loadGroups(instance) {
-    const prefix = 'schlueter-thermostat.' + instance + '.groups.';
-    socketCall('getObjectView', 'system', 'folder', {
-        startkey: prefix,
-        endkey:   prefix + '\u9999'
+    // Query thermostat device objects (device view is supported in all ioBroker versions).
+    // Groups are inferred from the device paths:
+    //   schlueter-thermostat.<instance>.groups.<GroupId>.thermostats.<ThermostatId>
+    const instancePrefix = 'schlueter-thermostat.' + instance + '.groups.';
+    socketCall('getObjectView', 'system', 'device', {
+        startkey: instancePrefix,
+        endkey:   instancePrefix + '\uffff'  // \uffff = max range-query boundary
     }, (err, res) => {
-        const rows = (res && res.rows) ? res.rows : [];
-        // Keep only direct group children (no dots after the prefix = one level deep)
-        const groupRows = rows.filter(r => !r.id.slice(prefix.length).includes('.'));
+        const rows = (res && Array.isArray(res.rows)) ? res.rows
+                   : (Array.isArray(res) ? res : []);
 
-        if (!groupRows.length) {
+        // Extract unique group IDs
+        const groupIds = [];
+        const seen = new Set();
+        rows.forEach(r => {
+            const suffix = r.id.slice(instancePrefix.length);
+            const dot = suffix.indexOf('.');
+            if (dot > 0) {
+                const gid = suffix.slice(0, dot);
+                if (!seen.has(gid)) { seen.add(gid); groupIds.push(gid); }
+            }
+        });
+
+        if (!groupIds.length) {
             document.getElementById('thermostats').innerHTML =
                 '<p style="color:#5a8aaa;padding:40px;text-align:center">' + T.noGroups + '</p>';
             showOnly('thermostats');
@@ -633,51 +668,63 @@ function loadGroups(instance) {
 
         const groupSelect = document.getElementById('groupSelect');
         groupSelect.innerHTML = '';
-        groupRows.forEach(r => {
-            const pathId = r.id.slice(prefix.length);
-            const name = r.value && r.value.common && r.value.common.name ? r.value.common.name : pathId;
+        groupIds.forEach(gid => {
             const opt = document.createElement('option');
-            opt.value = pathId;
-            opt.textContent = name;
+            opt.value = gid;
+            opt.textContent = gid;  // initial label = ID; enriched below
             groupSelect.appendChild(opt);
         });
 
-        groupSelect.onchange = () => loadThermostatList(instance, groupSelect.value);
-        loadThermostatList(instance, groupSelect.value);
+        // Enrich group labels with names from folder objects (best-effort)
+        let remaining = groupIds.length;
+        groupIds.forEach((gid, idx) => {
+            socketCall('getObject', instancePrefix + gid, (e2, obj) => {
+                if (obj && obj.common && obj.common.name) {
+                    const n = obj.common.name;
+                    groupSelect.options[idx].textContent =
+                        typeof n === 'object' ? (n[getLang()] || n.en || n.de || gid) : String(n);
+                }
+                remaining--;
+                if (remaining === 0) {
+                    groupSelect.onchange = () => loadThermostatList(instance, groupSelect.value, rows);
+                    loadThermostatList(instance, groupSelect.value, rows);
+                }
+            });
+        });
     });
 }
 
-function loadThermostatList(instance, groupPathId) {
+function loadThermostatList(instance, groupId, deviceRows) {
     const thermostatSelect = document.getElementById('thermostatSelect');
     thermostatSelect.innerHTML = '';
     thermostatSelect.onchange = null;
 
-    const prefix = 'schlueter-thermostat.' + instance + '.groups.' + groupPathId + '.thermostats.';
-    socketCall('getObjectView', 'system', 'device', {
-        startkey: prefix,
-        endkey:   prefix + '\u9999'
-    }, (err, res) => {
-        const rows = (res && res.rows) ? res.rows : [];
+    // Filter the already-fetched device rows to the selected group
+    const instancePrefix = 'schlueter-thermostat.' + instance + '.groups.';
+    const thermostatPrefix = instancePrefix + groupId + '.thermostats.';
+    const tRows = deviceRows.filter(r => r.id.startsWith(thermostatPrefix));
 
-        if (!rows.length) {
-            document.getElementById('thermostats').innerHTML =
-                '<p style="color:#5a8aaa;padding:40px;text-align:center">' + T.noThermostats + '</p>';
-            showOnly('thermostats');
-            return;
-        }
+    if (!tRows.length) {
+        document.getElementById('thermostats').innerHTML =
+            '<p style="color:#5a8aaa;padding:40px;text-align:center">' + T.noThermostats + '</p>';
+        showOnly('thermostats');
+        return;
+    }
 
-        rows.forEach(r => {
-            const pathId = r.id.slice(prefix.length);
-            const name = r.value && r.value.common && r.value.common.name ? r.value.common.name : pathId;
-            const opt = document.createElement('option');
-            opt.value = pathId;
-            opt.textContent = name;
-            thermostatSelect.appendChild(opt);
-        });
-
-        thermostatSelect.onchange = () => showThermostatCard(instance, groupPathId, thermostatSelect.value);
-        showThermostatCard(instance, groupPathId, thermostatSelect.value);
+    tRows.forEach(r => {
+        const tid = r.id.slice(thermostatPrefix.length);
+        const raw = r.value && r.value.common && r.value.common.name;
+        const name = raw
+            ? (typeof raw === 'object' ? (raw[getLang()] || raw.en || raw.de || tid) : String(raw))
+            : tid;
+        const opt = document.createElement('option');
+        opt.value = tid;
+        opt.textContent = name;
+        thermostatSelect.appendChild(opt);
     });
+
+    thermostatSelect.onchange = () => showThermostatCard(instance, groupId, thermostatSelect.value);
+    showThermostatCard(instance, groupId, thermostatSelect.value);
 }
 
 function showThermostatCard(instance, groupPathId, thermostatPathId) {

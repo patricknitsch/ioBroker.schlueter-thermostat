@@ -323,7 +323,7 @@ class SchlueterThermostat extends utils.Adapter {
 
 			if (wantTab) {
 				obj.common.adminTab = {
-					singleton: true,
+					singleton: false,
 					name: {
 						en: 'Thermostat Overview',
 						de: 'Thermostat Übersicht',
@@ -337,7 +337,7 @@ class SchlueterThermostat extends utils.Adapter {
 						uk: 'Огляд термостату',
 						'zh-cn': '温控器概览',
 					},
-					link: '',
+					link: 'tab.html?instance=%s',
 				};
 			} else {
 				delete obj.common.adminTab;
