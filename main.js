@@ -317,7 +317,7 @@ class SchlueterThermostat extends utils.Adapter {
 			if (!obj) {
 				return;
 			}
-			if (obj.common.adminTab && !obj.common.adminTab.link) {
+			if (obj.common.adminTab && obj.common.adminTab.link === undefined) {
 				// Already correct (no stale link field) — nothing to do.
 				return;
 			}
