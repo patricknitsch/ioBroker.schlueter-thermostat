@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "news": {
+      "0.5.1": {
+        "en": "Fix issue with configuration button in Tab",
+        "de": "Problem mit Konfigurationstaste in Tab beheben",
+        "ru": "Исправление проблемы с кнопкой конфигурации в Tab",
+        "pt": "Corrigir problema com o botão de configuração na aba",
+        "nl": "Fix probleem met configuratie knop in tabblad",
+        "fr": "Correction du problème avec le bouton de configuration dans l'onglet",
+        "it": "Risolvi il problema con il pulsante di configurazione nella scheda",
+        "es": "Corregir el problema con el botón de configuración en Tab",
+        "pl": "Napraw problem z przyciskiem konfiguracyjnym w karcie",
+        "uk": "Виправлення проблеми з кнопкою конфігурації в вкладці",
+        "zh-cn": "在 Tab 中用配置按钮修正问题"
+      },
       "0.5.0": {
         "en": "Add `admin/tab.html` control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and Konfiguration button\nStatus banner now shows energy consumption for today (kWh)\nInstance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7",
         "de": "Fügen Sie `admin/tab.html` Bedienfeld mit grünem Thema, i18n (DE/EN), Live-Status-Banner, Schnellmodi, Temperatursteuerung, Urlaub, Schedule Viewer und Konfigurationstaste hinzu\nStatusbanner zeigt jetzt Energieverbrauch für heute (kWh)\nInstanz-Selektor entfernt — Instanz wird automatisch vom `? Beispiel=N` URL-Parameter von Admin 7 übergeben",
@@ -80,19 +93,6 @@
         "pl": "Aktualizacja z git do https",
         "uk": "Оновлення з git на HTTPS",
         "zh-cn": "从 git 更新到 https"
-      },
-      "0.3.1": {
-        "en": "Add Mode Frost Protection\nShow Enum instead of Regulation Number",
-        "de": "Modus Frostschutz hinzufügen\nAnum anstelle der Regelungsnummer anzeigen",
-        "ru": "Добавить режим защиты от мороза\nПоказать номер вместо номера",
-        "pt": "Adicionar Modo de Proteção de Gelo\nMostrar o Enum em vez do Número de Regulação",
-        "nl": "Frostbescherming toevoegen\nEnum tonen in plaats van Reglementnummer",
-        "fr": "Ajouter une protection contre le gel en mode\nAfficher le nom au lieu du numéro de règlement",
-        "it": "Aggiungere la modalità di protezione del gelo\nMostra Enum invece del numero di regolamento",
-        "es": "Añadir Mode Frost Protection\nMostrar Enum en lugar del número de regulación",
-        "pl": "Dodaj tryb ochrony mróz\nPokaż Enum zamiast numeru regulaminu",
-        "uk": "Додайте режим захисту від загартування\nПоказати Enum замість номеру регулювання",
-        "zh-cn": "添加模式霜保护\n显示 Enum 而不是规章编号"
       }
     },
     "titleLang": {
