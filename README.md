@@ -24,28 +24,6 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 
 ##
 
-## 🖥️ Admin Tab
-
-Each adapter instance exposes a dedicated **control panel** tab directly inside the ioBroker Admin UI.
-
-### Features
-
-| Area | What you can do |
-| ---- | --------------- |
-| **Status banner** | Live display of room temperature, floor temperature, setpoint, comfort setpoint, energy consumption today (kWh), heating state, regulation mode and online/offline status |
-| **Schnellmodi** | One-click switch to *Zeitplan* (Schedule), *Eco* or *Frostschutz* (Frost Protection) mode |
-| **Temperatursteuerung** | Set manual setpoint, activate Comfort mode (setpoint + duration) or Boost mode (duration) |
-| **Urlaub** | Enable vacation mode with begin/end dates and a target temperature |
-| **Thermostatname** | Rename the thermostat directly from the UI |
-| **Wochenplan** | Read-only view of the current weekly schedule (collapsible per-day event list) |
-| **Konfiguration** | Button that opens the adapter instance configuration page directly |
-
-### Language
-
-The tab detects the Admin UI language automatically and renders all labels in **German** (default) or English.
-
-##
-
 ## 🚀 How to Start
 
 1. Install adapter in ioBroker
@@ -71,9 +49,9 @@ global Key.
 
 ## Documentation
 
-[🇺🇸 Documentation](./docs/en/README.md)
+English Documentation](./docs/en/README.md)
 
-[🇩🇪 Dokumentation](./docs/de/README.md)
+[Deutsche Dokumentation](./docs/de/README.md)
 
 ##
 
