@@ -49,6 +49,30 @@ schlueter-thermostat Adapter
 
 ---
 
+## 🖥️ Admin-Tab
+
+Jede Adapterinstanz stellt einen eigenen **Steuerungs-Tab** direkt in der ioBroker Admin-Oberfläche bereit.
+
+![Admin-Tab Vorschau](https://github.com/user-attachments/assets/5426efe7-685b-4e7c-a77a-7860575d8f44)
+
+### Funktionen
+
+| Bereich | Beschreibung |
+| ------- | ------------ |
+| **Statusanzeige** | Echtzeit-Anzeige von Raumtemperatur, Fußbodentemperatur, Sollwert, Komfort-Sollwert, Energieverbrauch heute (kWh), Heizbetrieb, Regulierungsmodus und Online/Offline-Status |
+| **Schnellmodi** | Ein-Klick-Umschaltung auf *Zeitplan* (Schedule), *Eco* oder *Frostschutz* |
+| **Temperatursteuerung** | Manuellen Sollwert setzen, Komfort-Modus (Sollwert + Dauer) oder Boost-Modus (Dauer) aktivieren |
+| **Urlaub** | Urlaubsmodus mit Start-/Enddatum und Zieltemperatur aktivieren |
+| **Thermostatname** | Thermostat direkt aus der Oberfläche umbenennen |
+| **Wochenplan** | Nur-Lese-Ansicht des aktuellen Wochenplans (einklappbare Tages-Ereignisliste) |
+| **Konfiguration** | Schaltfläche, die die Instanzkonfiguration direkt öffnet |
+
+### Sprache
+
+Der Tab erkennt die Admin-Sprache automatisch und zeigt alle Beschriftungen auf **Deutsch** (Standard) oder Englisch.
+
+---
+
 ## 🚀 Schnellstart
 
 1. Adapter in ioBroker installieren

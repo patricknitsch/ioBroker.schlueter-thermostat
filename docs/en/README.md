@@ -49,6 +49,30 @@ schlueter-thermostat Adapter
 
 ---
 
+## 🖥️ Admin Tab
+
+Each adapter instance exposes a dedicated **control panel** tab directly inside the ioBroker Admin UI.
+
+![Admin Tab Preview](https://github.com/user-attachments/assets/5426efe7-685b-4e7c-a77a-7860575d8f44)
+
+### Features
+
+| Area | What you can do |
+| ---- | --------------- |
+| **Status banner** | Live display of room temperature, floor temperature, setpoint, comfort setpoint, energy consumption today (kWh), heating state, regulation mode and online/offline status |
+| **Quick modes** | One-click switch to *Schedule*, *Eco* or *Frost Protection* mode |
+| **Temperature control** | Set manual setpoint, activate Comfort mode (setpoint + duration) or Boost mode (duration) |
+| **Vacation** | Enable vacation mode with begin/end dates and a target temperature |
+| **Thermostat name** | Rename the thermostat directly from the UI |
+| **Weekly schedule** | Read-only view of the current weekly schedule (collapsible per-day event list) |
+| **Configuration** | Button that opens the adapter instance configuration page directly |
+
+### Language
+
+The tab detects the Admin UI language automatically and renders all labels in **German** (default) or English.
+
+---
+
 ## 🚀 How to Start
 
 1. Install adapter in ioBroker
