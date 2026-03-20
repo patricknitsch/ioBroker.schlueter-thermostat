@@ -115,6 +115,7 @@ flowchart TB
 ### **WORK IN PROGRESS**
 
 - (patricknitsch) Update Readme
+- (patricknitsch) Fix Issues from RepoChecker
 
 ### 0.5.1 (2026-03-18)
 
