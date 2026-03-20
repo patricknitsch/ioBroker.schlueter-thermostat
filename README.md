@@ -123,7 +123,7 @@ flowchart TB
 
 ### 0.5.0 (2026-03-17)
 
-- (copilot) Add `admin/tab.html` control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and Konfiguration button
+- (copilot) Add `admin/tab.html` control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and configuration button
 - (copilot) Status banner now shows energy consumption for today (kWh)
 - (copilot) Instance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7
 
