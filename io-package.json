@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "news": {
+      "0.5.2": {
+        "en": "Update Readme\nFix Issues from RepoChecker",
+        "de": "Update Reader\nProbleme von RepoChecker beheben",
+        "ru": "Обновление Readme\nОбсуждение RepoChecker",
+        "pt": "Actualizar a Leitura\nCorrigir os Problemas do RepoChecker",
+        "nl": "Readme bijwerken\nProblemen van repochecker oplossen",
+        "fr": "Mettre à jour Readme\nCorrection des problèmes de RepoChecker",
+        "it": "Aggiornamento\nRisolvi problemi da RepoChecker",
+        "es": "Actualización Readme\nProblemas de reparación de RepoChecker",
+        "pl": "Aktualizacja Readme\nNapraw problemy z RepoChecker",
+        "uk": "Оновлення Readme\nВиправлення питань від RepoChecker",
+        "zh-cn": "更新读取器\n从 Repo检查器修正问题"
+      },
       "0.5.1": {
         "en": "Fix issue with configuration button in Tab",
         "de": "Problem mit Konfigurationstaste in Tab beheben",
@@ -80,19 +93,6 @@
         "pl": "Fallback jeśli urządzenia lub Cloud offline",
         "uk": "Відшкодування, якщо пристрої або хмарний офлайн",
         "zh-cn": "设备或云离线后退"
-      },
-      "0.3.2": {
-        "en": "Update from git to https",
-        "de": "Update von git zu https",
-        "ru": "Обновление от git до https",
-        "pt": "Atualizar do git para https",
-        "nl": "Bijwerken van git naar https",
-        "fr": "Mettre à jour de git à https",
-        "it": "Aggiornamento da git a https",
-        "es": "Actualización de git a https",
-        "pl": "Aktualizacja z git do https",
-        "uk": "Оновлення з git на HTTPS",
-        "zh-cn": "从 git 更新到 https"
       }
     },
     "titleLang": {
