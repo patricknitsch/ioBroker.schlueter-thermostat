@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "news": {
+      "0.5.3": {
+        "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
+        "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
+        "ru": "Адаптер требует node.js >= 22 сейчас\nОбновление зависимостей",
+        "pt": "Adaptador requer nod.js >= 22 agora\nAtualizar dependências",
+        "nl": "Voor de adapter zijn node.js < 22 nu nodig\nAfhankelijkheden bijwerken",
+        "fr": "Adaptateur nécessite node.js >= 22 maintenant\nMettre à jour les dépendances",
+        "it": "Adattatore richiede node.js >= 22 ora\nDipendenze di aggiornamento",
+        "es": "Adaptador requiere node.js ю= 22 ahora\nDependencias de actualización",
+        "pl": "Adapter wymaga node.js > = 22\nAktualizuj zależności",
+        "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлення залежності",
+        "zh-cn": "适配器需要节点.js 现在22\n更新依赖关系"
+      },
       "0.5.2": {
         "en": "Update Readme\nFix Issues from RepoChecker",
         "de": "Update Reader\nProbleme von RepoChecker beheben",
@@ -80,19 +93,6 @@
         "pl": "Aktualizacja pakietów i przepływu pracy",
         "uk": "Оновлення пакетів та робочих процесів",
         "zh-cn": "更新软件包和工作流程"
-      },
-      "0.4.0": {
-        "en": "Fallback if Devices or Cloud offline",
-        "de": "Fallback, wenn Geräte oder Cloud offline",
-        "ru": "Fallback, если устройства или облако отключены",
-        "pt": "Recuar se dispositivos ou nuvem off-line",
-        "nl": "Terugvallen als apparaten of cloud offline",
-        "fr": "Retour en arrière si les périphériques ou Cloud hors ligne",
-        "it": "Fallback se dispositivi o cloud offline",
-        "es": "Fallback si Dispositivos o Cloud offline",
-        "pl": "Fallback jeśli urządzenia lub Cloud offline",
-        "uk": "Відшкодування, якщо пристрої або хмарний офлайн",
-        "zh-cn": "设备或云离线后退"
       }
     },
     "titleLang": {
