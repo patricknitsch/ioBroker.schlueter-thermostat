@@ -62,12 +62,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this.client = null;
 		const messageListenersBeforeDm = this.rawListeners('message');
 		this.deviceManagement = new SchlueterDeviceManagement(this);
-		const dmMessageListener = this.rawListeners('message').find(
-			listener => !messageListenersBeforeDm.includes(listener),
-		);
-		if (dmMessageListener) {
-			this.off('message', dmMessageListener);
-		}
+		this._detachDmMessageListeners(messageListenersBeforeDm);
 
 		/** ThermostatId -> SerialNumber */
 		this.thermostatSerial = {};
@@ -318,11 +313,20 @@ class SchlueterThermostat extends utils.Adapter {
 	// ON READY
 	// ============================================================================
 
+	_detachDmMessageListeners(messageListenersBeforeDm) {
+		const dmMessageListeners = this.rawListeners('message').filter(
+			listener => !messageListenersBeforeDm.includes(listener),
+		);
+		for (const listener of dmMessageListeners) {
+			this.off('message', listener);
+		}
+	}
+
 	onMessage(obj) {
 		if (!this.deviceManagement || !obj) {
 			return;
 		}
-		this.deviceManagement['onMessage'](obj);
+		this.deviceManagement.handleAdapterMessage(obj);
 	}
 
 	async onReady() {
