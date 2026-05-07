@@ -49,27 +49,27 @@ schlueter-thermostat Adapter
 
 ---
 
-## 🖥️ Admin-Tab
+## 🖥️ Device Manager (Admin)
 
-Jede Adapterinstanz stellt einen eigenen **Steuerungs-Tab** direkt in der ioBroker Admin-Oberfläche bereit.
+Der frühere eigene Admin-Tab wurde entfernt und durch den offiziellen ioBroker Admin **Device Manager** ersetzt.
 
-![Admin-Tab Vorschau](https://github.com/user-attachments/assets/5426efe7-685b-4e7c-a77a-7860575d8f44)
+Jede Adapterinstanz wird jetzt im Device Manager angezeigt und listet dort alle Thermostate der Instanz.
 
 ### Funktionen
 
 | Bereich | Beschreibung |
 | ------- | ------------ |
-| **Statusanzeige** | Echtzeit-Anzeige von Raumtemperatur, Fußbodentemperatur, Sollwert, Komfort-Sollwert, Energieverbrauch heute (kWh), Heizbetrieb, Regulierungsmodus und Online/Offline-Status |
-| **Schnellmodi** | Ein-Klick-Umschaltung auf *Zeitplan* (Schedule), *Eco* oder *Frostschutz* |
-| **Temperatursteuerung** | Manuellen Sollwert setzen, Komfort-Modus (Sollwert + Dauer) oder Boost-Modus (Dauer) aktivieren |
-| **Urlaub** | Urlaubsmodus mit Start-/Enddatum und Zieltemperatur aktivieren |
-| **Thermostatname** | Thermostat direkt aus der Oberfläche umbenennen |
-| **Wochenplan** | Nur-Lese-Ansicht des aktuellen Wochenplans (einklappbare Tages-Ereignisliste) |
-| **Konfiguration** | Schaltfläche, die die Instanzkonfiguration direkt öffnet |
+| **Geräteliste** | Alle Thermostate nach Adapter-Gruppe anzeigen |
+| **Kachel** | Verbindungs-Icon auf der Kachel plus Zusammenfassung in den Kachel-Details (Raum-/Bodentemperatur, Heizen, Regelungsmodus, Verbrauch) |
+| **Details (Drei-Punkte-Menü)** | Thermostat-Details mit den Tabs **Information** (Gruppen-ID, Thermostat-ID, Modell) und **Steuerung** öffnen |
+| **Steuerung** | Manuell-/Komfort-Sollwert setzen, Schedule-/Eco-/Manual-/Comfort-Apply auslösen, Boost-Dauer + Apply setzen, Urlaub konfigurieren und den Thermostatnamen umbenennen |
 
-### Sprache
+### Device Manager öffnen
 
-Der Tab erkennt die Admin-Sprache automatisch und zeigt alle Beschriftungen auf **Deutsch** (Standard) oder Englisch.
+1. ioBroker Admin öffnen
+2. Bereich **Device Manager** öffnen
+3. Die gewünschte `schlueter-thermostat.X` Instanz aufklappen
+4. Über das Drei-Punkte-Menü der Thermostat-Kachel Details/Aktionen öffnen
 
 ---
 

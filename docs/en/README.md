@@ -49,27 +49,27 @@ schlueter-thermostat Adapter
 
 ---
 
-## 🖥️ Admin Tab
+## 🖥️ Device Manager (Admin)
 
-Each adapter instance exposes a dedicated **control panel** tab directly inside the ioBroker Admin UI.
+The previous custom Admin tab was removed and replaced by the official ioBroker Admin **Device Manager**.
 
-![Admin Tab Preview](https://github.com/user-attachments/assets/5426efe7-685b-4e7c-a77a-7860575d8f44)
+Each adapter instance is now listed in Device Manager and shows all thermostats of the instance there.
 
 ### Features
 
 | Area | What you can do |
 | ---- | --------------- |
-| **Status banner** | Live display of room temperature, floor temperature, setpoint, comfort setpoint, energy consumption today (kWh), heating state, regulation mode and online/offline status |
-| **Quick modes** | One-click switch to *Schedule*, *Eco* or *Frost Protection* mode |
-| **Temperature control** | Set manual setpoint, activate Comfort mode (setpoint + duration) or Boost mode (duration) |
-| **Vacation** | Enable vacation mode with begin/end dates and a target temperature |
-| **Thermostat name** | Rename the thermostat directly from the UI |
-| **Weekly schedule** | Read-only view of the current weekly schedule (collapsible per-day event list) |
-| **Configuration** | Button that opens the adapter instance configuration page directly |
+| **Device list** | See all thermostats grouped by adapter group |
+| **Card** | Connection icon on the card plus summary values in card details (room/floor temperature, heating, regulation mode, consumption) |
+| **Details (three-dot menu)** | Open thermostat details with an **Information** tab (Group ID, Thermostat ID, Model) and a **Controls** tab |
+| **Control** | Set manual/comfort setpoints, trigger schedule/eco/manual/comfort apply actions, configure boost duration + apply, manage vacation settings, and rename the thermostat |
 
-### Language
+### Open Device Manager
 
-The tab detects the Admin UI language automatically and renders all labels in **German** (default) or English.
+1. Open ioBroker Admin
+2. Open the **Device Manager** section
+3. Expand your `schlueter-thermostat.X` instance
+4. Use the three-dot menu on a thermostat card to open details/actions
 
 ---
 

@@ -45,6 +45,7 @@ const {
 	writeEnergyStates,
 } = require('./lib/writers');
 const { createApplyRouter } = require('./lib/apply-handlers');
+const { SchlueterDeviceManagement } = require('./lib/device-manager');
 
 const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
@@ -59,6 +60,9 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetState = this.setState.bind(this);
 
 		this.client = null;
+		const messageListenersBeforeDm = this.rawListeners('message');
+		this.deviceManagement = new SchlueterDeviceManagement(this);
+		this._detachDmMessageListeners(messageListenersBeforeDm);
 
 		/** ThermostatId -> SerialNumber */
 		this.thermostatSerial = {};
@@ -102,6 +106,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this.applyRouter = createApplyRouter(this);
 
 		this.on('ready', this.onReady.bind(this));
+		this.on('message', this.onMessage.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 	}
@@ -307,6 +312,22 @@ class SchlueterThermostat extends utils.Adapter {
 	// ============================================================================
 	// ON READY
 	// ============================================================================
+
+	_detachDmMessageListeners(messageListenersBeforeDm) {
+		const dmMessageListeners = this.rawListeners('message').filter(
+			listener => !messageListenersBeforeDm.includes(listener),
+		);
+		for (const listener of dmMessageListeners) {
+			this.off('message', listener);
+		}
+	}
+
+	onMessage(obj) {
+		if (!this.deviceManagement || !obj) {
+			return;
+		}
+		this.deviceManagement.handleAdapterMessage(obj);
+	}
 
 	async onReady() {
 		this.log.info('onReady(): starting adapter');

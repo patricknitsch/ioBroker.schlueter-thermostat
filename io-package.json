@@ -146,15 +146,10 @@
     "connectionType": "cloud",
     "dataSource": "poll",
     "adminUI": {
-      "config": "json",
-      "tab": "html"
+      "config": "json"
     },
-    "adminTab": {
-      "singleton": false,
-      "name": {
-        "en": "Device Overview",
-        "de": "Geräteübersicht"
-      }
+    "supportedMessages": {
+      "deviceManager": true
     },
     "dependencies": [
       {
@@ -183,12 +178,10 @@
   "protectedNative": [
     "username",
     "password",
-    "apiKey",
     "customerId"
   ],
   "encryptedNative": [
-    "password",
-    "apiKey"
+    "password"
   ],
   "objects": [],
   "instanceObjects": [
