@@ -1,21 +1,8 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.5.4",
+    "version": "0.5.3",
     "news": {
-      "0.5.4": {
-        "en": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "de": "ioBroker Device Manager Integration als Ersatz für den alten Admin-Tab hinzugefügt\nThermostat-Aktionen auf Detailseiten verlagert\nThermostat-Kachel mit Verbindungs-/Heizungs-/Modus-Icons und editierbaren Apply-Eingaben ausgerichtet",
-        "ru": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "pt": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "nl": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "fr": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "it": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "es": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "pl": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "uk": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs",
-        "zh-cn": "Add ioBroker Device Manager integration replacing the legacy admin tab\nMove thermostat actions to details pages\nAlign thermostat card with connection/heating/mode icons and editable apply inputs"
-      },
       "0.5.3": {
         "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
         "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
