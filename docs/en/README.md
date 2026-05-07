@@ -51,7 +51,7 @@ schlueter-thermostat Adapter
 
 ## 🖥️ Device Manager (Admin)
 
-The custom `admin/tab.html` was removed and replaced by the official ioBroker Admin **Device Manager**.
+The previous custom Admin tab was removed and replaced by the official ioBroker Admin **Device Manager**.
 
 Each adapter instance is now listed in Device Manager and shows all thermostats of the instance there.
 
