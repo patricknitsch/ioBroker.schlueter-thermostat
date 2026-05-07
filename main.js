@@ -60,7 +60,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetState = this.setState.bind(this);
 
 		this.client = null;
-		this.deviceManagement = new SchlueterDeviceManagement(this, true);
+		this.deviceManagement = new SchlueterDeviceManagement(this);
 
 		/** ThermostatId -> SerialNumber */
 		this.thermostatSerial = {};
