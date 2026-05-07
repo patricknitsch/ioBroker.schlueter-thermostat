@@ -45,6 +45,7 @@ const {
 	writeEnergyStates,
 } = require('./lib/writers');
 const { createApplyRouter } = require('./lib/apply-handlers');
+const { SchlueterDeviceManagement } = require('./lib/device-manager');
 
 const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
@@ -59,6 +60,7 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetState = this.setState.bind(this);
 
 		this.client = null;
+		this.deviceManagement = new SchlueterDeviceManagement(this);
 
 		/** ThermostatId -> SerialNumber */
 		this.thermostatSerial = {};

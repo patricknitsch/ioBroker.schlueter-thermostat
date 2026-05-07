@@ -49,27 +49,25 @@ schlueter-thermostat Adapter
 
 ---
 
-## 🖥️ Admin-Tab
+## 🖥️ Device Manager (Admin)
 
-Jede Adapterinstanz stellt einen eigenen **Steuerungs-Tab** direkt in der ioBroker Admin-Oberfläche bereit.
+Der eigene `admin/tab.html` wurde entfernt und durch den offiziellen ioBroker Admin **Device Manager** ersetzt.
 
-![Admin-Tab Vorschau](https://github.com/user-attachments/assets/5426efe7-685b-4e7c-a77a-7860575d8f44)
+Jede Adapterinstanz wird jetzt im Device Manager angezeigt und listet dort alle Thermostate der Instanz.
 
 ### Funktionen
 
 | Bereich | Beschreibung |
 | ------- | ------------ |
-| **Statusanzeige** | Echtzeit-Anzeige von Raumtemperatur, Fußbodentemperatur, Sollwert, Komfort-Sollwert, Energieverbrauch heute (kWh), Heizbetrieb, Regulierungsmodus und Online/Offline-Status |
-| **Schnellmodi** | Ein-Klick-Umschaltung auf *Zeitplan* (Schedule), *Eco* oder *Frostschutz* |
-| **Temperatursteuerung** | Manuellen Sollwert setzen, Komfort-Modus (Sollwert + Dauer) oder Boost-Modus (Dauer) aktivieren |
-| **Urlaub** | Urlaubsmodus mit Start-/Enddatum und Zieltemperatur aktivieren |
-| **Thermostatname** | Thermostat direkt aus der Oberfläche umbenennen |
-| **Wochenplan** | Nur-Lese-Ansicht des aktuellen Wochenplans (einklappbare Tages-Ereignisliste) |
-| **Konfiguration** | Schaltfläche, die die Instanzkonfiguration direkt öffnet |
+| **Geräteliste** | Alle Thermostate nach Adapter-Gruppe anzeigen |
+| **Live-Status** | Online/Offline, Heizstatus, Raum- und Bodentemperatur |
+| **Steuerung** | Manuell-/Komfort-Sollwert setzen und Schedule-, Eco-, Manual- und Comfort-Apply auslösen |
 
-### Sprache
+### Device Manager öffnen
 
-Der Tab erkennt die Admin-Sprache automatisch und zeigt alle Beschriftungen auf **Deutsch** (Standard) oder Englisch.
+1. ioBroker Admin öffnen
+2. Bereich **Device Manager** öffnen
+3. Die gewünschte `schlueter-thermostat.X` Instanz aufklappen
 
 ---
 
