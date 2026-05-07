@@ -116,7 +116,7 @@ flowchart TB
 
 - (copilot) Integrate Adapter in ioBroker Device Manager
 - (copilot) Remove Tab
-- (patricknitsch) Removed Encryption from Api-Key
+- (patricknitsch) Removed Encryption and Protection from Api-Key because it's a global key
 
 ### 0.5.3 (2026-05-03)
 - (copilot) Adapter requires node.js >= 22 now
