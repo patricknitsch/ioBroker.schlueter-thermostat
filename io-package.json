@@ -178,7 +178,6 @@
   "protectedNative": [
     "username",
     "password",
-    "apiKey",
     "customerId"
   ],
   "encryptedNative": [
