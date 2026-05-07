@@ -111,6 +111,12 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (copilot) Integrate Adapter in ioBroker Device Manager
+- (copilot) Remove Tab
+
 ### 0.5.3 (2026-05-03)
 - (copilot) Adapter requires node.js >= 22 now
 - (copilot) Update Dependencies
