@@ -61,7 +61,7 @@ Jede Adapterinstanz wird jetzt im Device Manager angezeigt und listet dort alle 
 | ------- | ------------ |
 | **Geräteliste** | Alle Thermostate nach Adapter-Gruppe anzeigen |
 | **Live-Status** | Online/Offline, Heizstatus, Raum- und Bodentemperatur |
-| **Steuerung** | Manuell-/Komfort-Sollwert setzen und Schedule-, Eco-, Manual- und Comfort-Apply auslösen |
+| **Steuerung** | Manuell-/Komfort-Sollwert setzen, Schedule-, Eco-, Manual- und Comfort-Apply auslösen, Boost starten, Urlaubsmodus setzen und den Thermostatnamen umbenennen |
 
 ### Device Manager öffnen
 
