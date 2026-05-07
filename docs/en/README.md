@@ -61,7 +61,7 @@ Each adapter instance is now listed in Device Manager and shows all thermostats 
 | ---- | --------------- |
 | **Device list** | See all thermostats grouped by adapter group |
 | **Live status** | Online/offline, heating state, room and floor temperatures |
-| **Control** | Set manual/comfort setpoints and trigger schedule, eco, manual and comfort apply actions |
+| **Control** | Set manual/comfort setpoints, trigger schedule/eco/manual/comfort apply actions, configure boost duration and boost apply, manage vacation settings, and rename the thermostat |
 
 ### Open Device Manager
 
