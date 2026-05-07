@@ -60,14 +60,16 @@ Jede Adapterinstanz wird jetzt im Device Manager angezeigt und listet dort alle 
 | Bereich | Beschreibung |
 | ------- | ------------ |
 | **Geräteliste** | Alle Thermostate nach Adapter-Gruppe anzeigen |
-| **Live-Status** | Online/Offline, Heizstatus, Raum- und Bodentemperatur |
-| **Steuerung** | Manuell-/Komfort-Sollwert setzen, Schedule-, Eco-, Manual- und Comfort-Apply auslösen, Boost starten, Urlaubsmodus setzen und den Thermostatnamen umbenennen |
+| **Kachel** | Verbindungs-Icon auf der Kachel plus Zusammenfassung in den Kachel-Details (Raum-/Bodentemperatur, Heizen, Regelungsmodus, Verbrauch) |
+| **Details (Drei-Punkte-Menü)** | Thermostat-Details mit den Tabs **Information** (Gruppen-ID, Thermostat-ID, Modell) und **Steuerung** öffnen |
+| **Steuerung** | Manuell-/Komfort-Sollwert setzen, Schedule-/Eco-/Manual-/Comfort-Apply auslösen, Boost-Dauer + Apply setzen, Urlaub konfigurieren und den Thermostatnamen umbenennen |
 
 ### Device Manager öffnen
 
 1. ioBroker Admin öffnen
 2. Bereich **Device Manager** öffnen
 3. Die gewünschte `schlueter-thermostat.X` Instanz aufklappen
+4. Über das Drei-Punkte-Menü der Thermostat-Kachel Details/Aktionen öffnen
 
 ---
 

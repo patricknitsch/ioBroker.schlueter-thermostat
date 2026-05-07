@@ -60,14 +60,16 @@ Each adapter instance is now listed in Device Manager and shows all thermostats 
 | Area | What you can do |
 | ---- | --------------- |
 | **Device list** | See all thermostats grouped by adapter group |
-| **Live status** | Online/offline, heating state, room and floor temperatures |
-| **Control** | Set manual/comfort setpoints, trigger schedule/eco/manual/comfort apply actions, configure boost duration and boost apply, manage vacation settings, and rename the thermostat |
+| **Card** | Connection icon on the card plus summary values in card details (room/floor temperature, heating, regulation mode, consumption) |
+| **Details (three-dot menu)** | Open thermostat details with an **Information** tab (Group ID, Thermostat ID, Model) and a **Controls** tab |
+| **Control** | Set manual/comfort setpoints, trigger schedule/eco/manual/comfort apply actions, configure boost duration + apply, manage vacation settings, and rename the thermostat |
 
 ### Open Device Manager
 
 1. Open ioBroker Admin
 2. Open the **Device Manager** section
 3. Expand your `schlueter-thermostat.X` instance
+4. Use the three-dot menu on a thermostat card to open details/actions
 
 ---
 
