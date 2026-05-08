@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.5.3",
+    "version": "0.6.0",
     "news": {
+      "0.6.0": {
+        "en": "Integrate Adapter in ioBroker Device Manager\nRemove Tab\nRemoved Encryption and Protection from Api-Key because it's a global key --> fill in ApiKey again after Update",
+        "de": "Integrieren Sie Adapter in ioBroker Device Manager\nEntfernen Tab\nEntfernte Verschlüsselung und Schutz von Api-Key, weil es ein globaler Schlüssel ist --> füllen Sie ApiKey erneut nach Update",
+        "ru": "Интеграция адаптера в диспетчер устройств ioBroker\nУдалить Tab\nУдален шифрование и защита от Api-Key, потому что это глобальный ключ -> заполните ApiKey снова после обновления",
+        "pt": "Integrar o Adaptador no Gerenciador de Dispositivos ioBroker\nRemover aba\nCriptografia e proteção removidas do Api-Key porque é uma chave global --> preencha o ApiKey novamente após a atualização",
+        "nl": "Adapter integreren in ioBroker Device Manager\nTabblad verwijderen\nVerwijderde versleuteling en bescherming van Api-Key omdat het een globale sleutel --> ApiKey opnieuw invullen na Update",
+        "fr": "Intégrer l'adaptateur dans ioBroker Device Manager\nSupprimer l'onglet\nSupprimé le chiffrement et la protection de Api-Key parce que c'est une clé globale --> remplir ApiKey à nouveau après la mise à jour",
+        "it": "Integrare l'adattatore in ioBroker Device Manager\nRimuovi la scheda\nEliminato Crittografia e Protezione da Api-Key perché è una chiave globale --> riempire ApiKey di nuovo dopo l'aggiornamento",
+        "es": "Integrar el adaptador en ioBroker Device Manager\nQuitar Tab\nCifrado y protección eliminados de Api-Key porque es una clave global -- prenda rellenar en ApiKey de nuevo después de actualización",
+        "pl": "Zintegruj adapter w menedżerze urządzeń joBroker\nUsuń kartę\nUsunięto szyfrowanie i ochronę z Api- Key, ponieważ jest to klucz globalny -- > wypełnić ApiKey ponownie po aktualizacji",
+        "uk": "Інтеграція адаптера в ioBroker Manager\nВидалити вкладку\nВилучено шифрування та захист від Api-Key, оскільки це глобальний ключ --> заповніть ApiKey знову після оновлення",
+        "zh-cn": "在 ioBroker 设备管理器中整合适配器\n删除标签\n从 Api- Key 中删除加密和保护, 因为它是一个全局密钥 -- > 在更新后再次填写 ApiKey"
+      },
       "0.5.3": {
         "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
         "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
@@ -80,19 +93,6 @@
         "pl": "Naprawiono hirarchię obiektu\nAktualizacja Readme",
         "uk": "Виправлено помилку об'єкта\nОновлення Readme",
         "zh-cn": "固定对象结构\n更新读取器"
-      },
-      "0.4.1": {
-        "en": "Update Packages and Workflow",
-        "de": "Pakete und Workflow aktualisieren",
-        "ru": "Обновление пакетов и рабочего процесса",
-        "pt": "Atualizar pacotes e fluxo de trabalho",
-        "nl": "Pakketten en workflow bijwerken",
-        "fr": "Mettre à jour les paquets et le flux de travail",
-        "it": "Aggiornare i pacchetti e il flusso di lavoro",
-        "es": "Actualizar paquetes y flujo de trabajo",
-        "pl": "Aktualizacja pakietów i przepływu pracy",
-        "uk": "Оновлення пакетів та робочих процесів",
-        "zh-cn": "更新软件包和工作流程"
       }
     },
     "titleLang": {
