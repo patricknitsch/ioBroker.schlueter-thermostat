@@ -111,8 +111,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.6.1 (2026-05-09)
 
 - (patricknitsch) Add Measurement in DM Info
 - (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
@@ -138,12 +137,6 @@ flowchart TB
 ### 0.5.1 (2026-03-18)
 
 - (copilot) Fix issue with configuration button in Tab
-
-### 0.5.0 (2026-03-17)
-
-- (copilot) Add control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and configuration button
-- (copilot) Status banner now shows energy consumption for today (kWh)
-- (copilot) Instance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7
 
 ##
 

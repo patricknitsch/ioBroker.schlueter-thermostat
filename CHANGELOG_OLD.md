@@ -1,4 +1,10 @@
 # Older changes
+## 0.5.0 (2026-03-17)
+
+- (copilot) Add control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and configuration button
+- (copilot) Status banner now shows energy consumption for today (kWh)
+- (copilot) Instance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7
+
 ## 0.4.3 (2026-03-06)
 
 - (patricknitsch) Fix adapter type in io-package.json

@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "news": {
+      "0.6.1": {
+        "en": "Add Measurement in DM Info\nUpdate Admin Dependency >= 7.6.23 for Device Manager\nFirst Important Note: From 0.5.3 to 0.6.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3\nSecond Important Note: If you come from 0.5.3 you'll need to re-enter your API key because of removed Encryption. Use from Doc.",
+        "de": "Messung in DM Info hinzufügen\nAdminabhängigkeit aktualisieren >= 7.6.23 für Gerätemanager\nErste wichtige Anmerkung: Von 0.5.3 bis 0.6.X wird die Sensor-Übersicht entfernt, aber sichtbar. Dass ein Bug von js-controller und sollte mit 7.1.3 behoben werden\nZweiter wichtiger Hinweis: Wenn Sie von 0.5.3 kommen, müssen Sie Ihre API-Schlüssel wegen entfernter Verschlüsselung neu eingeben. Verwendung von Doc.",
+        "ru": "Добавить измерение в DM Info\nЗависимость от администратора >= 7.6.23 для диспетчера устройств\nПервое важное примечание: От 0,5.3 до 0.6.X Обзор датчика удаляется, но виден. Это баг от js-контроллера и должен быть исправлен с помощью 7.1.3\nВторое важное примечание: если вы используете 0.5.3, вам необходимо повторно ввести ключ API из-за удаленного шифрования. Пользуйтесь Док.",
+        "pt": "Adicionar medição na informação do DM\nAtualizar dependência de administração >= 7.6.23 para Gerenciador de Dispositivos\nPrimeira Nota Importante: De 0.5.3 a 0.6.X a Visão Geral do Sensor é removida, mas visível. Esse é um Bug do js-controller e deve ser corrigido com 7.1.3\nSegunda Nota Importante: Se você vier de 0.5.3 você precisará entrar novamente em sua chave API por causa da criptografia removida. Use do Doc.",
+        "nl": "Meting toevoegen in DM Info\nAdmin Afhankelijkheid bijwerken >= 7.6.23 voor Apparaatbeheer\nEerste belangrijke opmerking: Van 0.5.3 tot 0.6.X wordt de sensoroverzicht verwijderd maar zichtbaar. Dat is een bug van js-controller en moet worden bevestigd met 7.1.3\nTweede belangrijke opmerking: Als u van 0.5.3 komt, moet u uw API-sleutel opnieuw invoeren vanwege verwijderde Encryptie. Gebruik van Doc.",
+        "fr": "Ajouter la mesure dans DM Info\nMettre à jour Admin Dependency >= 7.6.23 pour le Gestionnaire de périphériques\nPremière note importante : De 0.5.3 à 0.6.X le capteur est enlevé mais visible. C'est un Bug de js-controller et doit être corrigé avec 7.1.3\nDeuxième remarque importante : Si vous venez de 0.5.3, vous devrez entrer à nouveau votre clé API en raison du chiffrement supprimé. Utilisation de Doc.",
+        "it": "Aggiungi misura in DM Info\nAggiorna la dipendenza da admin >= 7.6.23 per Gestione dispositivi\nPrima nota importante: da 0.5.3 a 0.6.X la Panoramica del sensore viene rimossa ma visibile. Che un Bug da js-controller e dovrebbe essere fissato con 7,1.3\nSeconda nota importante: Se si arriva da 0.5.3 è necessario ri-inserire la chiave API a causa della crittografia rimossa. Uso da Doc.",
+        "es": "Añadir Medición en DM Info\nActualizar la dependencia de los administradores = 7.6.23 para el administrador de dispositivos\nPrimera nota importante: De 0.5.3 a 0.6.X el Sensor Resúmenes es eliminado pero visible. Eso es un error de js-controller y debe ser fijado con 7.1.3\nSegunda nota importante: Si vienes de 0,5.3 tendrás que volver a introducir tu clave de API debido a la codificación eliminada. Uso de Doc.",
+        "pl": "Dodaj pomiar w DM Info\nAktualizacja Admin Dependency > = 7.6.23 dla Device Manager\nPierwsza ważna uwaga: Od 0.5.3 do 0.6.X Przegląd czujników jest usuwany, ale widoczny. To błąd ze sterownika js- i powinien być naprawiony z 7.1.3\nDruga ważna uwaga: Jeśli pochodzisz z 0.5.3 musisz ponownie wprowadzić swój klucz API ze względu na usunięte szyfrowanie. Użyj od Doca.",
+        "uk": "Додати вимірювання в DM інформація\nОновлення залежності адміністратора >= 7.6.23 для диспетчера пристроїв\nFirst Важливо Примітка: Від 0.5.3 до 0.6.X Огляд датчика видалено, але видимо. Що таке Буга від js-controller і слід зафіксувати 7.1.3\nДруге значення Примітка: Якщо ви приїжджаєте з 0.5.3 вам потрібно буде повторно керувати ключем API через вилучене шифрування. Використовуйте з Doc.",
+        "zh-cn": "在 DM 信息中添加测量\n更新设备管理器的依赖性QQ 7.6.23\n第一重要注释:从0.5.3到0.6.X 传感器概览被删除但可见. 这是来自js控制器的虫子,应该用7.1.3来固定\n第二重要注意:如果来自0.5.3,由于已删除的加密,需要重新输入您的API密钥. 从医生处使用."
+      },
       "0.6.0": {
         "en": "Integrate Adapter in ioBroker Device Manager\nRemove Tab\nRemoved Encryption and Protection from Api-Key because it's a global key --> fill in ApiKey again after Update",
         "de": "Integrieren Sie Adapter in ioBroker Device Manager\nEntfernen Tab\nEntfernte Verschlüsselung und Schutz von Api-Key, weil es ein globaler Schlüssel ist --> füllen Sie ApiKey erneut nach Update",
@@ -80,19 +93,6 @@
         "pl": "Napraw typ adaptera w pakiecie jo-. json",
         "uk": "Фіксований тип адаптера в io-package. свінгери",
         "zh-cn": "在io-package中固定适配器类型. 贾森"
-      },
-      "0.4.2": {
-        "en": "Fixed object hirarchy\nUpdate Readme",
-        "de": "Objekt hirarchie behoben\nUpdate Reader",
-        "ru": "Фиксированная объектная иерархия\nОбновление Readme",
-        "pt": "Hirarquia de objetos fixos\nActualizar a Leitura",
-        "nl": "Vaste objecthirarchie\nReadme bijwerken",
-        "fr": "Hirarchie d'objet fixe\nMettre à jour Readme",
-        "it": "Irarchy dell'oggetto fisso\nAggiornamento",
-        "es": "Hirarquía de objeto fijo\nActualización Readme",
-        "pl": "Naprawiono hirarchię obiektu\nAktualizacja Readme",
-        "uk": "Виправлено помилку об'єкта\nОновлення Readme",
-        "zh-cn": "固定对象结构\n更新读取器"
       }
     },
     "titleLang": {
