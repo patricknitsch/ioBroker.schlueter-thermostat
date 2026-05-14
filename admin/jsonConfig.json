@@ -2,6 +2,292 @@
 	"type": "tabs",
 	"i18n": true,
 	"items": {
+		"tabNotifications": {
+			"type": "panel",
+			"label": "Notifications",
+			"items": {
+				"notifyEnabled": {
+					"type": "checkbox",
+					"label": "Enable notifications",
+					"default": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"_notifyEventsHeader": {
+					"type": "header",
+					"text": "Events",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnThermostatOffline": {
+					"type": "checkbox",
+					"label": "Notify on thermostat offline",
+					"default": true,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyOnThermostatOnline": {
+					"type": "checkbox",
+					"label": "Notify on thermostat online",
+					"default": true,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyOnCloudOffline": {
+					"type": "checkbox",
+					"label": "Notify on cloud offline",
+					"default": true,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyOnCloudRecovered": {
+					"type": "checkbox",
+					"label": "Notify on cloud recovered",
+					"default": true,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"_notifyTelegramHeader": {
+					"type": "header",
+					"text": "Telegram",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseTelegram": {
+					"type": "checkbox",
+					"label": "Enable Telegram",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyUserTelegram": {
+					"type": "text",
+					"label": "Telegram user (empty = all)",
+					"default": "",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyPushoverHeader": {
+					"type": "header",
+					"text": "Pushover",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUsePushover": {
+					"type": "checkbox",
+					"label": "Enable Pushover",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyDevicePushover": {
+					"type": "text",
+					"label": "Pushover device (empty = all)",
+					"default": "",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"notifyTitlePushover": {
+					"type": "text",
+					"label": "Pushover title",
+					"default": "Schlüter Thermostat",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyWhatsappHeader": {
+					"type": "header",
+					"text": "WhatsApp",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseWhatsapp": {
+					"type": "checkbox",
+					"label": "Enable WhatsApp",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyPhoneWhatsapp": {
+					"type": "text",
+					"label": "WhatsApp phone number",
+					"default": "",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyEmailHeader": {
+					"type": "header",
+					"text": "Email",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseEmail": {
+					"type": "checkbox",
+					"label": "Enable Email",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyEmailTo": {
+					"type": "text",
+					"label": "Email recipient",
+					"default": "",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"notifyEmailSubject": {
+					"type": "text",
+					"label": "Email subject",
+					"default": "Schlüter Thermostat",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifySignalHeader": {
+					"type": "header",
+					"text": "Signal",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseSignal": {
+					"type": "checkbox",
+					"label": "Enable Signal",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyPhoneSignal": {
+					"type": "text",
+					"label": "Signal phone number",
+					"default": "",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyMatrixHeader": {
+					"type": "header",
+					"text": "Matrix",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseMatrix": {
+					"type": "checkbox",
+					"label": "Enable Matrix",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"_notifySynoChatHeader": {
+					"type": "header",
+					"text": "Synology Chat",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseSynoChat": {
+					"type": "checkbox",
+					"label": "Enable Synology Chat",
+					"default": false,
+					"xs": 12,
+					"sm": 6,
+					"md": 3,
+					"lg": 3,
+					"xl": 3
+				},
+				"notifyChannelSynoChat": {
+					"type": "text",
+					"label": "Synology Chat channel",
+					"default": "",
+					"xs": 12,
+					"sm": 6,
+					"md": 4,
+					"lg": 4,
+					"xl": 4
+				}
+			}
+		},
 		"tabMain": {
 			"type": "panel",
 			"label": "Main",

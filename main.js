@@ -46,6 +46,7 @@ const {
 } = require('./lib/writers');
 const { createApplyRouter } = require('./lib/apply-handlers');
 const { SchlueterDeviceManagement } = require('./lib/device-manager');
+const { sendNotification } = require('./lib/notificationManager');
 
 const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
@@ -496,9 +497,13 @@ class SchlueterThermostat extends utils.Adapter {
 			const groups = Array.isArray(data?.GroupContents) ? data.GroupContents : [];
 
 			// success: mark connected + reset fail counters
+			const wasDisconnected = this.warnedNoCloud;
 			this.safeSetState('info.connection', true, true);
 			this.pollFailCount = 0;
 			this.warnedNoCloud = false;
+			if (wasDisconnected && this.config.notifyOnCloudRecovered !== false) {
+				sendNotification(this, 'Cloud connection recovered.').catch(() => {});
+			}
 
 			for (const group of groups) {
 				if (this.unloading) {
@@ -542,6 +547,9 @@ class SchlueterThermostat extends utils.Adapter {
 								`Cloud communication failed ${this.pollFailCount}x. Adapter set info.connection=false. Last error: ${err?.message || err}`,
 							);
 							this.warnedNoCloud = true;
+							if (this.config.notifyOnCloudOffline !== false) {
+								sendNotification(this, `Cloud connection lost (${this.pollFailCount} failures). Last error: ${err?.message || err}`).catch(() => {});
+							}
 						} else {
 							this.log.debug(
 								`Cloud communication still failing (${this.pollFailCount}x): ${err?.message || err}`,
@@ -610,6 +618,15 @@ class SchlueterThermostat extends utils.Adapter {
 			const gName = this.groupNameCache[groupId] || `Group ${groupId}`;
 			this.log.warn(`Thermostat OFFLINE: ${gName} / ${thermostatName} (ThermostatId=${thermostatId})`);
 			this.warnedOffline[thermostatId] = true;
+			if (this.config.notifyOnThermostatOffline !== false) {
+				sendNotification(this, `Thermostat offline: ${gName} / ${thermostatName}`).catch(() => {});
+			}
+		}
+		if (onlineNow === true && prevOnline === false) {
+			if (this.config.notifyOnThermostatOnline !== false) {
+				const gName = this.groupNameCache[groupId] || `Group ${groupId}`;
+				sendNotification(this, `Thermostat online: ${gName} / ${thermostatName}`).catch(() => {});
+			}
 		}
 		if (onlineNow === true) {
 			this.warnedOffline[thermostatId] = false;
