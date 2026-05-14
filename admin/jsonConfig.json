@@ -120,6 +120,379 @@
 					"xl": 12
 				}
 			}
+		},
+		"tabNotifications": {
+			"type": "panel",
+			"label": "Notifications",
+			"items": {
+				"_notifyHint": {
+					"type": "staticText",
+					"text": "notifyHint",
+					"newLine": true,
+					"style": {
+						"fontSize": "0.85em",
+						"color": "#888",
+						"marginTop": 4,
+						"whiteSpace": "pre-line"
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyEnabled": {
+					"type": "checkbox",
+					"label": "notifyEnabledLabel",
+					"default": false,
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"_notifyEventsHeader": {
+					"type": "staticText",
+					"text": "notifyEventsHeader",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnThermostatOffline": {
+					"type": "checkbox",
+					"label": "notifyOnThermostatOfflineLabel",
+					"default": true,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnThermostatOnline": {
+					"type": "checkbox",
+					"label": "notifyOnThermostatOnlineLabel",
+					"default": true,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnCloudOffline": {
+					"type": "checkbox",
+					"label": "notifyOnCloudOfflineLabel",
+					"default": true,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnCloudRecovered": {
+					"type": "checkbox",
+					"label": "notifyOnCloudRecoveredLabel",
+					"default": true,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"_notifyTelegramHeader": {
+					"type": "staticText",
+					"text": "─── Telegram ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseTelegram": {
+					"type": "checkbox",
+					"label": "notifyUseTelegramLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUserTelegram": {
+					"type": "text",
+					"label": "notifyUserTelegramLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseTelegram",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyPushoverHeader": {
+					"type": "staticText",
+					"text": "─── Pushover ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUsePushover": {
+					"type": "checkbox",
+					"label": "notifyUsePushoverLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyTitlePushover": {
+					"type": "text",
+					"label": "notifyTitlePushoverLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUsePushover",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"notifyDevicePushover": {
+					"type": "text",
+					"label": "notifyDevicePushoverLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUsePushover",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyWhatsappHeader": {
+					"type": "staticText",
+					"text": "─── WhatsApp ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseWhatsapp": {
+					"type": "checkbox",
+					"label": "notifyUseWhatsappLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyPhoneWhatsapp": {
+					"type": "text",
+					"label": "notifyPhoneWhatsappLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseWhatsapp",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyEmailHeader": {
+					"type": "staticText",
+					"text": "─── Email ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseEmail": {
+					"type": "checkbox",
+					"label": "notifyUseEmailLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyEmailTo": {
+					"type": "text",
+					"label": "notifyEmailToLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseEmail",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"notifyEmailSubject": {
+					"type": "text",
+					"label": "notifyEmailSubjectLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseEmail",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifySignalHeader": {
+					"type": "staticText",
+					"text": "─── Signal ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseSignal": {
+					"type": "checkbox",
+					"label": "notifyUseSignalLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyPhoneSignal": {
+					"type": "text",
+					"label": "notifyPhoneSignalLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseSignal",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"_notifyMatrixHeader": {
+					"type": "staticText",
+					"text": "─── Matrix ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseMatrix": {
+					"type": "checkbox",
+					"label": "notifyUseMatrixLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"_notifySynoChatHeader": {
+					"type": "staticText",
+					"text": "─── Synology Chat ───",
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"style": {
+						"fontWeight": "bold",
+						"marginTop": 12
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyUseSynoChat": {
+					"type": "checkbox",
+					"label": "notifyUseSynoChatLabel",
+					"default": false,
+					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyChannelSynoChat": {
+					"type": "text",
+					"label": "notifyChannelSynoChatLabel",
+					"hidden": "!data.notifyEnabled || !data.notifyUseSynoChat",
+					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				}
+			}
 		}
 	}
 }

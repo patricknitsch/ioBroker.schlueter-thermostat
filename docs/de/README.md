@@ -220,6 +220,36 @@ Wenn die Cloud nicht erreichbar ist oder **alle** Thermostate offline sind, redu
 
 ---
 
+## Tab „Benachrichtigungen“
+
+Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werden. Alle Meldungen werden in der in ioBroker konfigurierten Systemsprache verschickt.
+
+### Benachrichtigungskategorien
+
+| # | Kategorie |   
+|---|---|
+| 1 | **Thermostat Offline** 
+| 2 | **Thermostat Online** 
+| 3 | **Cloud Verbindung verloren**
+| 4 | **Cloud Verbindung wieder hergestellt** 
+
+
+### Unterstützte Anbieter
+
+Der Adapter erkennt automatisch die erste laufende Instanz jedes aktivierten Anbieters – eine Instanznummer muss nicht angegeben werden.
+
+| Anbieter | Optionale Konfiguration |
+|---|---|
+| **Telegram** | Benutzer oder Chat-ID (optional) |
+| **Pushover** | Titel, Gerät (optional) |
+| **WhatsApp** (`whatsapp-cmb`) | Telefonnummer (optional) |
+| **E-Mail** | Empfänger, Betreff (optional) |
+| **Signal** (`signal-cmb`) | Telefonnummer (optional) |
+| **Matrix** (`matrix-org`) | Keine weitere Konfiguration |
+| **Synology Chat** | Kanalname (erforderlich) |
+
+---
+
 ## 🐞 Debug
 
 Loglevel **debug** aktivieren für Cloud‑Kommunikation.
