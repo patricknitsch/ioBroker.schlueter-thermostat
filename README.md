@@ -111,6 +111,13 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Fix Header Style when Device is offline
+- (patricknitsch) Add Icon and Only State on each Thermostat
+- (patricknitsch) Update Readme and Doc
+
 ### 0.6.1 (2026-05-09)
 
 - (patricknitsch) Add Measurement in DM Info
