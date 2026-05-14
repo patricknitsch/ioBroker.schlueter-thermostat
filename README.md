@@ -111,8 +111,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.6.3 (2026-05-14)
 
 - (patricknitsch) Update Icon and Online State automatically when Folder exists
 
@@ -139,11 +138,6 @@ flowchart TB
 
 - (copilot) Adapter requires node.js >= 22 now
 - (copilot) Update Dependencies
-
-### 0.5.2 (2026-03-20)
-
-- (patricknitsch) Update Readme
-- (patricknitsch) Fix Issues from RepoChecker
 
 ##
 

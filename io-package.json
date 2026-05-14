@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "news": {
+      "0.6.3": {
+        "en": "Update Icon and Online State automatically when Folder exists",
+        "de": "Icon und Online-Staat automatisch aktualisieren, wenn Ordner existiert",
+        "ru": "Обновление Icon и Online State автоматически при наличии папки",
+        "pt": "Atualizar o Ícone e o Estado Online automaticamente quando a Pasta existir",
+        "nl": "Pictogram en online status automatisch bijwerken wanneer de map bestaat",
+        "fr": "Mettre à jour automatiquement l'icône et l'état en ligne lorsque le dossier existe",
+        "it": "Aggiorna Icon e Stato online automaticamente quando esiste la cartella",
+        "es": "Actualizar el icono y el estado en línea automáticamente cuando la carpeta existe",
+        "pl": "Aktualizuj ikonę i stan online automatycznie, gdy istnieje folder",
+        "uk": "Оновити ікону і Інтернет-адміністрацію автоматично при складанні",
+        "zh-cn": "当文件夹存在时自动更新图标和在线状态"
+      },
       "0.6.2": {
         "en": "Fix Header Style when Device is offline\nAdd Icon and Only State on each Thermostat\nUpdate Readme and Doc",
         "de": "Fix Header Style, wenn Gerät offline ist\nIcon und nur Staat auf jedem Thermostat hinzufügen\nUpdate Readme und Doc",
@@ -80,19 +93,6 @@
         "pl": "Napraw problem z przyciskiem konfiguracyjnym w karcie",
         "uk": "Виправлення проблеми з кнопкою конфігурації в вкладці",
         "zh-cn": "在 Tab 中用配置按钮修正问题"
-      },
-      "0.5.0": {
-        "en": "Add `admin/tab.html` control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and Konfiguration button\nStatus banner now shows energy consumption for today (kWh)\nInstance selector removed — instance is auto-detected from the `?instance=N` URL parameter passed by Admin 7",
-        "de": "Fügen Sie `admin/tab.html` Bedienfeld mit grünem Thema, i18n (DE/EN), Live-Status-Banner, Schnellmodi, Temperatursteuerung, Urlaub, Schedule Viewer und Konfigurationstaste hinzu\nStatusbanner zeigt jetzt Energieverbrauch für heute (kWh)\nInstanz-Selektor entfernt — Instanz wird automatisch vom `? Beispiel=N` URL-Parameter von Admin 7 übergeben",
-        "ru": "Добавьте панель управления «admin/tab.html» с зеленой темой, i18n (DE/EN), баннером с живым статусом, быстрыми режимами, контролем температуры, отпуском, просмотром расписания и кнопкой Konfiguration\nСтатусный баннер показывает потребление энергии на сегодня (кВтч)\nСелектор инстанций удален - экземпляр автоматически обнаруживается из '? Пример = параметр URL N, переданный администратором 7",
-        "pt": "Adicionar `admin/tab.html` painel de controle com tema verde, i18n (DE/EN), banner de status ao vivo, modos rápidos, controle de temperatura, férias, visualizador de agenda e botão Konfiguration\nBanner de status agora mostra consumo de energia para hoje (kWh)\nSelector de instância removido — a instância é automaticamente detectada a partir do `? parâmetro URL instance=N` passado pelo Admin 7",
-        "nl": "Addmin/tab.html\nStatus banner toont nu energieverbruik voor vandaag (kWh)\nInstance selector verwijderde instantie wordt automatisch gedetecteerd van de  instance=N",
-        "fr": "Ajouter `admin/tab.html` panneau de contrôle avec thème vert, i18n (DE/EN), bannière de statut en direct, modes rapides, contrôle de température, vacances, visionneuse de calendrier et bouton Konfiguration\nLa bannière Status affiche maintenant la consommation d'énergie pour aujourd'hui (kWh)\nLe sélecteur d'instance est supprimé — l'instance est automatiquement détectée de la `? instance=N` paramètre URL passé par Admin 7",
-        "it": "Aggiungi `admin/tab.html` pannello di controllo con tema verde, i18n (DE/EN), banner di stato dal vivo, modalità rapide, controllo della temperatura, vacanza, visualizzatore di programma e pulsante Konfiguration\nIl banner di stato mostra ora il consumo energetico per oggi (kWh)\nSelettore di caso rimosso — l'istanza è auto-detected dal `? istanza=N` parametro URL passato da Admin 7",
-        "es": "Añadir `admin/tab.html` panel de control con tema verde, i18n (DE/EN), estandarte de estado en vivo, modos rápidos, control de temperatura, vacaciones, visor horario y botón de Konfiguration\nEstandarte de estado ahora muestra consumo de energía para hoy (kWh)\nSelector de instalación eliminado - ejemplo es auto-detectado de la `? ejemplo=N` parámetro URL aprobado por Admin 7",
-        "pl": "Dodaj panel sterowania 'admin / tab.html' z motywem zielonym, i18n (DE / EN), baner statusu na żywo, szybkie tryby, kontrola temperatury, wakacje, przeglądarka harmonogramu i przycisk Konfiguracja\nBaner stanu pokazuje zużycie energii na dziś (kWh)\nUsunięty selektor pola widzenia - instancja jest automatycznie wykrywana z '? instance = N' Parametr URL przekazywany przez Admin 7",
-        "uk": "Додати панель керування `admin/tab.html з зеленою темою, i18n (DE/EN), банер стану життя, швидкий режим, контроль температури, відпочинок, графік перегляду та налаштування кнопки\nСтатус банера тепер показує споживання енергії на сьогодні (kWh)\nВиданий інстанційний селекціонер — екземпляр автоматично виводиться з `? екземпляр=N` параметр URL, переданий Адміністратором 7",
-        "zh-cn": "添加“ admin/ tab.html” 控制面板, 绿色主题, i18n( DE/ EN), 实况状态标语、 快速模式、 温度控制、 休假、 排程查看器和 Konfiguration 按钮\n状态标语显示今天的能耗(千瓦时)\n实例选择器被删除——实例是从`自动发现的? exact=N ' URL 参数,由管理员 7通过"
       }
     },
     "titleLang": {

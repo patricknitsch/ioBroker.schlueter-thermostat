@@ -1,4 +1,9 @@
 # Older changes
+## 0.5.2 (2026-03-20)
+
+- (patricknitsch) Update Readme
+- (patricknitsch) Fix Issues from RepoChecker
+
 ## 0.5.1 (2026-03-18)
 
 - (copilot) Fix issue with configuration button in Tab
