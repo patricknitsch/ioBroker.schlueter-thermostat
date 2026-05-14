@@ -111,8 +111,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.7.0 (2026-05-14)
 
 - (claude) Add Notification Manager
 
@@ -138,11 +137,6 @@ flowchart TB
 - (copilot) Integrate Adapter in ioBroker Device Manager
 - (copilot) Remove Tab
 - (patricknitsch) Removed Encryption and Protection from Api-Key because it's a global key --> fill in ApiKey again after Update
-
-### 0.5.3 (2026-05-03)
-
-- (copilot) Adapter requires node.js >= 22 now
-- (copilot) Update Dependencies
 
 ##
 

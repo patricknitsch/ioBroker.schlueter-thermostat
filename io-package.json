@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.6.3",
+    "version": "0.7.0",
     "news": {
+      "0.7.0": {
+        "en": "Add Notification Manager",
+        "de": "Notification Manager hinzufügen",
+        "ru": "Добавить менеджер уведомлений",
+        "pt": "Adicionar Gerenciador de Notificações",
+        "nl": "Notificatiebeheer toevoegen",
+        "fr": "Ajouter un gestionnaire de notification",
+        "it": "Aggiungi Gestione notifiche",
+        "es": "Add Notification Manager",
+        "pl": "Dodaj menedżera powiadomień",
+        "uk": "Додати менеджер повідомлень",
+        "zh-cn": "添加通知管理器"
+      },
       "0.6.3": {
         "en": "Update Icon and Online State automatically when Folder exists",
         "de": "Icon und Online-Staat automatisch aktualisieren, wenn Ordner existiert",
@@ -80,19 +93,6 @@
         "pl": "Aktualizacja Readme\nNapraw problemy z RepoChecker",
         "uk": "Оновлення Readme\nВиправлення питань від RepoChecker",
         "zh-cn": "更新读取器\n从 Repo检查器修正问题"
-      },
-      "0.5.1": {
-        "en": "Fix issue with configuration button in Tab",
-        "de": "Problem mit Konfigurationstaste in Tab beheben",
-        "ru": "Исправление проблемы с кнопкой конфигурации в Tab",
-        "pt": "Corrigir problema com o botão de configuração na aba",
-        "nl": "Fix probleem met configuratie knop in tabblad",
-        "fr": "Correction du problème avec le bouton de configuration dans l'onglet",
-        "it": "Risolvi il problema con il pulsante di configurazione nella scheda",
-        "es": "Corregir el problema con el botón de configuración en Tab",
-        "pl": "Napraw problem z przyciskiem konfiguracyjnym w karcie",
-        "uk": "Виправлення проблеми з кнопкою конфігурації в вкладці",
-        "zh-cn": "在 Tab 中用配置按钮修正问题"
       }
     },
     "titleLang": {
