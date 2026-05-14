@@ -226,7 +226,7 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 
 ### Benachrichtigungskategorien
 
-| # | Kategorie | Beispiele |
+| # | Kategorie |
 |---|---|---|
 | 1 | **Thermostat Offline** 
 | 2 | **Thermostat Online** 
