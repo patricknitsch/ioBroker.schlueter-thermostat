@@ -111,8 +111,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.6.2 (2026-05-14)
 
 - (patricknitsch) Fix Header Style when Device is offline
 - (patricknitsch) Add Icon and Only State on each Thermostat
@@ -140,10 +139,6 @@ flowchart TB
 
 - (patricknitsch) Update Readme
 - (patricknitsch) Fix Issues from RepoChecker
-
-### 0.5.1 (2026-03-18)
-
-- (copilot) Fix issue with configuration button in Tab
 
 ##
 

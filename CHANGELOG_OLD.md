@@ -1,4 +1,8 @@
 # Older changes
+## 0.5.1 (2026-03-18)
+
+- (copilot) Fix issue with configuration button in Tab
+
 ## 0.5.0 (2026-03-17)
 
 - (copilot) Add control panel with green theme, i18n (DE/EN), live status banner, quick modes, temperature control, vacation, schedule viewer and configuration button

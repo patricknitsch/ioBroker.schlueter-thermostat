@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "news": {
+      "0.6.2": {
+        "en": "Fix Header Style when Device is offline\nAdd Icon and Only State on each Thermostat\nUpdate Readme and Doc",
+        "de": "Fix Header Style, wenn Gerät offline ist\nIcon und nur Staat auf jedem Thermostat hinzufügen\nUpdate Readme und Doc",
+        "ru": "Исправьте стиль заголовка, когда устройство отключено\nДобавить иконку и только государство на каждый термостат\nОбновление Readme и Doc",
+        "pt": "Corrigir o Estilo do Cabeçalho quando o Dispositivo estiver offline\nAdicionar ícone e estado único em cada termostato\nAtualizar o Readme e o Doc",
+        "nl": "Headerstijl herstellen wanneer Apparaat offline is\nPictogram toevoegen en alleen staat op elke thermostaat\nReadme en Doc bijwerken",
+        "fr": "Correction du style d'en-tête lorsque le périphérique est hors ligne\nAjouter l'icône et un seul état sur chaque thermostat\nMettre à jour Readme et Doc",
+        "it": "Fix Header Style quando il dispositivo è offline\nAggiungere Icon e Solo Stato su ogni termostato\nAggiornamento Readme e Doc",
+        "es": "Correr estilo de encabezado cuando el dispositivo está fuera de línea\nAñadir Icon y Sólo Estado en cada termostato\nActualización Readme y Doc",
+        "pl": "Napraw styl nagłówka, gdy urządzenie jest offline\nDodaj ikonę i tylko stan na każdym termostacie\nAktualizuj Readme i Doc",
+        "uk": "Фіксований стиль заголовка при вимкненні пристрою\nДодати іконку і тільки стан на кожному термостаті\nОновлення Readme і Doc",
+        "zh-cn": "设备下线时修正标题样式\n在每个自动调温器上添加图标和唯一的状态\n更新 Readme 和 Doc"
+      },
       "0.6.1": {
         "en": "Add Measurement in DM Info\nUpdate Admin Dependency >= 7.6.23 for Device Manager\nFirst Important Note: From 0.5.3 to 0.6.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3\nSecond Important Note: If you come from 0.5.3 you'll need to re-enter your API key because of removed Encryption. Use from Doc.",
         "de": "Messung in DM Info hinzufügen\nAdminabhängigkeit aktualisieren >= 7.6.23 für Gerätemanager\nErste wichtige Anmerkung: Von 0.5.3 bis 0.6.X wird die Sensor-Übersicht entfernt, aber sichtbar. Dass ein Bug von js-controller und sollte mit 7.1.3 behoben werden\nZweiter wichtiger Hinweis: Wenn Sie von 0.5.3 kommen, müssen Sie Ihre API-Schlüssel wegen entfernter Verschlüsselung neu eingeben. Verwendung von Doc.",
@@ -80,19 +93,6 @@
         "pl": "Dodaj panel sterowania 'admin / tab.html' z motywem zielonym, i18n (DE / EN), baner statusu na żywo, szybkie tryby, kontrola temperatury, wakacje, przeglądarka harmonogramu i przycisk Konfiguracja\nBaner stanu pokazuje zużycie energii na dziś (kWh)\nUsunięty selektor pola widzenia - instancja jest automatycznie wykrywana z '? instance = N' Parametr URL przekazywany przez Admin 7",
         "uk": "Додати панель керування `admin/tab.html з зеленою темою, i18n (DE/EN), банер стану життя, швидкий режим, контроль температури, відпочинок, графік перегляду та налаштування кнопки\nСтатус банера тепер показує споживання енергії на сьогодні (kWh)\nВиданий інстанційний селекціонер — екземпляр автоматично виводиться з `? екземпляр=N` параметр URL, переданий Адміністратором 7",
         "zh-cn": "添加“ admin/ tab.html” 控制面板, 绿色主题, i18n( DE/ EN), 实况状态标语、 快速模式、 温度控制、 休假、 排程查看器和 Konfiguration 按钮\n状态标语显示今天的能耗(千瓦时)\n实例选择器被删除——实例是从`自动发现的? exact=N ' URL 参数,由管理员 7通过"
-      },
-      "0.4.3": {
-        "en": "Fix adapter type in io-package.json",
-        "de": "Fix Adaptertyp in io-Package. Json",
-        "ru": "Тип адаптера в io-пакете. Джонсон",
-        "pt": "Corrigir tipo adaptador em io-pacote. json",
-        "nl": "Fix adapter type in io-package. json",
-        "fr": "Correction du type d'adaptateur dans le io-package. Json",
-        "it": "Fissare il tipo di adattatore in io-package. J",
-        "es": "Fijar tipo de adaptador en io-paquete. json",
-        "pl": "Napraw typ adaptera w pakiecie jo-. json",
-        "uk": "Фіксований тип адаптера в io-package. свінгери",
-        "zh-cn": "在io-package中固定适配器类型. 贾森"
       }
     },
     "titleLang": {
