@@ -226,8 +226,8 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 
 ### Benachrichtigungskategorien
 
-| # | Kategorie |
-|---|---|---|
+| # | Kategorie |   
+|---|---|
 | 1 | **Thermostat Offline** 
 | 2 | **Thermostat Online** 
 | 3 | **Cloud Verbindung verloren**
