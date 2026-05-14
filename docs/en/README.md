@@ -220,6 +220,36 @@ When the cloud is unreachable or **all** thermostats are offline, the adapter au
 
 ---
 
+## Tab „Notification“
+
+Activates Push-Notifications, to inform about device events. All Notifications will send in preconfigured system language.
+
+### Notification Categories
+
+| # | Categorie |
+|---|---|
+| 1 | **Thermostat Offline** 
+| 2 | **Thermostat Online** 
+| 3 | **Cloud Connection lost**
+| 4 | **Cloud Connection restored** 
+
+
+### Supported Providers
+
+The adapter automatically detect the running instance from each provider - no self added instance number necessary.
+
+| Provider | Optional Configuration |
+|---|---|
+| **Telegram** | User or Chat-ID (optional) |
+| **Pushover** | Title, Device (optional) |
+| **WhatsApp** (`whatsapp-cmb`) | Phone Nr. (optional) |
+| **E-Mail** | Receiver, Subject (optional) |
+| **Signal** (`signal-cmb`) | Phone Nr. (optional) |
+| **Matrix** (`matrix-org`) | No additional configuration |
+| **Synology Chat** | Chanalname (necessary) |
+
+---
+
 ## 🐞 Debugging
 
 Set log level to **debug** to see cloud communication.
