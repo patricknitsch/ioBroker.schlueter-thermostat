@@ -111,10 +111,15 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Update Icon and Online State automatically when Folder exists
+
 ### 0.6.2 (2026-05-14)
 
 - (patricknitsch) Fix Header Style when Device is offline
-- (patricknitsch) Add Icon and Only State on each Thermostat
+- (patricknitsch) Add Icon and Online State on each Thermostat
 - (patricknitsch) Update Readme and Doc
 
 ### 0.6.1 (2026-05-09)
