@@ -32,5 +32,6 @@
 	"notifyPhoneSignalLabel": "Номер телефону Signal (необов'язково)",
 	"notifyUseMatrixLabel": "Використовувати Matrix",
 	"notifyUseSynoChatLabel": "Використовувати Synology Chat",
-	"notifyChannelSynoChatLabel": "Канал Synology Chat"
+	"notifyChannelSynoChatLabel": "Канал Synology Chat",
+	"notifyInstanceLabel": "Екземпляр (авто якщо порожньо)"
 }

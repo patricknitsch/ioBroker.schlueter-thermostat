@@ -32,5 +32,6 @@
 	"notifyPhoneSignalLabel": "Signal 电话号码（可选）",
 	"notifyUseMatrixLabel": "使用 Matrix",
 	"notifyUseSynoChatLabel": "使用 Synology Chat",
-	"notifyChannelSynoChatLabel": "Synology Chat 频道"
+	"notifyChannelSynoChatLabel": "Synology Chat 频道",
+	"notifyInstanceLabel": "实例（空则自动检测）"
 }
