@@ -17,6 +17,7 @@ Unterstützt werden:
 - 🏖 Urlaubsmodus
 - 📅 Vollständige Zeitpläne
 - ⚡ Energieverbrauchswerte
+- 🔔 Optionale Adapter-Benachrichtigungen (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)
 
 > **Nur Cloud** – kein lokales Gateway oder Modbus erforderlich.
 
@@ -217,6 +218,20 @@ Wenn die Cloud nicht erreichbar ist oder **alle** Thermostate offline sind, redu
 | Backoff | Bei jedem weiteren Fehler verdoppelt sich das Intervall (60 s → 120 s → 240 s → … → 1 h) |
 | Fester Zeitplan | Nach Erreichen von 1 h wechselt die Abfrage auf einen festen Zeitplan um **12:00** und **00:00** |
 | Wiederherstellung | Sobald mindestens ein Thermostat wieder online ist, wird das Intervall auf den konfigurierten Wert zurückgesetzt |
+
+---
+
+## 🔔 Benachrichtigungen
+
+Der Adapter kann Benachrichtigungen über andere ioBroker-Adapter für folgende Ereignisse versenden:
+
+- Thermostat offline
+- Thermostat online (wieder erreichbar)
+- Cloud-Verbindung verloren
+- Cloud-Verbindung wiederhergestellt
+
+In der Instanzkonfiguration hat jeder Provider eine eigene Adapter-Instanzauswahl (`type:instance`).
+Wenn keine Instanz ausgewählt ist, wird automatisch eine laufende Instanz erkannt und die kleinste Instanznummer bevorzugt (`.0`, `.1`, ...).
 
 ---
 

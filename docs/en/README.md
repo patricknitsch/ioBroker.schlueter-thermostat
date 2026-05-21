@@ -17,6 +17,7 @@ It supports:
 - 🏖 Vacation mode
 - 📅 Full schedule readout
 - ⚡ Energy statistics
+- 🔔 Optional adapter notifications (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)
 
 > **Cloud-only** — no local gateway, Modbus, or LAN API required.
 
@@ -217,6 +218,20 @@ When the cloud is unreachable or **all** thermostats are offline, the adapter au
 | Backoff | On each consecutive failure the interval doubles (60 s → 120 s → 240 s → … → 1 h) |
 | Fixed schedule | After reaching 1 h, polling switches to a fixed schedule at **12:00** and **00:00** |
 | Recovery | As soon as at least one thermostat is online again, the interval resets to the configured value |
+
+---
+
+## 🔔 Notifications
+
+The adapter can send notifications via other ioBroker adapters for these events:
+
+- Thermostat offline
+- Thermostat online (recovered)
+- Cloud connection lost
+- Cloud connection recovered
+
+In the instance config, each provider has its own adapter instance selector (`type:instance`).
+If no instance is selected, the adapter auto-detects a running instance and prefers the lowest instance number (`.0`, `.1`, ...).
 
 ---
 
