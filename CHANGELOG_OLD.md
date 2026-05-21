@@ -1,4 +1,10 @@
 # Older changes
+## 0.6.0 (2026-05-08)
+
+- (copilot) Integrate Adapter in ioBroker Device Manager
+- (copilot) Remove Tab
+- (patricknitsch) Removed Encryption and Protection from Api-Key because it's a global key --> fill in ApiKey again after Update
+
 ## 0.5.3 (2026-05-03)
 
 - (copilot) Adapter requires node.js >= 22 now

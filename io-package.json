@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "news": {
+      "0.7.1": {
+        "en": "Modify notification manager to work with instances\nUpdate Dependencies",
+        "de": "Benachrichtigungsmanager ändern, um mit Instanzen zu arbeiten\nAnpassungsabhängigkeiten",
+        "ru": "Изменить менеджер уведомлений для работы с экземплярами\nОбновление зависимостей",
+        "pt": "Modificar o gerenciador de notificações para trabalhar com instâncias\nAtualizar dependências",
+        "nl": "Notificatiebeheer aanpassen om met instanties te werken\nAfhankelijkheden bijwerken",
+        "fr": "Modifier le gestionnaire de notification pour travailler avec les instances\nMettre à jour les dépendances",
+        "it": "Modificare il gestore di notifiche per lavorare con le istanze\nDipendenze di aggiornamento",
+        "es": "Modificar el administrador de notificación para trabajar con casos\nDependencias de actualización",
+        "pl": "Zmień menedżera powiadomień do pracy z instancjami\nAktualizuj zależności",
+        "uk": "Зміна диспетчера повідомлень для роботи з екземплярами\nОновлення залежності",
+        "zh-cn": "修改通知管理器以配合实例\n更新依赖关系"
+      },
       "0.7.0": {
         "en": "Add Notification Manager",
         "de": "Notification Manager hinzufügen",
@@ -80,19 +93,6 @@
         "pl": "Adapter wymaga node.js > = 22\nAktualizuj zależności",
         "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлення залежності",
         "zh-cn": "适配器需要节点.js 现在22\n更新依赖关系"
-      },
-      "0.5.2": {
-        "en": "Update Readme\nFix Issues from RepoChecker",
-        "de": "Update Reader\nProbleme von RepoChecker beheben",
-        "ru": "Обновление Readme\nОбсуждение RepoChecker",
-        "pt": "Actualizar a Leitura\nCorrigir os Problemas do RepoChecker",
-        "nl": "Readme bijwerken\nProblemen van repochecker oplossen",
-        "fr": "Mettre à jour Readme\nCorrection des problèmes de RepoChecker",
-        "it": "Aggiornamento\nRisolvi problemi da RepoChecker",
-        "es": "Actualización Readme\nProblemas de reparación de RepoChecker",
-        "pl": "Aktualizacja Readme\nNapraw problemy z RepoChecker",
-        "uk": "Оновлення Readme\nВиправлення питань від RepoChecker",
-        "zh-cn": "更新读取器\n从 Repo检查器修正问题"
       }
     },
     "titleLang": {
