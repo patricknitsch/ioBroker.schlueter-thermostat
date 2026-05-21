@@ -221,17 +221,34 @@ When the cloud is unreachable or **all** thermostats are offline, the adapter au
 
 ---
 
-## 🔔 Notifications
+## Tab „Notification“
 
-The adapter can send notifications via other ioBroker adapters for these events:
+Activates Push-Notifications, to inform about device events. All Notifications will send in preconfigured system language.
 
-- Thermostat offline
-- Thermostat online (recovered)
-- Cloud connection lost
-- Cloud connection recovered
+### Notification Categories
 
-In the instance config, each provider has its own adapter instance selector (`type:instance`).
-If no instance is selected, the adapter auto-detects a running instance and prefers the lowest instance number (`.0`, `.1`, ...).
+| # | Categorie |
+|---|---|
+| 1 | **Thermostat Offline** 
+| 2 | **Thermostat Online** 
+| 3 | **Cloud Connection lost**
+| 4 | **Cloud Connection restored** 
+
+
+### Supported Providers
+
+Each enabled provider supports an optional adapter instance selector (`type:instance`) in the instance config.
+If left empty, the adapter automatically detects a running instance and prefers the lowest instance number (`.0`, `.1`, ...).
+
+| Provider | Optional Configuration |
+|---|---|
+| **Telegram** | User or Chat-ID (optional) |
+| **Pushover** | Title, Device (optional) |
+| **WhatsApp** (`whatsapp-cmb`) | Phone Nr. (optional) |
+| **E-Mail** | Receiver, Subject (optional) |
+| **Signal** (`signal-cmb`) | Phone Nr. (optional) |
+| **Matrix** (`matrix-org`) | No additional configuration |
+| **Synology Chat** | Chanalname (necessary) |
 
 ---
 

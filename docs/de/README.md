@@ -221,17 +221,34 @@ Wenn die Cloud nicht erreichbar ist oder **alle** Thermostate offline sind, redu
 
 ---
 
-## 🔔 Benachrichtigungen
+## Tab „Benachrichtigungen“
 
-Der Adapter kann Benachrichtigungen über andere ioBroker-Adapter für folgende Ereignisse versenden:
+Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werden. Alle Meldungen werden in der in ioBroker konfigurierten Systemsprache verschickt.
 
-- Thermostat offline
-- Thermostat online (wieder erreichbar)
-- Cloud-Verbindung verloren
-- Cloud-Verbindung wiederhergestellt
+### Benachrichtigungskategorien
 
-In der Instanzkonfiguration hat jeder Provider eine eigene Adapter-Instanzauswahl (`type:instance`).
-Wenn keine Instanz ausgewählt ist, wird automatisch eine laufende Instanz erkannt und die kleinste Instanznummer bevorzugt (`.0`, `.1`, ...).
+| # | Kategorie |   
+|---|---|
+| 1 | **Thermostat Offline** 
+| 2 | **Thermostat Online** 
+| 3 | **Cloud Verbindung verloren**
+| 4 | **Cloud Verbindung wieder hergestellt** 
+
+
+### Unterstützte Anbieter
+
+Für jeden aktivierten Anbieter kann in der Instanzkonfiguration optional eine Adapter-Instanz (`type:instance`) ausgewählt werden.
+Wenn keine Instanz ausgewählt ist, erkennt der Adapter automatisch eine laufende Instanz und bevorzugt die kleinste Instanznummer (`.0`, `.1`, ...).
+
+| Anbieter | Optionale Konfiguration |
+|---|---|
+| **Telegram** | Benutzer oder Chat-ID (optional) |
+| **Pushover** | Titel, Gerät (optional) |
+| **WhatsApp** (`whatsapp-cmb`) | Telefonnummer (optional) |
+| **E-Mail** | Empfänger, Betreff (optional) |
+| **Signal** (`signal-cmb`) | Telefonnummer (optional) |
+| **Matrix** (`matrix-org`) | Keine weitere Konfiguration |
+| **Synology Chat** | Kanalname (erforderlich) |
 
 ---
 
