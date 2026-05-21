@@ -111,6 +111,11 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+* (copilot) Modify notification manager to work with instances
+* (copilot) Update Dependencies
+
 ### 0.7.0 (2026-05-14)
 
 - (claude) Add Notification Manager
