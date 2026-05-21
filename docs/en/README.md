@@ -17,6 +17,7 @@ It supports:
 - 🏖 Vacation mode
 - 📅 Full schedule readout
 - ⚡ Energy statistics
+- 🔔 Optional adapter notifications (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)
 
 > **Cloud-only** — no local gateway, Modbus, or LAN API required.
 
@@ -226,7 +227,7 @@ Activates Push-Notifications, to inform about device events. All Notifications w
 
 ### Notification Categories
 
-| # | Categorie |
+| # | Category |
 |---|---|
 | 1 | **Thermostat Offline** 
 | 2 | **Thermostat Online** 
@@ -236,7 +237,8 @@ Activates Push-Notifications, to inform about device events. All Notifications w
 
 ### Supported Providers
 
-The adapter automatically detect the running instance from each provider - no self added instance number necessary.
+Each enabled provider supports an optional adapter instance selector (`type:instance`) in the instance config.
+If left empty, the adapter automatically detects a running instance and prefers the lowest instance number (`.0`, `.1`, ...).
 
 | Provider | Optional Configuration |
 |---|---|
@@ -246,7 +248,7 @@ The adapter automatically detect the running instance from each provider - no se
 | **E-Mail** | Receiver, Subject (optional) |
 | **Signal** (`signal-cmb`) | Phone Nr. (optional) |
 | **Matrix** (`matrix-org`) | No additional configuration |
-| **Synology Chat** | Chanalname (necessary) |
+| **Synology Chat** | Channelname (necessary) |
 
 ---
 

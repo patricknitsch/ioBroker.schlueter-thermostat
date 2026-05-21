@@ -17,6 +17,7 @@ Unterstützt werden:
 - 🏖 Urlaubsmodus
 - 📅 Vollständige Zeitpläne
 - ⚡ Energieverbrauchswerte
+- 🔔 Optionale Adapter-Benachrichtigungen (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)
 
 > **Nur Cloud** – kein lokales Gateway oder Modbus erforderlich.
 
@@ -236,7 +237,8 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 
 ### Unterstützte Anbieter
 
-Der Adapter erkennt automatisch die erste laufende Instanz jedes aktivierten Anbieters – eine Instanznummer muss nicht angegeben werden.
+Für jeden aktivierten Anbieter kann in der Instanzkonfiguration optional eine Adapter-Instanz (`type:instance`) ausgewählt werden.
+Wenn keine Instanz ausgewählt ist, erkennt der Adapter automatisch eine laufende Instanz und bevorzugt die kleinste Instanznummer (`.0`, `.1`, ...).
 
 | Anbieter | Optionale Konfiguration |
 |---|---|

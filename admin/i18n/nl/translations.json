@@ -32,5 +32,6 @@
 	"notifyPhoneSignalLabel": "Signal-telefoonnummer (optioneel)",
 	"notifyUseMatrixLabel": "Matrix gebruiken",
 	"notifyUseSynoChatLabel": "Synology Chat gebruiken",
-	"notifyChannelSynoChatLabel": "Synology Chat-kanaal"
+	"notifyChannelSynoChatLabel": "Synology Chat-kanaal",
+	"notifyInstanceLabel": "Instantie (auto als leeg)"
 }

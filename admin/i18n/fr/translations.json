@@ -32,5 +32,6 @@
 	"notifyPhoneSignalLabel": "Numéro de téléphone Signal (optionnel)",
 	"notifyUseMatrixLabel": "Utiliser Matrix",
 	"notifyUseSynoChatLabel": "Utiliser Synology Chat",
-	"notifyChannelSynoChatLabel": "Canal Synology Chat"
+	"notifyChannelSynoChatLabel": "Canal Synology Chat",
+	"notifyInstanceLabel": "Instance (auto si vide)"
 }
