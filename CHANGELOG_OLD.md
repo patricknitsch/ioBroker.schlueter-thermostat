@@ -1,4 +1,9 @@
 # Older changes
+## 0.5.3 (2026-05-03)
+
+- (copilot) Adapter requires node.js >= 22 now
+- (copilot) Update Dependencies
+
 ## 0.5.2 (2026-03-20)
 
 - (patricknitsch) Update Readme

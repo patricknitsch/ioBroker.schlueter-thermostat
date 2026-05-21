@@ -548,7 +548,10 @@ class SchlueterThermostat extends utils.Adapter {
 							);
 							this.warnedNoCloud = true;
 							if (this.config.notifyOnCloudOffline !== false) {
-								sendNotification(this, `Cloud connection lost (${this.pollFailCount} failures). Last error: ${err?.message || err}`).catch(() => {});
+								sendNotification(
+									this,
+									`Cloud connection lost (${this.pollFailCount} failures). Last error: ${err?.message || err}`,
+								).catch(() => {});
 							}
 						} else {
 							this.log.debug(
