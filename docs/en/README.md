@@ -227,7 +227,7 @@ Activates Push-Notifications, to inform about device events. All Notifications w
 
 ### Notification Categories
 
-| # | Categorie |
+| # | Category |
 |---|---|
 | 1 | **Thermostat Offline** 
 | 2 | **Thermostat Online** 
@@ -248,7 +248,7 @@ If left empty, the adapter automatically detects a running instance and prefers 
 | **E-Mail** | Receiver, Subject (optional) |
 | **Signal** (`signal-cmb`) | Phone Nr. (optional) |
 | **Matrix** (`matrix-org`) | No additional configuration |
-| **Synology Chat** | Chanalname (necessary) |
+| **Synology Chat** | Channelname (necessary) |
 
 ---
 
