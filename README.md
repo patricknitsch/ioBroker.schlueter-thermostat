@@ -111,8 +111,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.7.2 (2026-05-23)
 * (copilot) Add Icons for Notifications
 
 ### 0.7.1 (2026-05-21)
@@ -132,13 +131,6 @@ flowchart TB
 - (patricknitsch) Fix Header Style when Device is offline
 - (patricknitsch) Add Icon and Online State on each Thermostat
 - (patricknitsch) Update Readme and Doc
-
-### 0.6.1 (2026-05-09)
-
-- (patricknitsch) Add Measurement in DM Info
-- (patricknitsch) Update Admin Dependency >= 7.6.23 for Device Manager
-- First Important Note: From 0.5.3 to 0.6.X the Sensor Overview is removed but visible. Thats a Bug from js-controller and should be fixed with 7.1.3
-- Second Important Note: If you come from 0.5.3 you'll need to re-enter your API key because of removed Encryption. Use from Doc.
 
 ##
 

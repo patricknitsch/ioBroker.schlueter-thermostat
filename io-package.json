@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.7.1",
+    "version": "0.7.2",
     "news": {
+      "0.7.2": {
+        "en": "Add Icons for Notifications",
+        "de": "Icons for Notifications hinzufügen",
+        "ru": "Добавить иконки для уведомлений",
+        "pt": "Adicionar Ícones para Notificações",
+        "nl": "Pictogrammen voor meldingen toevoegen",
+        "fr": "Ajouter des icônes pour les notifications",
+        "it": "Aggiungi icone per le notifiche",
+        "es": "Add Icons for Notifications",
+        "pl": "Dodaj ikony powiadomień",
+        "uk": "Додати іконки для повідомлень",
+        "zh-cn": "添加通知图标"
+      },
       "0.7.1": {
         "en": "Modify notification manager to work with instances\nUpdate Dependencies",
         "de": "Benachrichtigungsmanager ändern, um mit Instanzen zu arbeiten\nAnpassungsabhängigkeiten",
@@ -80,19 +93,6 @@
         "pl": "Zintegruj adapter w menedżerze urządzeń joBroker\nUsuń kartę\nUsunięto szyfrowanie i ochronę z Api- Key, ponieważ jest to klucz globalny -- > wypełnić ApiKey ponownie po aktualizacji",
         "uk": "Інтеграція адаптера в ioBroker Manager\nВидалити вкладку\nВилучено шифрування та захист від Api-Key, оскільки це глобальний ключ --> заповніть ApiKey знову після оновлення",
         "zh-cn": "在 ioBroker 设备管理器中整合适配器\n删除标签\n从 Api- Key 中删除加密和保护, 因为它是一个全局密钥 -- > 在更新后再次填写 ApiKey"
-      },
-      "0.5.3": {
-        "en": "Adapter requires node.js >= 22 now\nUpdate Dependencies",
-        "de": "Adapter benötigt node.js >= 22 jetzt\nAnpassungsabhängigkeiten",
-        "ru": "Адаптер требует node.js >= 22 сейчас\nОбновление зависимостей",
-        "pt": "Adaptador requer nod.js >= 22 agora\nAtualizar dependências",
-        "nl": "Voor de adapter zijn node.js < 22 nu nodig\nAfhankelijkheden bijwerken",
-        "fr": "Adaptateur nécessite node.js >= 22 maintenant\nMettre à jour les dépendances",
-        "it": "Adattatore richiede node.js >= 22 ora\nDipendenze di aggiornamento",
-        "es": "Adaptador requiere node.js ю= 22 ahora\nDependencias de actualización",
-        "pl": "Adapter wymaga node.js > = 22\nAktualizuj zależności",
-        "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлення залежності",
-        "zh-cn": "适配器需要节点.js 现在22\n更新依赖关系"
       }
     },
     "titleLang": {
