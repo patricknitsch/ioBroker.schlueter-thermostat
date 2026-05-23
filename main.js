@@ -502,7 +502,7 @@ class SchlueterThermostat extends utils.Adapter {
 			this.pollFailCount = 0;
 			this.warnedNoCloud = false;
 			if (wasDisconnected && this.config.notifyOnCloudRecovered !== false) {
-				sendNotification(this, 'Cloud connection recovered.').catch(() => {});
+				sendNotification(this, '✅ Cloud connection recovered.').catch(() => {});
 			}
 
 			for (const group of groups) {
@@ -550,7 +550,7 @@ class SchlueterThermostat extends utils.Adapter {
 							if (this.config.notifyOnCloudOffline !== false) {
 								sendNotification(
 									this,
-									`Cloud connection lost (${this.pollFailCount} failures). Last error: ${err?.message || err}`,
+									`⚠️ Cloud connection lost (${this.pollFailCount} failures). Last error: ${err?.message || err}`,
 								).catch(() => {});
 							}
 						} else {
