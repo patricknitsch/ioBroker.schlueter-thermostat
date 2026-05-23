@@ -622,13 +622,13 @@ class SchlueterThermostat extends utils.Adapter {
 			this.log.warn(`Thermostat OFFLINE: ${gName} / ${thermostatName} (ThermostatId=${thermostatId})`);
 			this.warnedOffline[thermostatId] = true;
 			if (this.config.notifyOnThermostatOffline !== false) {
-				sendNotification(this, `Thermostat offline: ${gName} / ${thermostatName}`).catch(() => {});
+				sendNotification(this, `⚠️ Thermostat offline: ${gName} / ${thermostatName}`).catch(() => {});
 			}
 		}
 		if (onlineNow === true && prevOnline === false) {
 			if (this.config.notifyOnThermostatOnline !== false) {
 				const gName = this.groupNameCache[groupId] || `Group ${groupId}`;
-				sendNotification(this, `Thermostat online: ${gName} / ${thermostatName}`).catch(() => {});
+				sendNotification(this, `✅ Thermostat online: ${gName} / ${thermostatName}`).catch(() => {});
 			}
 		}
 		if (onlineNow === true) {

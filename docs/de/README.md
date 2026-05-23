@@ -229,8 +229,8 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 
 | # | Kategorie |   
 |---|---|
-| 1 | **Thermostat Offline** 
-| 2 | **Thermostat Online** 
+| 1 | **⚠️ Thermostat Offline** 
+| 2 | **✅ Thermostat Online** 
 | 3 | **⚠️ Cloud Verbindung verloren**
 | 4 | **✅ Cloud Verbindung wieder hergestellt** 
 
