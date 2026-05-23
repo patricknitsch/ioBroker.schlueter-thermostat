@@ -231,8 +231,8 @@ Activates Push-Notifications, to inform about device events. All Notifications w
 |---|---|
 | 1 | **Thermostat Offline** 
 | 2 | **Thermostat Online** 
-| 3 | **Cloud Connection lost**
-| 4 | **Cloud Connection restored** 
+| 3 | **⚠️ Cloud Connection lost**
+| 4 | **✅ Cloud Connection restored** 
 
 
 ### Supported Providers
