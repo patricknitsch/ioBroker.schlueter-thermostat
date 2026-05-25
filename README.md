@@ -132,6 +132,8 @@ flowchart TB
 - (patricknitsch) Add Icon and Online State on each Thermostat
 - (patricknitsch) Update Readme and Doc
 
+Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
+
 ##
 
 ## License
