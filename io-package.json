@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.7.2",
+    "version": "0.7.3",
     "news": {
+      "0.7.3": {
+        "en": "Fixes for Repo Checker",
+        "de": "Fixes für Repo Checker",
+        "ru": "Обсуждение Repo Checker",
+        "pt": "Correcções para o Verificador de Repo",
+        "nl": "Fixes voor Repo Checker",
+        "fr": "Corrections pour Repo Checker",
+        "it": "Riparazioni per Checker Repo",
+        "es": "Fijas para el Checker Repo",
+        "pl": "Fixes for Repo Checker",
+        "uk": "Виправлення для репо-перевірки",
+        "zh-cn": "Repo 检查器的修复"
+      },
       "0.7.2": {
         "en": "Add Icons for Notifications",
         "de": "Icons for Notifications hinzufügen",
@@ -80,19 +93,6 @@
         "pl": "Dodaj pomiar w DM Info\nAktualizacja Admin Dependency > = 7.6.23 dla Device Manager\nPierwsza ważna uwaga: Od 0.5.3 do 0.6.X Przegląd czujników jest usuwany, ale widoczny. To błąd ze sterownika js- i powinien być naprawiony z 7.1.3\nDruga ważna uwaga: Jeśli pochodzisz z 0.5.3 musisz ponownie wprowadzić swój klucz API ze względu na usunięte szyfrowanie. Użyj od Doca.",
         "uk": "Додати вимірювання в DM інформація\nОновлення залежності адміністратора >= 7.6.23 для диспетчера пристроїв\nFirst Важливо Примітка: Від 0.5.3 до 0.6.X Огляд датчика видалено, але видимо. Що таке Буга від js-controller і слід зафіксувати 7.1.3\nДруге значення Примітка: Якщо ви приїжджаєте з 0.5.3 вам потрібно буде повторно керувати ключем API через вилучене шифрування. Використовуйте з Doc.",
         "zh-cn": "在 DM 信息中添加测量\n更新设备管理器的依赖性QQ 7.6.23\n第一重要注释:从0.5.3到0.6.X 传感器概览被删除但可见. 这是来自js控制器的虫子,应该用7.1.3来固定\n第二重要注意:如果来自0.5.3,由于已删除的加密,需要重新输入您的API密钥. 从医生处使用."
-      },
-      "0.6.0": {
-        "en": "Integrate Adapter in ioBroker Device Manager\nRemove Tab\nRemoved Encryption and Protection from Api-Key because it's a global key --> fill in ApiKey again after Update",
-        "de": "Integrieren Sie Adapter in ioBroker Device Manager\nEntfernen Tab\nEntfernte Verschlüsselung und Schutz von Api-Key, weil es ein globaler Schlüssel ist --> füllen Sie ApiKey erneut nach Update",
-        "ru": "Интеграция адаптера в диспетчер устройств ioBroker\nУдалить Tab\nУдален шифрование и защита от Api-Key, потому что это глобальный ключ -> заполните ApiKey снова после обновления",
-        "pt": "Integrar o Adaptador no Gerenciador de Dispositivos ioBroker\nRemover aba\nCriptografia e proteção removidas do Api-Key porque é uma chave global --> preencha o ApiKey novamente após a atualização",
-        "nl": "Adapter integreren in ioBroker Device Manager\nTabblad verwijderen\nVerwijderde versleuteling en bescherming van Api-Key omdat het een globale sleutel --> ApiKey opnieuw invullen na Update",
-        "fr": "Intégrer l'adaptateur dans ioBroker Device Manager\nSupprimer l'onglet\nSupprimé le chiffrement et la protection de Api-Key parce que c'est une clé globale --> remplir ApiKey à nouveau après la mise à jour",
-        "it": "Integrare l'adattatore in ioBroker Device Manager\nRimuovi la scheda\nEliminato Crittografia e Protezione da Api-Key perché è una chiave globale --> riempire ApiKey di nuovo dopo l'aggiornamento",
-        "es": "Integrar el adaptador en ioBroker Device Manager\nQuitar Tab\nCifrado y protección eliminados de Api-Key porque es una clave global -- prenda rellenar en ApiKey de nuevo después de actualización",
-        "pl": "Zintegruj adapter w menedżerze urządzeń joBroker\nUsuń kartę\nUsunięto szyfrowanie i ochronę z Api- Key, ponieważ jest to klucz globalny -- > wypełnić ApiKey ponownie po aktualizacji",
-        "uk": "Інтеграція адаптера в ioBroker Manager\nВидалити вкладку\nВилучено шифрування та захист від Api-Key, оскільки це глобальний ключ --> заповніть ApiKey знову після оновлення",
-        "zh-cn": "在 ioBroker 设备管理器中整合适配器\n删除标签\n从 Api- Key 中删除加密和保护, 因为它是一个全局密钥 -- > 在更新后再次填写 ApiKey"
       }
     },
     "titleLang": {

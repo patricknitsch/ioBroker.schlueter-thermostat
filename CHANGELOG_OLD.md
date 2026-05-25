@@ -1,4 +1,10 @@
 # Older changes
+## 0.6.2 (2026-05-14)
+
+- (patricknitsch) Fix Header Style when Device is offline
+- (patricknitsch) Add Icon and Online State on each Thermostat
+- (patricknitsch) Update Readme and Doc
+
 ## 0.6.1 (2026-05-09)
 
 - (patricknitsch) Add Measurement in DM Info

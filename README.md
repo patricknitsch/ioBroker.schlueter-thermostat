@@ -111,8 +111,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.7.3 (2026-05-25)
 * (copilot) Fixes for Repo Checker
 
 ### 0.7.2 (2026-05-23)
@@ -130,15 +129,7 @@ flowchart TB
 
 - (patricknitsch) Update Icon and Online State automatically when Folder exists
 
-### 0.6.2 (2026-05-14)
-
-- (patricknitsch) Fix Header Style when Device is offline
-- (patricknitsch) Add Icon and Online State on each Thermostat
-- (patricknitsch) Update Readme and Doc
-
-Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
-
-##
+Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).##
 
 ## License
 
