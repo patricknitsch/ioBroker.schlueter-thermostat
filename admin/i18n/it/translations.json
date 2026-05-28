@@ -10,7 +10,6 @@
 	"Poll interval (seconds)": "Intervallo di polling (secondi)",
 	"Software Version": "Versione del software",
 	"Username": "Nome utente",
-	"Username / Email": "Nome utente/e-mail",
 	"notifyHint": "Attiva le notifiche e seleziona i provider desiderati. L'adattatore rileva automaticamente le istanze in esecuzione – nessun numero di istanza richiesto.",
 	"notifyEnabledLabel": "Attiva notifiche",
 	"notifyEventsHeader": "Eventi di notifica",
@@ -33,5 +32,8 @@
 	"notifyUseMatrixLabel": "Usa Matrix",
 	"notifyUseSynoChatLabel": "Usa Synology Chat",
 	"notifyChannelSynoChatLabel": "Canale Synology Chat",
-	"notifyInstanceLabel": "Istanza (automatica se vuota)"
+	"notifyInstanceLabel": "Istanza (automatica se vuota)",
+	"Legacy Cleanup": "Pulizia legacy",
+	"Main": "Principale",
+	"Notifications": "Notifiche"
 }

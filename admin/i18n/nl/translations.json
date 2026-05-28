@@ -10,7 +10,6 @@
 	"Poll interval (seconds)": "Poll-interval (seconden)",
 	"Software Version": "Softwareversie",
 	"Username": "Gebruikersnaam",
-	"Username / Email": "Gebruikersnaam / E-mailadres",
 	"notifyHint": "Schakel meldingen in en selecteer de gewenste providers. De adapter detecteert actieve instanties automatisch – geen instantienummer vereist.",
 	"notifyEnabledLabel": "Meldingen inschakelen",
 	"notifyEventsHeader": "Meldingsgebeurtenissen",
@@ -33,5 +32,8 @@
 	"notifyUseMatrixLabel": "Matrix gebruiken",
 	"notifyUseSynoChatLabel": "Synology Chat gebruiken",
 	"notifyChannelSynoChatLabel": "Synology Chat-kanaal",
-	"notifyInstanceLabel": "Instantie (auto als leeg)"
+	"notifyInstanceLabel": "Instantie (auto als leeg)",
+	"Legacy Cleanup": "Legacy-opruiming",
+	"Main": "Hoofd",
+	"Notifications": "Meldingen"
 }

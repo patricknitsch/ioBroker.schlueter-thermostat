@@ -32,5 +32,8 @@
 	"notifyUseMatrixLabel": "Matrix verwenden",
 	"notifyUseSynoChatLabel": "Synology Chat verwenden",
 	"notifyChannelSynoChatLabel": "Synology-Chat-Kanal",
-	"notifyInstanceLabel": "Instanz (automatisch wenn leer)"
+	"notifyInstanceLabel": "Instanz (automatisch wenn leer)",
+	"Legacy Cleanup": "Legacy-Bereinigung",
+	"Main": "Haupt",
+	"Notifications": "Benachrichtigungen"
 }
