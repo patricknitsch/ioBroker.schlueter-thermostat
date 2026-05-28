@@ -10,7 +10,6 @@
 	"Poll interval (seconds)": "Інтервал опитування (секунди)",
 	"Software Version": "Версія програмного забезпечення",
 	"Username": "Ім'я користувача",
-	"Username / Email": "Ім'я користувача/Електронна пошта",
 	"notifyHint": "Увімкніть сповіщення та оберіть бажаних провайдерів. Адаптер автоматично визначає запущені екземпляри – номер екземпляра не потрібен.",
 	"notifyEnabledLabel": "Увімкнути сповіщення",
 	"notifyEventsHeader": "Події сповіщень",
@@ -33,5 +32,8 @@
 	"notifyUseMatrixLabel": "Використовувати Matrix",
 	"notifyUseSynoChatLabel": "Використовувати Synology Chat",
 	"notifyChannelSynoChatLabel": "Канал Synology Chat",
-	"notifyInstanceLabel": "Екземпляр (авто якщо порожньо)"
+	"notifyInstanceLabel": "Екземпляр (авто якщо порожньо)",
+	"Legacy Cleanup": "Очищення застарілих даних",
+	"Main": "Основне",
+	"Notifications": "Сповіщення"
 }

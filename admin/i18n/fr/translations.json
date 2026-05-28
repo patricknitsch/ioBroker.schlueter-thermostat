@@ -10,7 +10,6 @@
 	"Poll interval (seconds)": "Intervalle d'interrogation (secondes)",
 	"Software Version": "Version du logiciel",
 	"Username": "Nom d'utilisateur",
-	"Username / Email": "Nom d'utilisateur / E-mail",
 	"notifyHint": "Activez les notifications et sélectionnez les fournisseurs souhaités. L'adaptateur détecte automatiquement les instances en cours d'exécution – aucun numéro d'instance requis.",
 	"notifyEnabledLabel": "Activer les notifications",
 	"notifyEventsHeader": "Événements de notification",
@@ -33,5 +32,8 @@
 	"notifyUseMatrixLabel": "Utiliser Matrix",
 	"notifyUseSynoChatLabel": "Utiliser Synology Chat",
 	"notifyChannelSynoChatLabel": "Canal Synology Chat",
-	"notifyInstanceLabel": "Instance (auto si vide)"
+	"notifyInstanceLabel": "Instance (auto si vide)",
+	"Legacy Cleanup": "Nettoyage hérité",
+	"Main": "Principal",
+	"Notifications": "Notifications"
 }

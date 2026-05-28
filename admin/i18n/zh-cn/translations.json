@@ -10,7 +10,6 @@
 	"Poll interval (seconds)": "轮询间隔（秒）",
 	"Software Version": "软件版本",
 	"Username": "用户名",
-	"Username / Email": "用户名/电子邮件",
 	"notifyHint": "启用通知并选择所需的服务提供商。适配器自动检测正在运行的实例 – 无需实例编号。",
 	"notifyEnabledLabel": "启用通知",
 	"notifyEventsHeader": "通知事件",
@@ -33,5 +32,8 @@
 	"notifyUseMatrixLabel": "使用 Matrix",
 	"notifyUseSynoChatLabel": "使用 Synology Chat",
 	"notifyChannelSynoChatLabel": "Synology Chat 频道",
-	"notifyInstanceLabel": "实例（空则自动检测）"
+	"notifyInstanceLabel": "实例（空则自动检测）",
+	"Legacy Cleanup": "旧版清理",
+	"Main": "主要",
+	"Notifications": "通知"
 }
