@@ -32,6 +32,7 @@
 //   - Outgoing EndTimes for comfort/boost -> sent as thermostat-local no-Z using TimeZone (sec)
 // ============================================================================
 
+const { setTimeout: delay } = require('node:timers/promises');
 const utils = require('@iobroker/adapter-core');
 const { OJClient } = require('./lib/oj-client');
 const { safeId } = require('./lib/util');
@@ -774,19 +775,7 @@ class SchlueterThermostat extends utils.Adapter {
 			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
-				let timeoutId;
-
-				const timeoutPromise = new Promise(resolve => {
-					// Use native setTimeout to avoid:
-					// "setTimeout called, but adapter is shutting down"
-					timeoutId = setTimeout(resolve, 5000);
-				});
-
-				await Promise.race([p, timeoutPromise]);
-
-				if (timeoutId) {
-					clearTimeout(timeoutId);
-				}
+				await Promise.race([p, delay(5000)]);
 			}
 
 			callback();
