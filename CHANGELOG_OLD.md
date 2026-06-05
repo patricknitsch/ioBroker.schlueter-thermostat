@@ -1,4 +1,8 @@
 # Older changes
+## 0.6.3 (2026-05-14)
+
+- (patricknitsch) Update Icon and Online State automatically when Folder exists
+
 ## 0.6.2 (2026-05-14)
 
 - (patricknitsch) Fix Header Style when Device is offline

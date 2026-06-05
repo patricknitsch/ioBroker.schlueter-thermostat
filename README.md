@@ -111,10 +111,9 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker
-  
+
 ### 0.7.3 (2026-05-25)
 * (copilot) Fixes for Repo Checker
 
@@ -129,13 +128,7 @@ flowchart TB
 
 - (claude) Add Notification Manager
 
-### 0.6.3 (2026-05-14)
-
-- (patricknitsch) Update Icon and Online State automatically when Folder exists
-
-Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).##
-
-## License
+Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).#### License
 
 MIT License
 
