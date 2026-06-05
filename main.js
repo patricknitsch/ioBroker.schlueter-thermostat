@@ -775,7 +775,7 @@ class SchlueterThermostat extends utils.Adapter {
 			// Wait for in-flight poll (best effort)
 			const p = this.pollPromise;
 			if (p) {
-				await Promise.race([p, delay(5000)]);
+				await Promise.race([p, delay(5000, undefined, { ref: false })]);
 			}
 
 			callback();
