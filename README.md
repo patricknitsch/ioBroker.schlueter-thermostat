@@ -128,7 +128,9 @@ flowchart TB
 
 - (claude) Add Notification Manager
 
-Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).#### License
+Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).
+
+## License
 
 MIT License
 
