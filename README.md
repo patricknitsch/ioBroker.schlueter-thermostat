@@ -6,6 +6,7 @@
 ![Current version in stable repository](https://iobroker.live/badges/schlueter-thermostat-stable.svg)
 
 [![NPM](https://nodei.co/npm/iobroker.schlueter-thermostat.png?downloads=true)](https://nodei.co/npm/iobroker.schlueter-thermostat/)
+
 ![ioBroker](https://img.shields.io/badge/ioBroker-Adapter-blue)
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22-green)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
