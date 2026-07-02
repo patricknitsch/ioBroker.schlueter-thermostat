@@ -1,29 +1,13 @@
 'use strict';
 
-/**
- * This is a dummy TypeScript test file using chai and mocha
- *
- * It's automatically excluded from npm and its build output is excluded from both git and npm.
- * It is advised to test all your modules with accompanying *.test.js-files
- */
-
-// tslint:disable:no-unused-expression
-
 const { expect } = require('chai');
-// import { functionToTest } from "./moduleToTest";
+const ioPackage = require('./io-package.json');
 
-describe('module to test => function to test', () => {
-	// initializing logic
-	const expected = 5;
-
-	it(`should return ${expected}`, () => {
-		const result = 5;
-		// assign result a value from functionToTest
-		expect(result).to.equal(expected);
-		// or using the should() syntax
-		result.should.equal(expected);
+describe('io-package news translations', () => {
+	it('should keep previously untranslated entries distinct from the English text', () => {
+		expect(ioPackage.common.news['0.7.0'].es).to.not.equal(ioPackage.common.news['0.7.0'].en);
+		expect(ioPackage.common.news['0.7.2'].es).to.not.equal(ioPackage.common.news['0.7.2'].en);
+		expect(ioPackage.common.news['0.7.3'].pl).to.not.equal(ioPackage.common.news['0.7.3'].en);
+		expect(ioPackage.common.news['0.7.4'].pl).to.not.equal(ioPackage.common.news['0.7.4'].en);
 	});
-	// ... more tests => it
 });
-
-// ... more test suites => describe
