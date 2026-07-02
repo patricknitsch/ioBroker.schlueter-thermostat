@@ -5,9 +5,15 @@ const ioPackage = require('./io-package.json');
 
 describe('io-package news translations', () => {
 	it('should keep previously untranslated entries distinct from the English text', () => {
-		expect(ioPackage.common.news['0.7.0'].es).to.not.equal(ioPackage.common.news['0.7.0'].en);
-		expect(ioPackage.common.news['0.7.2'].es).to.not.equal(ioPackage.common.news['0.7.2'].en);
-		expect(ioPackage.common.news['0.7.3'].pl).to.not.equal(ioPackage.common.news['0.7.3'].en);
-		expect(ioPackage.common.news['0.7.4'].pl).to.not.equal(ioPackage.common.news['0.7.4'].en);
+		const fixedTranslations = [
+			{ version: '0.7.0', language: 'es' },
+			{ version: '0.7.2', language: 'es' },
+			{ version: '0.7.3', language: 'pl' },
+			{ version: '0.7.4', language: 'pl' },
+		];
+
+		for (const { version, language } of fixedTranslations) {
+			expect(ioPackage.common.news[version][language]).to.not.equal(ioPackage.common.news[version].en);
+		}
 	});
 });
