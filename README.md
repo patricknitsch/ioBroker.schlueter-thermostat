@@ -119,6 +119,7 @@ flowchart TB
 ### **WORK IN PROGRESS**
 * (patricknitsch) Add Node.js 26 in test-and-release.yml
 * (patricknitsch) Update Dependencies
+* (patricknitsch) Change icon from png to jpg
 
 ### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker
