@@ -134,9 +134,9 @@
       "license": "MIT"
     },
     "platform": "Javascript/Node.js",
-    "icon": "schlueter-thermostat.png",
+    "icon": "schlueter-thermostat.jpg",
     "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.png",
+    "extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.jpg",
     "readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
     "loglevel": "info",
     "tier": 3,
