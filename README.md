@@ -19,7 +19,7 @@
 
 ## 🌍 Overview
 
-<img align="left" src="admin/schlueter-thermostat.png" alt="image" width="128" /><p>
+<img align="left" src="admin/schlueter-thermostat.jpg" alt="image" width="128" /><p>
 This adapter integrates <strong>Schlüter / OJ Microline OWD5 thermostats</strong> into ioBroker via the <strong>official cloud APIs</strong>.
 
 It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
