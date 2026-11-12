@@ -48,6 +48,7 @@ const {
 const { createApplyRouter } = require('./lib/apply-handlers');
 const { SchlueterDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
+const { LocalManager } = require('./lib/local-manager');
 
 const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
@@ -62,6 +63,8 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetState = this.setState.bind(this);
 
 		this.client = null;
+		/** local device gateway (beta) */
+		this.local = null;
 		const messageListenersBeforeDm = this.rawListeners('message');
 		this.deviceManagement = new SchlueterDeviceManagement(this);
 		this._detachDmMessageListeners(messageListenersBeforeDm);
@@ -340,6 +343,14 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
+		// Local gateway (beta) starts first: it must work without the cloud.
+		this.local = new LocalManager(this);
+		try {
+			await this.local.start();
+		} catch (e) {
+			this.log.error(`Local gateway failed to start: ${e?.message || e}`);
+		}
+
 		this.client = new OJClient({
 			log: this.log,
 			baseUrlOwd5: this.config.baseUrlOwd5,
@@ -357,7 +368,13 @@ class SchlueterThermostat extends utils.Adapter {
 			this.safeSetState('info.connection', true, true);
 		} catch (e) {
 			this.log.error(`Login failed: ${e?.message || e}`);
-			return;
+			if (!this.local?.enabled) {
+				return;
+			}
+			// With local control the adapter keeps running; the poll retries the login.
+			this.log.warn(
+				'Cloud login failed – continuing with local gateway only, cloud login is retried on each poll.',
+			);
 		}
 
 		await ensureContainer(this, 'groups', 'folder', 'Groups');
@@ -594,6 +611,7 @@ class SchlueterThermostat extends utils.Adapter {
 			this.thermostatSerial[thermostatId] = serial;
 		}
 		this.thermostatGroup[thermostatId] = groupId;
+		this.local?.registerThermostat(serial, devId);
 
 		const thermostatName = String(t?.ThermostatName || `Thermostat ${thermostatId}`);
 		this.thermostatNameCache[thermostatId] = thermostatName;
@@ -682,6 +700,13 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
+		// Local gateway (beta): schedule/manual go straight to the thermostat
+		// when it is connected locally and local commands are enabled.
+		if (this.local?.allowCommands && (await this._tryLocalApply(id))) {
+			this.safeSetState(id, { val: false, ack: true });
+			return;
+		}
+
 		try {
 			const conn = await this.getStateAsync('info.connection');
 			if (!conn || conn.val !== true) {
@@ -759,6 +784,42 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * Try to apply a mode via the local gateway.
+	 *
+	 * @param {string} id state id of the apply button
+	 * @returns {Promise<boolean>} true if handled (successfully or with error)
+	 */
+	async _tryLocalApply(id) {
+		const parts = id.split('.');
+		const idxG = parts.indexOf('groups');
+		const idxT = parts.indexOf('thermostats');
+		const idxApply = parts.indexOf('apply');
+		if (idxG === -1 || idxT === -1 || idxApply === -1) {
+			return false;
+		}
+		const groupId = parts[idxG + 1];
+		const thermostatId = parts[idxT + 1];
+		const modeFolder = parts[idxApply + 1];
+		if (modeFolder !== 'schedule' && modeFolder !== 'manual') {
+			return false;
+		}
+		let serial = this.thermostatSerial[thermostatId];
+		if (!serial) {
+			serial = await this._getSerialFromObject(groupId, thermostatId);
+		}
+		if (!serial || !this.local?.canCommand(serial)) {
+			return false;
+		}
+		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		try {
+			return await this.local.apply(modeFolder, serial, devPrefix);
+		} catch (e) {
+			this.log.warn(`Local apply failed for ${id}: ${e?.message || e} – falling back to cloud`);
+			return false;
+		}
+	}
+
 	// ============================================================================
 	// ON UNLOAD
 	// ============================================================================
@@ -770,6 +831,10 @@ class SchlueterThermostat extends utils.Adapter {
 
 			if (this.pollTimer) {
 				this.clearTimeout(this.pollTimer);
+			}
+
+			if (this.local) {
+				await Promise.race([this.local.stop(), delay(5000, undefined, { ref: false })]);
 			}
 
 			// Wait for in-flight poll (best effort)

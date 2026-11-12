@@ -252,6 +252,67 @@ Wenn keine Instanz ausgewählt ist, erkennt der Adapter automatisch eine laufend
 
 ---
 
+## 🏠 Lokale Steuerung (BETA)
+
+> ⚠️ **Experimentell.** Das Geräteprotokoll ist nur für Thermostate der WG4-Serie dokumentiert.
+> Ob WD5-Thermostate (OWD5/MWD5) dasselbe Protokoll sprechen, ist **noch nicht bestätigt**.
+> Wir beobachten das Verhalten in der Beta und reagieren auf Rückmeldungen.
+
+Das Thermostat hält neben der App-Cloud eine eigene TLS-Verbindung zum **Geräte-Gateway** des Herstellers offen.
+Der Adapter kann dieses Gateway selbst bereitstellen. Am Thermostat wird nichts verändert – ein lokaler DNS-Eintrag
+leitet die Verbindung auf den ioBroker-Host um. Wird der Eintrag gelöscht, ist alles wieder wie vorher.
+
+### Modi
+
+| Modus | Hersteller-App | Bei Internetausfall |
+| --- | --- | --- |
+| **Aus** (Standard) | funktioniert | nur Cloud |
+| **Relay** | funktioniert | Werte werden lokal weiter gelesen, Befehle lokal möglich (sofern Profil vorhanden) |
+| **Nur lokal** | zeigt offline | keine Änderung – Cloud wird nie kontaktiert |
+
+Im **Relay**-Modus wird die Verbindung unverändert an das Hersteller-Gateway weitergereicht und dabei mitgelesen.
+Die zwei Antworten, die das Hersteller-Gateway nach dem Login schickt, werden als **Profil** gespeichert.
+Mit diesem Profil kann der Adapter das Thermostat anschließend selbst beantworten („Nur lokal“ oder Relay ohne Internet).
+
+Versteht der Adapter die Daten nicht (z. B. abweichendes Protokoll bei WD5), schaltet er im Relay-Modus auf
+**reines Durchreichen** um und protokolliert den Datenverkehr als Hex im Debug-Log. Das Thermostat funktioniert dann
+weiter wie bisher – bitte in diesem Fall das Debug-Log an ein Issue anhängen.
+
+### Einrichtung
+
+1. ioBroker-Host eine feste IP geben.
+2. Hostnamen des Hersteller-Gateways ermitteln: im DNS-Log (Router / Pi-hole / AdGuard) nach Anfragen des
+   Thermostats an `*.ojelectronics.com` suchen. Laut Handbuch nutzt die WD5-Serie Port **9513**.
+3. DNS-Eintrag anlegen: dieser Hostname → IP des ioBroker-Hosts.
+4. Im Tab **Lokal (Beta)** Modus **Relay** wählen, Hostname und Port eintragen, Instanz speichern.
+5. Thermostat stromlos neu starten, damit es den Namen neu auflöst.
+6. Unter `schlueter-thermostat.0.local.*` prüfen: `listening`, `connected`, `upstreamStatus`, `lastEvent`.
+
+Die echte Adresse des Hersteller-Gateways ermittelt der Adapter über öffentliches DNS (1.1.1.1 / 8.8.8.8),
+alternativ kann sie fest eingetragen werden. Das Zertifikat des Hersteller-Gateways wird beim ersten Kontakt
+gespeichert (Fingerabdruck in `local.upstreamFingerprint`). Ändert es sich, wird nichts mehr weitergeleitet.
+
+### Objekte
+
+- `local.listening`, `local.upstreamStatus`, `local.upstreamFingerprint`, `local.connected`, `local.lastEvent`
+- pro Thermostat `…thermostats.<Id>.local.*`: `online`, `relayed`, `floorTemperature`, `heating`,
+  `regulationMode`, `manualSetpoint`, `comfortSetpoint`, `targetTemperature`, `room`, `lastSeen`
+
+### Befehle
+
+Mit **„Zeitplan-/Manuell-Befehle lokal senden“** werden `apply.schedule` und `apply.manual` direkt an das
+lokal verbundene Thermostat gesendet (mit Bestätigung, 10 s Timeout). Schlägt das fehl, wird automatisch die
+Cloud verwendet. Alle anderen Modi (Komfort mit Endzeit, Boost, Eco, Urlaub, Name) laufen weiterhin über die Cloud.
+
+### Hinweise
+
+- Port 9513 muss auf dem ioBroker-Host frei sein (Docker: Host-Netzwerk oder Port freigeben).
+- Jedes Gerät im Netz kann sich mit dem Port verbinden – nur in vertrauenswürdigen Netzen nutzen.
+- Zertifikat und Profile liegen im Datenverzeichnis der Instanz (`iobroker-data/schlueter-thermostat.0/`).
+- Zurück zur Cloud: Modus **Aus**, DNS-Eintrag löschen, Thermostat neu starten.
+
+---
+
 ## 🐞 Debug
 
 Loglevel **debug** aktivieren für Cloud‑Kommunikation.

@@ -252,6 +252,67 @@ If left empty, the adapter automatically detects a running instance and prefers 
 
 ---
 
+## 🏠 Local Control (BETA)
+
+> ⚠️ **Experimental.** The device protocol is only documented for WG4-series thermostats.
+> Whether WD5 thermostats (OWD5/MWD5) speak the same protocol is **not confirmed yet**.
+> We are watching the behaviour during the beta and will react to feedback.
+
+Besides the app cloud, the thermostat keeps its own TLS connection to the vendor's **device gateway**.
+The adapter can provide that gateway itself. Nothing on the thermostat is modified – a local DNS record
+redirects the connection to the ioBroker host. Deleting the record undoes everything.
+
+### Modes
+
+| Mode | Vendor app | Internet down |
+| --- | --- | --- |
+| **Off** (default) | works | cloud only |
+| **Relay** | works | values keep being read locally, local commands possible (if a profile exists) |
+| **Local only** | shows offline | no change – the cloud is never contacted |
+
+In **Relay** mode the connection is passed on unchanged to the vendor gateway and read along the way.
+The two answers the vendor gateway sends after login are stored as **profile**. With it the adapter can answer
+the thermostat itself afterwards ("Local only", or Relay without internet).
+
+If the adapter does not understand the data (e.g. a different protocol on WD5), Relay mode falls back to a
+**pure pass-through** and logs the traffic as hex at debug level. The thermostat keeps working as before –
+please attach that debug log to an issue.
+
+### Setup
+
+1. Give the ioBroker host a fixed IP.
+2. Find the hostname of the vendor gateway: look in the DNS log (router / Pi-hole / AdGuard) for queries of
+   the thermostat to `*.ojelectronics.com`. According to the manual the WD5 series uses port **9513**.
+3. Add a DNS record: that hostname → IP of the ioBroker host.
+4. In tab **Local (Beta)** choose **Relay**, enter hostname and port, save the instance.
+5. Power-cycle the thermostat so it resolves the name again.
+6. Check `schlueter-thermostat.0.local.*`: `listening`, `connected`, `upstreamStatus`, `lastEvent`.
+
+The real address of the vendor gateway is resolved via public DNS (1.1.1.1 / 8.8.8.8), or can be entered
+manually. The vendor gateway certificate is pinned on first contact (fingerprint in `local.upstreamFingerprint`).
+If it changes, nothing is forwarded any more.
+
+### Objects
+
+- `local.listening`, `local.upstreamStatus`, `local.upstreamFingerprint`, `local.connected`, `local.lastEvent`
+- per thermostat `…thermostats.<Id>.local.*`: `online`, `relayed`, `floorTemperature`, `heating`,
+  `regulationMode`, `manualSetpoint`, `comfortSetpoint`, `targetTemperature`, `room`, `lastSeen`
+
+### Commands
+
+With **"Send schedule/manual commands locally"** `apply.schedule` and `apply.manual` are sent directly to the
+locally connected thermostat (acknowledged, 10 s timeout). On failure the cloud is used automatically.
+All other modes (comfort with end time, boost, eco, vacation, name) still use the cloud.
+
+### Notes
+
+- Port 9513 must be free on the ioBroker host (Docker: host network or publish the port).
+- Any device on the network can connect to the port – only use it on trusted networks.
+- Certificate and profiles are stored in the instance data directory (`iobroker-data/schlueter-thermostat.0/`).
+- Back to cloud: mode **Off**, delete the DNS record, power-cycle the thermostat.
+
+---
+
 ## 🐞 Debugging
 
 Set log level to **debug** to see cloud communication.

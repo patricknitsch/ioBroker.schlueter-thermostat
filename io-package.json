@@ -200,7 +200,14 @@
     "notifyInstanceMatrix": "",
     "notifyUseSynoChat": false,
     "notifyInstanceSynoChat": "",
-    "notifyChannelSynoChat": ""
+    "notifyChannelSynoChat": "",
+    "localMode": "off",
+    "localListenPort": 9513,
+    "localUpstreamHost": "",
+    "localUpstreamPort": 9513,
+    "localUpstreamIp": "",
+    "localUpstreamPin": "",
+    "localAllowCommands": false
   },
   "protectedNative": [
     "username",

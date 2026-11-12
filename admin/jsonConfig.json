@@ -591,6 +591,144 @@
 					"xl": 4
 				}
 			}
+		},
+		"tabLocal": {
+			"type": "panel",
+			"label": "localTabLabel",
+			"items": {
+				"_localWarning": {
+					"type": "staticText",
+					"text": "localBetaWarning",
+					"newLine": true,
+					"style": {
+						"color": "#d32f2f",
+						"fontWeight": "bold",
+						"whiteSpace": "pre-line"
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"_localHint": {
+					"type": "staticText",
+					"text": "localHint",
+					"newLine": true,
+					"style": {
+						"fontSize": "0.85em",
+						"color": "#888",
+						"whiteSpace": "pre-line"
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"localMode": {
+					"type": "select",
+					"label": "localModeLabel",
+					"default": "off",
+					"newLine": true,
+					"options": [
+						{
+							"label": "localModeOff",
+							"value": "off"
+						},
+						{
+							"label": "localModeRelay",
+							"value": "relay"
+						},
+						{
+							"label": "localModeLocal",
+							"value": "local"
+						}
+					],
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localListenPort": {
+					"type": "number",
+					"label": "localListenPortLabel",
+					"default": 9513,
+					"min": 1,
+					"max": 65535,
+					"hidden": "data.localMode === 'off'",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamHost": {
+					"type": "text",
+					"label": "localUpstreamHostLabel",
+					"default": "",
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localUpstreamHostHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamPort": {
+					"type": "number",
+					"label": "localUpstreamPortLabel",
+					"default": 9513,
+					"min": 1,
+					"max": 65535,
+					"hidden": "data.localMode === 'off'",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamIp": {
+					"type": "text",
+					"label": "localUpstreamIpLabel",
+					"default": "",
+					"hidden": "data.localMode === 'off'",
+					"help": "localUpstreamIpHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamPin": {
+					"type": "text",
+					"label": "localUpstreamPinLabel",
+					"default": "",
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localUpstreamPinHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 8,
+					"xl": 8
+				},
+				"localAllowCommands": {
+					"type": "checkbox",
+					"label": "localAllowCommandsLabel",
+					"default": false,
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localAllowCommandsHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				}
+			}
 		}
 	}
 }
