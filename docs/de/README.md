@@ -282,7 +282,8 @@ weiter wie bisher – bitte in diesem Fall das Debug-Log an ein Issue anhängen.
 
 1. ioBroker-Host eine feste IP geben.
 2. Hostnamen des Hersteller-Gateways ermitteln: im DNS-Log (Router / Pi-hole / AdGuard) nach Anfragen des
-   Thermostats an `*.ojelectronics.com` suchen. Laut Handbuch nutzt die WD5-Serie Port **9513**.
+   Thermostats an `*.ojelectronics.com` suchen (bisher beobachtet: `owd5-sl003-thermostat.ojelectronics.com`,
+   ist als Standard eingetragen). Laut Handbuch nutzt die WD5-Serie Port **9513**.
 3. DNS-Eintrag anlegen: dieser Hostname → IP des ioBroker-Hosts.
 4. Im Tab **Lokal (Beta)** Modus **Relay** wählen, Hostname und Port eintragen, Instanz speichern.
 5. Thermostat stromlos neu starten, damit es den Namen neu auflöst.

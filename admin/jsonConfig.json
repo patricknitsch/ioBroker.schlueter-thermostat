@@ -667,7 +667,7 @@
 				"localUpstreamHost": {
 					"type": "text",
 					"label": "localUpstreamHostLabel",
-					"default": "",
+					"default": "owd5-sl003-thermostat.ojelectronics.com",
 					"newLine": true,
 					"hidden": "data.localMode === 'off'",
 					"help": "localUpstreamHostHelp",

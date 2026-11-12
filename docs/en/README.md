@@ -282,7 +282,8 @@ please attach that debug log to an issue.
 
 1. Give the ioBroker host a fixed IP.
 2. Find the hostname of the vendor gateway: look in the DNS log (router / Pi-hole / AdGuard) for queries of
-   the thermostat to `*.ojelectronics.com`. According to the manual the WD5 series uses port **9513**.
+   the thermostat to `*.ojelectronics.com` (observed so far: `owd5-sl003-thermostat.ojelectronics.com`, used as
+   default). According to the manual the WD5 series uses port **9513**.
 3. Add a DNS record: that hostname → IP of the ioBroker host.
 4. In tab **Local (Beta)** choose **Relay**, enter hostname and port, save the instance.
 5. Power-cycle the thermostat so it resolves the name again.

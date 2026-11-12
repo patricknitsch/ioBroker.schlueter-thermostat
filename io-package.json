@@ -203,7 +203,7 @@
     "notifyChannelSynoChat": "",
     "localMode": "off",
     "localListenPort": 9513,
-    "localUpstreamHost": "",
+    "localUpstreamHost": "owd5-sl003-thermostat.ojelectronics.com",
     "localUpstreamPort": 9513,
     "localUpstreamIp": "",
     "localUpstreamPin": "",
