@@ -1048,3 +1048,60 @@ describe('local gateway: WD5 vacation mode', () => {
 		assert.equal(W.vacationMode(v(false, '', ''), 3, today), undefined);
 	});
 });
+
+describe('local manager: mode off', () => {
+	const fs = require('node:fs');
+	const os = require('node:os');
+	const path = require('node:path');
+	const net = require('node:net');
+
+	const freePort = () =>
+		new Promise(resolve => {
+			const s = net.createServer();
+			s.listen(0, () => {
+				const { port } = /** @type {any} */ (s.address());
+				s.close(() => resolve(port));
+			});
+		});
+
+	it('warns once per thermostat that still connects to this host', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'schlueter-'));
+		fs.writeFileSync(path.join(dir, 'local-gateway.json'), '{}');
+		const port = await freePort();
+		const warnings = [];
+		const m = new LocalManager({
+			config: { localMode: 'off', localListenPort: port, notifyEnabled: false },
+			namespace: 'x',
+			log: { warn: t => warnings.push(t), info() {}, debug() {} },
+		});
+		m._instanceDataDir = () => dir;
+		await m._watchStaleDnsRecord();
+		await new Promise(r => m.staleWatch?.once('listening', r) ?? r());
+		try {
+			for (let i = 0; i < 2; i++) {
+				await new Promise(resolve => {
+					const c = net.connect({ host: '127.0.0.1', port });
+					c.on('close', resolve);
+					c.on('error', resolve);
+				});
+			}
+			await wait(50);
+			assert.equal(warnings.length, 1);
+			assert.match(warnings[0], /Local control is off, but a thermostat .* is trying to connect/);
+		} finally {
+			await m.stop();
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it('opens no port when local control was never used', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'schlueter-'));
+		const m = new LocalManager({ config: { localMode: 'off' }, namespace: 'x', log: { debug() {} } });
+		m._instanceDataDir = () => dir;
+		await m._watchStaleDnsRecord();
+		assert.equal(m.staleWatch, null);
+		fs.rmSync(dir, { recursive: true, force: true });
+	});
+});

@@ -263,6 +263,10 @@ class SchlueterThermostat extends utils.Adapter {
 
 		for (const id of legacyIds) {
 			try {
+				// Only existing states: this migration runs on every start.
+				if (!(await this.safeGetObject(id))) {
+					continue;
+				}
 				await this.safeDelObject(id);
 				this.log.debug(`Deleted legacy state: ${id}`);
 			} catch (e) {

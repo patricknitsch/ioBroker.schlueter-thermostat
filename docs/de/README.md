@@ -354,7 +354,10 @@ gespeichert (Fingerabdruck in `info.localUpstreamFingerprint`). Ändert es sich,
 - Verbindet sich 10 Minuten nach dem Start kein Thermostat, kommt eine Warnung und – bei aktiven
   Benachrichtigungen und „Thermostat offline“ – eine Nachricht. Sobald ein Thermostat verbindet, wird das im Log
   bestätigt.
-- Modus „Aus“ mit noch aktivem DNS-Eintrag: Warnung beim Start.
+- Modus „Aus“ mit noch aktivem DNS-Eintrag: Wurde die lokale Steuerung schon einmal benutzt, lauscht der Adapter
+  passiv auf dem Gateway-Port. Versucht sich ein Thermostat dort zu verbinden, kommt eine Warnung (und ggf. eine
+  Nachricht): Der DNS-Eintrag leitet es noch hierher, es erreicht die Cloud nicht. Das funktioniert auch, wenn der
+  ioBroker-Host einen anderen DNS-Server nutzt (Docker).
 
 **Mehrere Thermostate** (an einem echten System mit mehreren Geräten **noch nicht getestet** – Rückmeldungen
 willkommen):

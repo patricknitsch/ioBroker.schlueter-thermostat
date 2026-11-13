@@ -34,8 +34,9 @@ describe('device manager indicators', () => {
 		assert.equal(levels[levels.length - 1].value, undefined);
 	});
 
-	it('shows the connection indicators only with local control', () => {
-		assert.ok(!thermostatIndicators(BASE, { local: false }).some(i => i.id === 'connection'));
+	it('shows the gateway indicators in the toolbar only with local control', () => {
+		// the card always shows cloud / relay / local
+		assert.ok(thermostatIndicators(BASE, { local: false }).some(i => i.id === 'connection'));
 		assert.deepEqual(
 			instanceIndicators('schlueter-thermostat.0', { local: false }).map(i => i.id),
 			['cloud'],

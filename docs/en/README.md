@@ -353,7 +353,10 @@ If it changes, nothing is forwarded any more.
   What counts is whether the thermostat connects.
 - If no thermostat connects within 10 minutes after the start, a warning is logged and – with notifications and
   "Thermostat offline" enabled – a notification is sent. As soon as a thermostat connects, the log confirms it.
-- Mode "off" with the DNS record still active: warning on start.
+- Mode "off" with the DNS record still active: if local control has been used before, the adapter listens
+  passively on the gateway port. If a thermostat tries to connect there, a warning (and possibly a notification) is
+  issued: the DNS record still sends it here, so it cannot reach the cloud. This also works when the ioBroker host
+  uses another DNS server (Docker).
 
 **Several thermostats** (**not tested yet** on a real system with several devices – feedback welcome):
 
