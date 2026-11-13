@@ -268,7 +268,7 @@ leitet die Verbindung auf den ioBroker-Host um. Wird der Eintrag gelöscht, ist 
 - Im **Relay**-Modus wird jede Nachricht unverändert weitergeleitet und lesbar im Debug-Log protokolliert.
 - Dekodiert werden: Raum- und Bodentemperatur, Heizen, Regelmodus, Komfort- und Manuell-Sollwert,
   Komfort- und Boost-Ende, Urlaub, Frostschutz-Sollwert, Name, Firmware.
-- Lokale Befehle (Option „Befehle lokal senden“): Zeitplan, Manuell, Komfort, Boost, Eco, Frostschutz.
+- Lokale Befehle (Option „Befehle lokal senden“): Zeitplan, Manuell, Komfort, Boost, Eco, Frostschutz, Urlaub.
   Sie werden exakt wie die Befehle der Hersteller-Cloud aufgebaut; das Thermostat meldet den neuen Zustand
   danach selbst an die Cloud, die App bleibt synchron.
 - **Nur lokal (Test):** Der Adapter beantwortet das Thermostat selbst (Login, Upload-Aufforderung, Quittungen
@@ -381,11 +381,16 @@ willkommen):
 ### Befehle
 
 Mit **„Befehle lokal senden“** gehen die Apply-Befehle direkt an das lokal verbundene Thermostat (mit
-Bestätigung, 10 s Timeout): bei WD5 Zeitplan, Manuell, Komfort, Boost, Eco und Frostschutz, bei WG4 Zeitplan und
-Manuell. Schlägt das fehl, wird automatisch die Cloud verwendet. Urlaub und Name laufen über die Cloud.
+Bestätigung, 10 s Timeout): bei WD5 Zeitplan, Manuell, Komfort, Boost, Eco, Frostschutz und Urlaub, bei WG4 Zeitplan und
+Manuell. Schlägt das fehl, wird automatisch die Cloud verwendet. Der Name läuft über die Cloud.
+
+**Urlaub (WD5):** gesetzt werden „aktiv“, Beginn und Ende (`YYYY-MM-DD`, `YYYY-MM-DDT00:00:00` oder
+`TT.MM.JJJJ`). Die Urlaubstemperatur bleibt wie im Thermostat – genau wie bei der Cloud, die einen anderen Wert in
+`apply.vacation.temperature` nicht übernimmt (beobachtet: 18 °C eingestellt, 5 °C gesendet). Der Regelmodus bleibt
+unverändert; in den Urlaubsmodus wechselt das Thermostat am Beginn-Tag selbst.
 
 Im Modus **Nur lokal** erreicht kein Cloud-Befehl das Thermostat. Befehle, die nicht lokal ausgeführt werden können
-(Urlaub, Name, oder alle bei ausgeschalteter Option „Befehle lokal senden“), werden deshalb mit einer Warnung
+(Name, oder alle bei ausgeschalteter Option „Befehle lokal senden“), werden deshalb mit einer Warnung
 abgelehnt (`Apply "…" blocked: …`).
 
 ### Hinweise

@@ -268,7 +268,8 @@ redirects the connection to the ioBroker host. Deleting the record undoes everyt
 - In **Relay** mode every message is forwarded unchanged and logged in readable form at debug level.
 - Decoded: room and floor temperature, heating, regulation mode, comfort and manual setpoint, comfort and
   boost end, vacation, frost protection setpoint, name, firmware.
-- Local commands (option "Send commands locally"): schedule, manual, comfort, boost, eco, frost protection.
+- Local commands (option "Send commands locally"): schedule, manual, comfort, boost, eco, frost protection,
+  vacation.
   They are built exactly like the vendor cloud's commands; the thermostat then reports its new state to the
   cloud itself, so the app stays in sync.
 - **Local only (test):** the adapter answers the thermostat itself (login, upload request, acknowledgements with
@@ -376,11 +377,16 @@ If it changes, nothing is forwarded any more.
 ### Commands
 
 With **"Send commands locally"** the apply commands go directly to the locally connected thermostat
-(acknowledged, 10 s timeout): on WD5 schedule, manual, comfort, boost, eco and frost protection, on WG4 schedule
-and manual. On failure the cloud is used automatically. Vacation and name use the cloud.
+(acknowledged, 10 s timeout): on WD5 schedule, manual, comfort, boost, eco, frost protection and vacation, on WG4
+schedule and manual. On failure the cloud is used automatically. The name uses the cloud.
 
-In **Local only** mode no cloud command reaches the thermostat. Commands that cannot run locally (vacation, name,
-or all of them with "Send commands locally" switched off) are therefore refused with a warning
+**Vacation (WD5):** "enabled", begin and end are set (`YYYY-MM-DD`, `YYYY-MM-DDT00:00:00` or `DD.MM.YYYY`). The
+vacation temperature stays as the thermostat has it – like the cloud, which does not take over another value from
+`apply.vacation.temperature` (observed: 18 °C set, 5 °C sent). The regulation mode is not changed; the thermostat
+switches to vacation mode itself on the begin day.
+
+In **Local only** mode no cloud command reaches the thermostat. Commands that cannot run locally (name, or all of
+them with "Send commands locally" switched off) are therefore refused with a warning
 (`Apply "…" blocked: …`).
 
 ### Notes

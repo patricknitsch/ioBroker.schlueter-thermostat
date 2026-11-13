@@ -122,6 +122,7 @@ flowchart TB
 * (patricknitsch) Change icon from png to jpg
 * (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
 * (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
+* (patricknitsch) Local control: vacation for WD5 thermostats (relay and local-only)
 
 ### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker

@@ -963,3 +963,66 @@ describe('local manager: DNS check on start', () => {
 		assert.ok(logs.info.some(t => /DNS check – OK/.test(t)));
 	});
 });
+
+describe('local gateway: WD5 vacation', () => {
+	const W = require('../lib/local/wd5');
+	const P = require('../lib/local/protocol');
+	const date = (y, m, d) => Buffer.concat([encodeField(1, y), encodeField(2, m), encodeField(3, d)]);
+	const dateTime = (y, mo, d, h, mi, s) =>
+		Buffer.concat([
+			encodeField(1, date(y, mo, d)),
+			encodeField(2, Buffer.concat([encodeField(1, h), encodeField(2, mi), encodeField(3, s)])),
+		]);
+	const state = vacation =>
+		Buffer.concat([
+			encodeField(1, 847890037),
+			encodeField(2, 1),
+			encodeField(3, Buffer.concat([encodeField(1, 4600), encodeField(2, dateTime(1970, 1, 1, 0, 0, 0))])),
+			encodeField(4, encodeField(1, 0)),
+			encodeField(5, vacation),
+			encodeField(6, encodeField(1, dateTime(1970, 1, 1, 0, 0, 0))),
+			encodeField(7, encodeField(1, 1000)),
+			encodeField(8, 1),
+			encodeField(9, 0),
+		]);
+	const without = state(
+		Buffer.concat([
+			encodeField(1, 0),
+			encodeField(2, date(1970, 1, 1)),
+			encodeField(3, date(1970, 1, 1)),
+			encodeField(4, 1000),
+		]),
+	);
+	// As the vendor gateway sent it on a real OWD5 (vacation 2027-01-01 .. 2027-01-02).
+	const cloud = state(
+		Buffer.concat([
+			encodeField(1, 1),
+			encodeField(2, date(2027, 1, 1)),
+			encodeField(3, date(2027, 1, 2)),
+			encodeField(4, 1000),
+		]),
+	);
+
+	it('builds the vacation command exactly like the vendor gateway (setpoint kept)', () => {
+		const ours = W.changedState(
+			without,
+			{ mode: 1, vacation: { enabled: true, begin: W.parseDay('2027-01-01'), end: W.parseDay('2027-01-02') } },
+			new Date(Date.UTC(2000, 0, 1) + 847890037 * 1000),
+		);
+		assert.equal(P.dump(Message.parse(ours)), P.dump(Message.parse(cloud)));
+		const fields = W.decodeState(Message.parse(encodeField(9, ours)));
+		assert.equal(fields.vacationEnabled, true);
+		assert.equal(fields.vacationBegin, '2027-01-01T00:00:00');
+		assert.equal(fields.vacationEnd, '2027-01-02T00:00:00');
+		assert.equal(fields.vacationSetpoint, 5);
+		assert.equal(fields.regulationMode, 1);
+	});
+
+	it('parses vacation days in the formats of the states', () => {
+		assert.deepEqual(W.parseDay('2027-01-01'), { y: 2027, m: 1, d: 1 });
+		assert.deepEqual(W.parseDay('2027-01-02T00:00:00'), { y: 2027, m: 1, d: 2 });
+		assert.deepEqual(W.parseDay('24.12.2026'), { y: 2026, m: 12, d: 24 });
+		assert.equal(W.parseDay('2027-02-30'), null);
+		assert.equal(W.parseDay(''), null);
+	});
+});
