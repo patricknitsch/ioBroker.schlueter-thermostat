@@ -636,3 +636,49 @@ describe('local gateway: local mode', function () {
 		await assert.rejects(gateway.setMode(SERIAL, 1), /not connected/);
 	});
 });
+
+describe('local manager: main states', () => {
+	it('mirrors local values into the main states and tells the cloud poll to skip them', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const written = {};
+		const adapter = {
+			config: { localMode: 'relay' },
+			namespace: 'schlueter-thermostat.0',
+			log: { debug() {}, info() {}, warn() {}, error() {} },
+			safeSetState: (id, st) => (written[id] = st.val),
+			safeSetObjectNotExists: async () => {},
+		};
+		const m = new LocalManager(adapter);
+		const dev = 'groups.1.thermostats.2';
+		m.registerThermostat('1021410', dev);
+		await m._onState('1021410', { online: true, relayed: false });
+		await m._onState('1021410', { roomTemperature: 19.73, floorTemperature: 33.01, heating: true });
+		await m._onState('1021410', { regulationMode: 3, manualSetpoint: 23, boostEnd: '' });
+
+		assert.equal(written[`${dev}.online`], true);
+		assert.equal(written[`${dev}.temperature.room`], 19.73);
+		assert.equal(written[`${dev}.temperature.floor`], 33.01);
+		assert.equal(written[`${dev}.heating`], true);
+		assert.equal(written[`${dev}.regulationMode`], 3);
+		assert.equal(written[`${dev}.setpoint.manual`], 23);
+		assert.equal(written[`${dev}.endTime.boost`], undefined);
+		assert.equal(written[`${dev}.local.roomTemperature`], 19.73);
+
+		const skip = m.localStateIds('1021410');
+		for (const id of [
+			'online',
+			'heating',
+			'temperature.room',
+			'temperature.floor',
+			'regulationMode',
+			'setpoint.manual',
+		]) {
+			assert.ok(skip.has(id), id);
+		}
+		assert.ok(!skip.has('setpoint.comfort'));
+
+		// After a disconnect the cloud values are written again.
+		await m._onState('1021410', { online: false, relayed: false });
+		assert.deepEqual([...m.localStateIds('1021410')], ['online']);
+	});
+});

@@ -295,6 +295,19 @@ Versteht der Adapter die Daten nicht (z. B. abweichendes Protokoll bei WD5), sch
 **reines Durchreichen** um und protokolliert den Datenverkehr als Hex im Debug-Log. Das Thermostat funktioniert dann
 weiter wie bisher – bitte in diesem Fall das Debug-Log an ein Issue anhängen.
 
+### Überblick der Modi (getestet mit OWD5)
+
+| Modus | Steuerung über App | Steuerung über Adapter | Werte im Adapter | Hinweis |
+| --- | --- | --- | --- | --- |
+| **Aus (Cloud)** | ✔ | ✔ über die Cloud | aus der Cloud | Der DNS-Eintrag muss gelöscht sein, sonst ist das Thermostat offline (der Adapter warnt beim Start). |
+| **Relay** | ✔ | ✔ lokal, App bleibt synchron | lokal, sofort | Empfohlener Dauerbetrieb. Ohne Internet übernimmt der Adapter automatisch. |
+| **Nur lokal** | ✘ App zeigt offline | ✔ lokal | lokal | Cloud und App werden nicht mehr synchronisiert. |
+
+Solange das Thermostat lokal verbunden ist, stammen die Hauptstates (`online`, `heating`, `temperature.*`,
+`regulationMode`, `setpoint.*`, `endTime.*`) aus der lokalen Verbindung; die Cloud-Abfrage überschreibt sie dann
+nicht. Bricht die lokale Verbindung ab, übernimmt wieder die Cloud. Energie, Zeitplan und Urlaub kommen immer
+aus der Cloud.
+
 ### Einrichtung
 
 1. ioBroker-Host eine feste IP geben.

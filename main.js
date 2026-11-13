@@ -663,10 +663,9 @@ class SchlueterThermostat extends utils.Adapter {
 		const boostEndLocal = toThermostatLocalNoZFromAny(t?.BoostEndTime || '', tzSec);
 
 		// Write read-only states
-		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal });
-		if (localConnected) {
-			this.safeSetState(`${devId}.online`, { val: true, ack: true });
-		}
+		// Values the local gateway delivers win over the (slower) cloud values.
+		const skip = localConnected && this.local ? this.local.localStateIds(serial) : new Set();
+		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal, skip });
 
 		// Non-destructive prefill of apply.*
 		await prefillApplyNonDestructive(this, devId, t);
