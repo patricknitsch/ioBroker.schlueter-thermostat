@@ -352,6 +352,23 @@ gespeichert (Fingerabdruck in `info.localUpstreamFingerprint`). Ändert es sich,
   bestätigt.
 - Modus „Aus“ mit noch aktivem DNS-Eintrag: Warnung beim Start.
 
+**Mehrere Thermostate** (an einem echten System mit mehreren Geräten **noch nicht getestet** – Rückmeldungen
+willkommen):
+
+- Ein DNS-Eintrag für alle: alle Thermostate verbinden sich auf denselben Hostnamen und Port; der Adapter
+  erkennt jedes an seiner Seriennummer und ordnet es dem passenden Gerät der Cloud zu.
+- Befehle, Werte, Energiezähler, Zeitplan und Zeitzone sind pro Thermostat getrennt; fällt eines aus, laufen die
+  anderen lokal weiter.
+- Die seltenere Cloud-Abfrage greift nur, wenn **alle** Thermostate lokal verbunden sind.
+- Bitte im DNS-Log prüfen, ob **alle** Thermostate denselben Hostnamen anfragen. Im Relay werden alle an den
+  einen eingetragenen Host weitergeleitet; die Thermostate senden keinen Hostnamen mit (SNI), daher kann der
+  Adapter sie vorher nicht unterscheiden.
+- Port 9513 kann pro Rechner nur von einer Instanz genutzt werden (eine Instanz mit beliebig vielen Thermostaten
+  ist kein Problem).
+- „Nur lokal“ lässt nur Thermostate zu, die der Adapter aus der Cloud kennt; ein neues Gerät muss also zuerst in
+  der App angelegt und einmal abgerufen worden sein.
+
+### Objekte
 ### Objekte
 
 - `info.localListening`, `info.localUpstreamStatus`, `info.localUpstreamFingerprint`, `info.localConnected`,

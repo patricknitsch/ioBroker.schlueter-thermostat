@@ -350,6 +350,20 @@ If it changes, nothing is forwarded any more.
   "Thermostat offline" enabled – a notification is sent. As soon as a thermostat connects, the log confirms it.
 - Mode "off" with the DNS record still active: warning on start.
 
+**Several thermostats** (**not tested yet** on a real system with several devices – feedback welcome):
+
+- One DNS record for all: every thermostat connects to the same hostname and port; the adapter recognises each by
+  its serial number and maps it to the matching cloud device.
+- Commands, values, energy counter, schedule and time zone are kept per thermostat; if one drops, the others stay
+  local.
+- The slower cloud poll applies only while **all** thermostats are connected locally.
+- Check in the DNS log that **all** thermostats query the same hostname. In relay mode all are forwarded to the one
+  configured host; the thermostats send no hostname (SNI), so the adapter cannot tell them apart beforehand.
+- Port 9513 can be used by only one instance per host (one instance with any number of thermostats is fine).
+- "Local only" accepts only thermostats the adapter knows from the cloud; a new device has to be added in the app
+  and polled once first.
+
+### Objects
 ### Objects
 
 - `info.localListening`, `info.localUpstreamStatus`, `info.localUpstreamFingerprint`, `info.localConnected`,
