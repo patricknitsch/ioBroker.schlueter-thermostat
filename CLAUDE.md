@@ -13,7 +13,7 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 | `lib/apply-handlers.js` | Cloud writes for the `apply.<mode>.apply` buttons |
 | `lib/time.js`, `lib/util.js` | Thermostat-local time strings, unit conversion, `safeId` |
 | `lib/device-manager.js` | Device Manager UI (`@iobroker/dm-utils`) |
-| `lib/active-setpoint.js` | Keeps `setpoint.active` (setpoint of the current regulation mode; in schedule mode the current event, `day1` = Monday – confirmed) up to date, debounced |
+| `lib/active-setpoint.js` | Keeps `setpoint.active` (setpoint of the current regulation mode: comfort/manual/vacation/frost protection from their states, eco 20 °C and boost 35 °C fixed (confirmed on OWD5); in schedule mode the current event, `day1` = Monday – confirmed) up to date, debounced |
 | `lib/dm-indicators.js` | Live status indicators of the Device Manager cards and toolbar (SVG icons, read states directly) |
 | `lib/notificationManager.js` | Push notifications (Telegram, Pushover, …) |
 | `lib/local-manager.js` | Local control: glue between the gateway and the adapter (config, states, persistence, local apply, energy estimate) |

@@ -31,7 +31,7 @@ describe('active setpoint', () => {
 		}
 	});
 
-	it('writes the setpoint of the current mode, and null for modes without one', async () => {
+	it('writes the setpoint of the current mode (state or fixed), null for unknown modes', async () => {
 		const states = {
 			[`${DEV}.regulationMode`]: 3,
 			[`${DEV}.setpoint.manual`]: 25,
@@ -46,7 +46,11 @@ describe('active setpoint', () => {
 		assert.equal(await s.update(DEV), 23);
 		states[`${DEV}.regulationMode`] = 6;
 		assert.equal(await s.update(DEV), 5);
-		states[`${DEV}.regulationMode`] = 8; // boost: no setpoint
+		states[`${DEV}.regulationMode`] = 8; // boost: fixed 35 °C
+		assert.equal(await s.update(DEV), 35);
+		states[`${DEV}.regulationMode`] = 9; // eco: fixed 20 °C
+		assert.equal(await s.update(DEV), 20);
+		states[`${DEV}.regulationMode`] = 7; // unknown mode
 		assert.equal(await s.update(DEV), null);
 		assert.equal(a.written[`${DEV}.setpoint.active`], null);
 	});
