@@ -854,3 +854,79 @@ describe('local manager: no connection warning', () => {
 		assert.ok(infos.some(t => /is connected now/.test(t)));
 	});
 });
+
+describe('local gateway: several thermostats', function () {
+	this.timeout(10000);
+
+	it('keeps thermostats apart: states and commands per serial', async () => {
+		const W = require('../lib/local/wd5');
+		const wd5Login = serial =>
+			encodeFrame(
+				Buffer.concat([
+					encodeField(1, 1),
+					encodeField(4, 1),
+					encodeField(
+						5,
+						Buffer.concat([
+							encodeField(1, Buffer.from(serial)),
+							encodeField(2, 3),
+							encodeField(3, Buffer.from('1013W220')),
+						]),
+					),
+				]),
+			);
+		const upload = room =>
+			encodeFrame(
+				Buffer.concat([
+					encodeField(1, 13),
+					encodeField(4, 1),
+					encodeField(7, Buffer.concat([encodeField(2, Buffer.from(room)), encodeField(3, 3600)])),
+					encodeField(9, Buffer.concat([encodeField(1, 847837681), encodeField(2, 1)])),
+				]),
+			);
+		const gateway = new LocalGateway({
+			mode: 'local',
+			cert: CERT.cert,
+			key: CERT.key,
+			listenPort: 0,
+			listenHost: '127.0.0.1',
+			allowedSerials: new Set(['1000001', '1000002']),
+		});
+		const states = [];
+		gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
+		await gateway.start();
+		try {
+			const bad = await connectThermostat(gateway.port);
+			const kitchen = await connectThermostat(gateway.port);
+			bad.socket.write(wd5Login('1000001'));
+			kitchen.socket.write(wd5Login('1000002'));
+			await bad.next(m => m.has(10));
+			await kitchen.next(m => m.has(10));
+			bad.socket.write(upload('Bad'));
+			kitchen.socket.write(upload('Kueche'));
+			await bad.next(m => m.varint(1) === 13);
+			await kitchen.next(m => m.varint(1) === 13);
+
+			assert.deepEqual(gateway.connected.sort(), ['1000001', '1000002']);
+			assert.ok(states.some(x => x.serial === '1000001' && x.room === 'Bad'));
+			assert.ok(states.some(x => x.serial === '1000002' && x.room === 'Kueche'));
+
+			// A command reaches only its own thermostat.
+			const done = gateway.setModeWd5('1000002', { mode: W.MODE_MANUAL, tempC: 22 });
+			const cmd = await kitchen.next(m => m.has(9) && m.varint(4) === 1);
+			kitchen.socket.write(encodeFrame(Buffer.concat([encodeField(1, cmd.varint(1) ?? 0), encodeField(3, 1)])));
+			await done;
+			await wait(50);
+			assert.ok(!bad.frames.some(m => m.has(9)));
+
+			// One thermostat going offline does not affect the other.
+			bad.socket.destroy();
+			await wait(100);
+			assert.deepEqual(gateway.connected, ['1000002']);
+			assert.ok(gateway.canCommand('1000002'));
+			kitchen.socket.destroy();
+		} finally {
+			await gateway.stop();
+		}
+	});
+});
