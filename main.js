@@ -671,7 +671,9 @@ class SchlueterThermostat extends utils.Adapter {
 		await prefillApplyNonDestructive(this, devId, t);
 
 		// Schedule
-		await writeScheduleStates(this, devId, t?.Schedule);
+		if (!skip.has('schedule')) {
+			await writeScheduleStates(this, devId, t?.Schedule);
+		}
 
 		// Energy
 		if (this.client && serial) {

@@ -303,19 +303,20 @@ please attach that debug log to an issue.
 | **Relay** | ✔ | ✔ locally, app stays in sync | local, immediately | Recommended. Without internet the adapter takes over automatically. |
 | **Local only** | ✘ app shows offline | ✔ locally | local | Cloud and app are no longer synchronised. |
 
-While the thermostat is connected locally, the main states (`online`, `heating`, `temperature.*`,
-`regulationMode`, `setpoint.*`, `endTime.*`) come from the local connection; the cloud poll does not overwrite
-them. If the local connection drops, the cloud takes over again. Vacation and the cloud energy values still come
-from the cloud.
+There is **one** structure per thermostat (`groups.<G>.thermostats.<T>.*`), filled by the cloud and the local
+connection together. While the thermostat is connected locally, the local values win and the cloud poll skips
+those states; if the local connection drops, the cloud takes over again. Delivered locally: `online`, `heating`,
+`temperature.*`, `regulationMode`, `setpoint.manual`, `setpoint.comfort`, `setpoint.frostProtection`,
+`endTime.*`, `vacation.enabled`, `vacation.temperature`, `thermostatName`, `softwareVersion` and the schedule
+`schedule.day<N>.event<N>.*`.
 
-Additionally local (WD5):
+Local only:
 
-- `local.schedule`: weekly schedule straight from the thermostat (JSON: day, time, temperature, active, next day).
-  The meaning of the "active"/"next day" flags is not confirmed yet, so the cloud schedule states stay as they are.
-- `local.loadWatts`: heating load reported by the thermostat (e.g. 350 W).
-- `local.energyToday` / `local.energyTotal`: **estimated** consumption from heating time × load. The thermostat
-  reports no energy itself; it reports about once a minute whether it heats. Gaps over 5 minutes (disconnects)
-  are not counted. The counter is persisted across restarts.
+- `connection`: `cloud`, `relay` or `local`.
+- `energy.loadWatts`: heating load reported by the thermostat (e.g. 350 W).
+- `energy.estimatedToday` / `energy.estimatedTotal`: **estimated** consumption from heating time × load. The
+  thermostat reports no energy itself; it reports about once a minute whether it heats. Gaps over 5 minutes are
+  not counted. The counter survives restarts. The cloud energy values (`energy.value<N>`) stay as they are.
 
 ### Setup
 
@@ -326,23 +327,24 @@ Additionally local (WD5):
 3. Add a DNS record: that hostname → IP of the ioBroker host.
 4. In tab **Local (Beta)** choose **Relay**, enter hostname and port, save the instance.
 5. Power-cycle the thermostat so it resolves the name again.
-6. Check `schlueter-thermostat.0.local.*`: `listening`, `connected`, `upstreamStatus`, `lastEvent`.
+6. Check `schlueter-thermostat.0.info.local*`: `localListening`, `localConnected`, `localUpstreamStatus`,
+   `localLastEvent`.
 
 The real address of the vendor gateway is resolved via public DNS (1.1.1.1 / 8.8.8.8), or can be entered
-manually. The vendor gateway certificate is pinned on first contact (fingerprint in `local.upstreamFingerprint`).
+manually. The vendor gateway certificate is pinned on first contact (fingerprint in `info.localUpstreamFingerprint`).
 If it changes, nothing is forwarded any more.
 
 ### Objects
 
-- `local.listening`, `local.upstreamStatus`, `local.upstreamFingerprint`, `local.connected`, `local.lastEvent`
-- per thermostat `…thermostats.<Id>.local.*`: `online`, `relayed`, `floorTemperature`, `heating`,
-  `regulationMode`, `manualSetpoint`, `comfortSetpoint`, `targetTemperature`, `room`, `lastSeen`
+- `info.localListening`, `info.localUpstreamStatus`, `info.localUpstreamFingerprint`, `info.localConnected`,
+  `info.localLastEvent`
+- per thermostat: see above (shared structure with the cloud)
 
 ### Commands
 
-With **"Send schedule/manual commands locally"** `apply.schedule` and `apply.manual` are sent directly to the
-locally connected thermostat (acknowledged, 10 s timeout). On failure the cloud is used automatically.
-All other modes (comfort with end time, boost, eco, vacation, name) still use the cloud.
+With **"Send commands locally"** the apply commands go directly to the locally connected thermostat
+(acknowledged, 10 s timeout): on WD5 schedule, manual, comfort, boost, eco and frost protection, on WG4 schedule
+and manual. On failure the cloud is used automatically. Vacation and name always use the cloud.
 
 ### Notes
 

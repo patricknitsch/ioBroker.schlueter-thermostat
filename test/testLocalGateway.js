@@ -647,6 +647,8 @@ describe('local manager: main states', () => {
 			log: { debug() {}, info() {}, warn() {}, error() {} },
 			safeSetState: (id, st) => (written[id] = st.val),
 			safeSetObjectNotExists: async () => {},
+			safeGetObject: async () => null,
+			safeSetObject: async () => {},
 		};
 		const m = new LocalManager(adapter);
 		const dev = 'groups.1.thermostats.2';
@@ -662,7 +664,24 @@ describe('local manager: main states', () => {
 		assert.equal(written[`${dev}.regulationMode`], 3);
 		assert.equal(written[`${dev}.setpoint.manual`], 23);
 		assert.equal(written[`${dev}.endTime.boost`], undefined);
-		assert.equal(written[`${dev}.local.roomTemperature`], 19.73);
+		assert.equal(written[`${dev}.connection`], 'local');
+		assert.ok(!Object.keys(written).some(id => id.includes('.local.')));
+
+		// Schedule, name, firmware and frost protection land in the same states as the cloud values.
+		const schedule = [{ day: 1, events: [{ time: '05:00:00', temperature: 23, active: true, nextDay: false }] }];
+		await m._onState('1021410', {
+			schedule: JSON.stringify(schedule),
+			room: 'Bad',
+			firmware: '1013W220',
+			frostProtectionSetpoint: 5,
+		});
+		assert.equal(written[`${dev}.schedule.day1.event0.time`], '05:00:00');
+		assert.equal(written[`${dev}.schedule.day1.event0.temperature`], 23);
+		assert.equal(written[`${dev}.schedule.day1.event0.active`], true);
+		assert.equal(written[`${dev}.schedule.day1.event0.type`], 0);
+		assert.equal(written[`${dev}.thermostatName`], 'Bad');
+		assert.equal(written[`${dev}.softwareVersion`], '1013W220');
+		assert.equal(written[`${dev}.setpoint.frostProtection`], 5);
 
 		const skip = m.localStateIds('1021410');
 		for (const id of [
@@ -676,10 +695,13 @@ describe('local manager: main states', () => {
 			assert.ok(skip.has(id), id);
 		}
 		assert.ok(!skip.has('setpoint.comfort'));
+		assert.ok(skip.has('schedule'));
+		assert.ok(skip.has('thermostatName'));
 
 		// After a disconnect the cloud values are written again.
 		await m._onState('1021410', { online: false, relayed: false });
 		assert.deepEqual([...m.localStateIds('1021410')], ['online']);
+		assert.equal(written[`${dev}.connection`], 'cloud');
 	});
 });
 
@@ -693,6 +715,8 @@ describe('local manager: energy estimate', () => {
 			log: { debug() {}, info() {}, warn() {}, error() {} },
 			safeSetState: (id, st) => (written[id] = st.val),
 			safeSetObjectNotExists: async () => {},
+			safeGetObject: async () => null,
+			safeSetObject: async () => {},
 		};
 		const m = new LocalManager(adapter);
 		m._saveStore = () => {};
@@ -717,8 +741,8 @@ describe('local manager: energy estimate', () => {
 			Date.now = realNow;
 		}
 		// 2 minutes x 350 W = 0.01167 kWh
-		assert.equal(written[`${dev}.local.energyToday`], 0.012);
-		assert.equal(written[`${dev}.local.energyTotal`], 0.012);
-		assert.equal(written[`${dev}.local.loadWatts`], 350);
+		assert.equal(written[`${dev}.energy.estimatedToday`], 0.012);
+		assert.equal(written[`${dev}.energy.estimatedTotal`], 0.012);
+		assert.equal(written[`${dev}.energy.loadWatts`], 350);
 	});
 });
