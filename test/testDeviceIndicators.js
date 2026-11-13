@@ -59,4 +59,23 @@ describe('device manager indicators', () => {
 			}
 		}
 	});
+
+	it('shows the energy source that fits the local mode', () => {
+		const ids = mode => thermostatIndicators(BASE, { local: mode !== 'off', mode });
+		const stateOf = (list, id) => /** @type {any} */ (list.find(i => i.id === id)?.value)?.stateId;
+
+		const cloud = ids('off');
+		assert.equal(stateOf(cloud, 'energy'), `${BASE}.energy.value0`);
+		assert.ok(!cloud.some(i => i.id === 'energyEstimated'));
+
+		const relay = ids('relay');
+		assert.equal(stateOf(relay, 'energy'), `${BASE}.energy.value0`);
+		assert.equal(relay.find(i => i.id === 'energyEstimated')?.defaultVisible, false);
+
+		// local only: the cloud gets no data, its energy stands still
+		const local = ids('local');
+		assert.ok(!local.some(i => i.id === 'energy'));
+		assert.equal(stateOf(local, 'energyEstimated'), `${BASE}.energy.estimatedToday`);
+		assert.notEqual(local.find(i => i.id === 'energyEstimated')?.defaultVisible, false);
+	});
 });

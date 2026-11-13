@@ -61,7 +61,7 @@ Jede Adapterinstanz wird jetzt im Device Manager angezeigt und listet dort alle 
 | Bereich | Beschreibung |
 | ------- | ------------ |
 | **Geräteliste** | Alle Thermostate nach Adapter-Gruppe anzeigen |
-| **Kachel** | Online-Status, ID (Seriennummer), Modell und Live-Indikatoren: Verbindung (Cloud / Relay / Lokal, nur mit lokaler Steuerung), Heizen, Raum- und Bodentemperatur, Regelmodus, Urlaub (wenn aktiv), Energie. Jeder Indikator kann in der Toolbar ein- oder ausgeblendet werden |
+| **Kachel** | Online-Status, ID (Seriennummer), Modell und Live-Indikatoren: Verbindung (Cloud / Relay / Lokal, nur mit lokaler Steuerung), Heizen, Raum- und Bodentemperatur, Regelmodus, Urlaub (wenn aktiv), Energie. Energie: Cloud-Wert (`energy.value0`); im Modus „Nur lokal“ der geschätzte Tageswert (`energy.estimatedToday`), weil die Cloud dann keine Daten bekommt; im Relay ist der Schätzwert zusätzlich einblendbar. Jeder Indikator kann in der Toolbar ein- oder ausgeblendet werden |
 | **Toolbar der Instanz** | Cloud-Verbindung; mit lokaler Steuerung zusätzlich lokales Gateway und Status des Hersteller-Gateways |
 | **Details (Drei-Punkte-Menü)** | Thermostat-Details mit den Tabs **Information** (Gruppen-ID, Thermostat-ID, Modell) und **Steuerung** öffnen |
 | **Steuerung** | Manuell-/Komfort-Sollwert setzen, Schedule-/Eco-/Manual-/Comfort-Apply auslösen, Boost-Dauer + Apply setzen, Urlaub konfigurieren und den Thermostatnamen umbenennen |
