@@ -24,7 +24,7 @@ This adapter integrates <strong>Schlüter / OJ Microline OWD5 thermostats</stron
 
 It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
 
-> **Cloud-only** — no local gateway, Modbus, or LAN API required.
+> Works via the cloud out of the box. Optional **local control (beta)**: the adapter can act as the thermostats' device gateway on your LAN (relay or local-only mode) – see the documentation.
 
 ##
 
