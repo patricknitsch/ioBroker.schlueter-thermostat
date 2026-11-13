@@ -328,10 +328,33 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	onMessage(obj) {
-		if (!this.deviceManagement || !obj) {
+		if (!obj) {
+			return;
+		}
+		if (obj.command === 'checkLocalDns') {
+			this._onCheckLocalDns(obj).catch(e => this.log.warn(`DNS check failed: ${e?.message || e}`));
+			return;
+		}
+		if (!this.deviceManagement) {
 			return;
 		}
 		this.deviceManagement.handleAdapterMessage(obj);
+	}
+
+	/**
+	 * "Check DNS" button of the local tab: uses the values currently in the form.
+	 *
+	 * @param {ioBroker.Message} obj message from admin
+	 */
+	async _onCheckLocalDns(obj) {
+		const data = /** @type {any} */ (obj.message) || {};
+		const host = String(data.host || this.config.localUpstreamHost || '');
+		const port = Math.trunc(Number(data.port)) || Number(this.config.localListenPort) || 9513;
+		const manager = this.local || new LocalManager(this);
+		const r = await manager.diagnose(host, port);
+		if (obj.callback) {
+			this.sendTo(obj.from, obj.command, r.ok ? { result: r.text } : { error: r.text }, obj.callback);
+		}
 	}
 
 	async onReady() {

@@ -788,3 +788,69 @@ describe('local manager: cloud poll interval', () => {
 		assert.equal(off.cloudPollIntervalMs(['a'], 15_000), 15_000);
 	});
 });
+
+describe('local manager: DNS check', () => {
+	const make = () => {
+		const { LocalManager } = require('../lib/local-manager');
+		return new LocalManager({ config: { localMode: 'relay' }, log: {}, namespace: 'x' });
+	};
+
+	it('reports a hostname that points to this host with an open port', async () => {
+		const net = require('node:net');
+		const server = net.createServer(s => s.destroy());
+		await new Promise(r => server.listen(0, '127.0.0.1', r));
+		try {
+			const r = await make().diagnose('localhost', server.address().port);
+			assert.equal(r.ok, true);
+			assert.equal(r.local, '127.0.0.1');
+			assert.match(r.text, /^OK:/);
+		} finally {
+			server.close();
+		}
+	});
+
+	it('reports a closed port', async () => {
+		const r = await make().diagnose('localhost', 1);
+		assert.equal(r.ok, false);
+		assert.equal(r.portOpen, false);
+		assert.match(r.text, /does not answer/);
+	});
+
+	it('reports a missing hostname', async () => {
+		const r = await make().diagnose('', 9513);
+		assert.equal(r.ok, false);
+		assert.match(r.text, /No hostname/);
+	});
+});
+
+describe('local manager: no connection warning', () => {
+	it('warns once when no thermostat connected and clears the warning on connect', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const warnings = [];
+		const infos = [];
+		let fire = null;
+		const adapter = {
+			config: { localMode: 'relay', localUpstreamHost: 'gw.example', notifyEnabled: false },
+			namespace: 'x',
+			log: { warn: t => warnings.push(t), info: t => infos.push(t), debug() {}, error() {} },
+			setTimeout: (fn, ms) => {
+				assert.equal(ms, 10 * 60_000);
+				fire = fn;
+				return 1;
+			},
+			clearTimeout: () => {},
+			safeSetState: () => {},
+			safeSetObjectNotExists: async () => {},
+		};
+		const m = new LocalManager(adapter);
+		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set() });
+		m._startNoConnectionWatch();
+		fire();
+		assert.equal(warnings.length, 1);
+		assert.match(warnings[0], /No thermostat has connected .* gw\.example/);
+
+		m.registerThermostat('1021410', 'groups.1.thermostats.2');
+		await m._onState('1021410', { online: true, relayed: true });
+		assert.ok(infos.some(t => /is connected now/.test(t)));
+	});
+});

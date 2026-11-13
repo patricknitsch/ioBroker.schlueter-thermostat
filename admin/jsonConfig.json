@@ -702,6 +702,22 @@
 					"lg": 4,
 					"xl": 4
 				},
+				"_checkLocalDns": {
+					"type": "sendTo",
+					"command": "checkLocalDns",
+					"label": "localCheckDnsLabel",
+					"help": "localCheckDnsHelp",
+					"variant": "outlined",
+					"showProcess": true,
+					"jsonData": "{\"host\":\"${data.localUpstreamHost}\",\"port\":\"${data.localListenPort}\"}",
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
 				"localUpstreamPin": {
 					"type": "text",
 					"label": "localUpstreamPinLabel",

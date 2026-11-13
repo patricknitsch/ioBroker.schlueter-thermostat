@@ -333,12 +333,24 @@ wieder im normalen Takt abgefragt.
 3. DNS-Eintrag anlegen: dieser Hostname → IP des ioBroker-Hosts.
 4. Im Tab **Lokal (Beta)** Modus **Relay** wählen, Hostname und Port eintragen, Instanz speichern.
 5. Thermostat stromlos neu starten, damit es den Namen neu auflöst.
+   Vorher mit dem Button **„DNS prüfen“** testen: Er zeigt, auf welche Adresse der Hostname aus Sicht des
+   ioBroker-Hosts zeigt und ob der Port antwortet (Instanz muss laufen; im Log erscheint dabei eine kurze
+   `TCP connection from …` des Tests selbst).
 6. Unter `schlueter-thermostat.0.info.local*` prüfen: `localListening`, `localConnected`, `localUpstreamStatus`,
    `localLastEvent`.
 
 Die echte Adresse des Hersteller-Gateways ermittelt der Adapter über öffentliches DNS (1.1.1.1 / 8.8.8.8),
 alternativ kann sie fest eingetragen werden. Das Zertifikat des Hersteller-Gateways wird beim ersten Kontakt
 gespeichert (Fingerabdruck in `info.localUpstreamFingerprint`). Ändert es sich, wird nichts mehr weitergeleitet.
+
+**Prüfungen und Hinweise:**
+
+- Beim Start (Relay / Nur lokal): Zeigt der Hostname nicht auf einen lokalen Host, warnt der Adapter, dass der
+  DNS-Eintrag fehlt; sonst meldet er `DNS check – OK …`.
+- Verbindet sich 10 Minuten nach dem Start kein Thermostat, kommt eine Warnung und – bei aktiven
+  Benachrichtigungen und „Thermostat offline“ – eine Nachricht. Sobald ein Thermostat verbindet, wird das im Log
+  bestätigt.
+- Modus „Aus“ mit noch aktivem DNS-Eintrag: Warnung beim Start.
 
 ### Objekte
 

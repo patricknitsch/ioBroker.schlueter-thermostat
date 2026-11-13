@@ -332,12 +332,23 @@ energy and vacation dates. If a thermostat loses the local connection, the norma
 3. Add a DNS record: that hostname → IP of the ioBroker host.
 4. In tab **Local (Beta)** choose **Relay**, enter hostname and port, save the instance.
 5. Power-cycle the thermostat so it resolves the name again.
+   Test it first with the **"Check DNS"** button: it shows where the hostname points from the ioBroker host and
+   whether the port answers (instance must be running; the test itself shows up as a short
+   `TCP connection from …` in the log).
 6. Check `schlueter-thermostat.0.info.local*`: `localListening`, `localConnected`, `localUpstreamStatus`,
    `localLastEvent`.
 
 The real address of the vendor gateway is resolved via public DNS (1.1.1.1 / 8.8.8.8), or can be entered
 manually. The vendor gateway certificate is pinned on first contact (fingerprint in `info.localUpstreamFingerprint`).
 If it changes, nothing is forwarded any more.
+
+**Checks and hints:**
+
+- On start (relay / local only): if the hostname does not point to a local host, the adapter warns that the DNS
+  record is missing; otherwise it logs `DNS check – OK …`.
+- If no thermostat connects within 10 minutes after the start, a warning is logged and – with notifications and
+  "Thermostat offline" enabled – a notification is sent. As soon as a thermostat connects, the log confirms it.
+- Mode "off" with the DNS record still active: warning on start.
 
 ### Objects
 
