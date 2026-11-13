@@ -15,7 +15,7 @@
     "Username": "Nome de usuário",
     "localAllowCommandsHelp": "If the thermostat is connected locally, apply commands are sent directly to it (WD5: schedule, manual, comfort, boost, eco, frost protection). On failure or if unsupported, the cloud is used.",
     "localAllowCommandsLabel": "Send commands locally",
-    "localBetaWarning": "BETA: Local control is experimental and has not been confirmed on WD5-series thermostats (OWD5/MWD5) yet. Use at your own risk and please report your observations.",
+    "localBetaWarning": "BETA: Local control is still being tested. Use at your own risk and please report your observations.",
     "localCheckDnsHelp": "Checks with the values in the form whether the hostname points to this host and the port answers (instance must be running).",
     "localCheckDnsLabel": "Check DNS",
     "localCloudPollSecHelp": "While all thermostats are connected locally, the cloud is only polled at this interval (energy, vacation dates). 0 = normal poll interval.",

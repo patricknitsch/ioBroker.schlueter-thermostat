@@ -255,9 +255,9 @@ Wenn keine Instanz ausgewählt ist, erkennt der Adapter automatisch eine laufend
 
 ## 🏠 Lokale Steuerung (BETA)
 
-> ⚠️ **Experimentell.** Das Geräteprotokoll ist nur für Thermostate der WG4-Serie dokumentiert.
-> Ob WD5-Thermostate (OWD5/MWD5) dasselbe Protokoll sprechen, ist **noch nicht bestätigt**.
-> Wir beobachten das Verhalten in der Beta und reagieren auf Rückmeldungen.
+> ⚠️ **Beta.** Bestätigt an einem OWD5 (WD5-Serie, Firmware 1013W220) in allen drei Modi. Die WG4-Serie
+> (Nordamerika) wird unterstützt, ist an echter Hardware aber noch nicht getestet. Wir beobachten das Verhalten
+> in der Beta und reagieren auf Rückmeldungen.
 
 Das Thermostat hält neben der App-Cloud eine eigene TLS-Verbindung zum **Geräte-Gateway** des Herstellers offen.
 Der Adapter kann dieses Gateway selbst bereitstellen. Am Thermostat wird nichts verändert – ein lokaler DNS-Eintrag

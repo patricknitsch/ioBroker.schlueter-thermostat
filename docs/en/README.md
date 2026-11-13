@@ -255,9 +255,9 @@ If left empty, the adapter automatically detects a running instance and prefers 
 
 ## 🏠 Local Control (BETA)
 
-> ⚠️ **Experimental.** The device protocol is only documented for WG4-series thermostats.
-> Whether WD5 thermostats (OWD5/MWD5) speak the same protocol is **not confirmed yet**.
-> We are watching the behaviour during the beta and will react to feedback.
+> ⚠️ **Beta.** Confirmed on an OWD5 (WD5 series, firmware 1013W220) in all three modes. The WG4 series (North
+> America) is supported but not yet tested on real hardware. We are watching the behaviour during the beta and will
+> react to feedback.
 
 Besides the app cloud, the thermostat keeps its own TLS connection to the vendor's **device gateway**.
 The adapter can provide that gateway itself. Nothing on the thermostat is modified – a local DNS record
