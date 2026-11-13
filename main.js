@@ -628,7 +628,10 @@ class SchlueterThermostat extends utils.Adapter {
 		await this.deleteOldWritableStates(devId);
 
 		// Track online status for fallback polling
-		const onlineNow = Boolean(t?.Online);
+		// A thermostat connected to the local gateway counts as online, also when
+		// the cloud does not see it (local-only mode or internet down).
+		const localConnected = Boolean(serial && this.local?.isConnected(serial));
+		const onlineNow = Boolean(t?.Online) || localConnected;
 		this._hadThermostatsThisPoll = true;
 		if (onlineNow) {
 			this._anyOnlineThisPoll = true;
@@ -661,6 +664,9 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Write read-only states
 		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal });
+		if (localConnected) {
+			this.safeSetState(`${devId}.online`, { val: true, ack: true });
+		}
 
 		// Non-destructive prefill of apply.*
 		await prefillApplyNonDestructive(this, devId, t);

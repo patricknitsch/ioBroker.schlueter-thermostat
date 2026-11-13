@@ -271,7 +271,11 @@ leitet die Verbindung auf den ioBroker-Host um. Wird der Eintrag gelöscht, ist 
 - Lokale Befehle (Option „Befehle lokal senden“): Zeitplan, Manuell, Komfort, Boost, Eco, Frostschutz.
   Sie werden exakt wie die Befehle der Hersteller-Cloud aufgebaut; das Thermostat meldet den neuen Zustand
   danach selbst an die Cloud, die App bleibt synchron.
-- „Nur lokal“ wird für WD5 noch abgelehnt.
+- **Nur lokal (Test):** Der Adapter beantwortet das Thermostat selbst (Login, Upload-Aufforderung, Quittungen
+  mit Serverzeit), ein aufgezeichnetes Profil ist bei WD5 nicht nötig. App und Cloud zeigen das Thermostat
+  dann offline; im Adapter gilt es als online, solange es lokal verbunden ist.
+- **Relay ohne Internet:** Ist die Hersteller-Cloud nicht erreichbar, beantwortet der Adapter das Thermostat
+  ebenfalls selbst und versucht alle 5 Minuten, wieder an die Cloud weiterzuleiten.
 - Blockiert das Netz DNS-Anfragen an externe Server (typisch bei Pi-hole), nutzt der Adapter DNS-over-HTTPS
   und merkt sich die zuletzt funktionierende IP. Alternativ die IP fest eintragen.
 

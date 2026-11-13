@@ -553,6 +553,64 @@ describe('local gateway: local mode', function () {
 		}
 	});
 
+	for (const variant of ['local', 'relay-fallback']) {
+		it(`answers a WD5 thermostat itself (${variant})`, async () => {
+			const W = require('../lib/local/wd5');
+			const wd5Login = Buffer.from(
+				'0825080120012a1f0a073130323134313010031a08313031335732323020012a060806100e1833',
+				'hex',
+			);
+			const gateway = new LocalGateway({
+				mode: variant === 'local' ? 'local' : 'relay',
+				cert: CERT.cert,
+				key: CERT.key,
+				listenPort: 0,
+				listenHost: '127.0.0.1',
+				// relay-fallback: nothing listens on port 1, the vendor gateway is unreachable
+				upstreamIp: '127.0.0.1',
+				upstreamPort: 1,
+				allowLocalUpstream: true,
+			});
+			const states = [];
+			gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
+			await gateway.start();
+			try {
+				const t = await connectThermostat(gateway.port);
+				t.socket.write(wd5Login);
+				const loginAnswer = await t.next(m => m.varint(1) === 1);
+				assert.equal(loginAnswer.varint(3), 1);
+				assert.equal(loginAnswer.varint(4), 1);
+				assert.ok(loginAnswer.has(12));
+				const request = await t.next(m => m.has(10));
+				assert.equal(request.varint(1), 0);
+				assert.equal(request.message(10)?.varint(2), 1);
+				assert.ok(states.some(x => x.online === true && x.relayed === false));
+
+				// acknowledgement of the request needs no answer; upload and heartbeat do
+				t.socket.write(encodeFrame(Buffer.concat([encodeField(1, 0), encodeField(3, 1)])));
+				const upload = Buffer.concat([
+					encodeField(1, 13),
+					encodeField(4, 1),
+					encodeField(9, Buffer.concat([encodeField(1, 847837681), encodeField(2, 1), encodeField(8, 1)])),
+				]);
+				t.socket.write(encodeFrame(upload));
+				const ack = await t.next(m => m.varint(1) === 13);
+				assert.equal(ack.varint(3), 1);
+				assert.ok(ack.has(12));
+				assert.ok(gateway.canCommand('1021410'));
+
+				const done = gateway.setModeWd5('1021410', { mode: W.MODE_MANUAL, tempC: 21.5 });
+				const cmd = await t.next(m => m.varint(1) === 101);
+				assert.equal(W.decodeState(cmd).manualSetpoint, 21.5);
+				t.socket.write(encodeFrame(Buffer.concat([encodeField(1, 101), encodeField(3, 1)])));
+				await done;
+				t.socket.destroy();
+			} finally {
+				await gateway.stop();
+			}
+		});
+	}
+
 	it('refuses a thermostat without a profile', async () => {
 		const gateway = new LocalGateway({
 			mode: 'local',

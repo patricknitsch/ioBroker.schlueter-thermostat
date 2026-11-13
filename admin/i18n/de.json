@@ -16,7 +16,7 @@
     "localAllowCommandsHelp": "Ist das Thermostat lokal verbunden, werden Apply-Befehle direkt gesendet (WD5: Zeitplan, Manuell, Komfort, Boost, Eco, Frostschutz). Schlägt das fehl oder fehlt die Unterstützung, wird die Cloud verwendet.",
     "localAllowCommandsLabel": "Befehle lokal senden",
     "localBetaWarning": "BETA: Die lokale Steuerung ist experimentell und für Thermostate der WD5-Serie (OWD5/MWD5) noch nicht bestätigt. Nutzung auf eigenes Risiko – bitte Beobachtungen melden.",
-    "localHint": "Der Adapter betreibt ein eigenes Geräte-Gateway. Ein lokaler DNS-Eintrag muss den Hostnamen des Hersteller-Gateways auf den ioBroker-Host zeigen lassen, danach das Thermostat stromlos neu starten.\nRelay: Die Verbindung wird an die Hersteller-Cloud weitergereicht (App funktioniert weiter) und alles wird lokal mitgelesen. Nur lokal: ioBroker beantwortet das Thermostat selbst, die Cloud wird nie kontaktiert (benötigt vorher eine erfolgreiche Relay-Sitzung).",
+    "localHint": "Der Adapter betreibt ein eigenes Geräte-Gateway. Ein lokaler DNS-Eintrag muss den Hostnamen des Hersteller-Gateways auf den ioBroker-Host zeigen lassen, danach das Thermostat stromlos neu starten.\nRelay: Die Verbindung wird an die Hersteller-Cloud weitergereicht (App funktioniert weiter) und alles wird lokal mitgelesen. Nur lokal: ioBroker beantwortet das Thermostat selbst, die Cloud wird nie kontaktiert (WG4: benötigt vorher eine erfolgreiche Relay-Sitzung).",
     "localListenPortLabel": "Port (lauschen)",
     "localModeLabel": "Lokaler Modus",
     "localModeLocal": "Nur lokal",

@@ -271,7 +271,11 @@ redirects the connection to the ioBroker host. Deleting the record undoes everyt
 - Local commands (option "Send commands locally"): schedule, manual, comfort, boost, eco, frost protection.
   They are built exactly like the vendor cloud's commands; the thermostat then reports its new state to the
   cloud itself, so the app stays in sync.
-- "Local only" is still refused for WD5.
+- **Local only (test):** the adapter answers the thermostat itself (login, upload request, acknowledgements with
+  server time); WD5 needs no recorded profile. App and cloud show the thermostat offline; in the adapter it
+  counts as online while it is connected locally.
+- **Relay without internet:** if the vendor cloud is unreachable, the adapter answers the thermostat itself
+  as well and tries every 5 minutes to relay to the cloud again.
 - If the network blocks DNS to external servers (typical with Pi-hole), the adapter uses DNS over HTTPS and
   remembers the last working IP. Alternatively enter the IP manually.
 
