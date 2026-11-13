@@ -747,3 +747,23 @@ describe('local manager: energy estimate', () => {
 		assert.equal(written[`${dev}.energy.loadWatts`], 350);
 	});
 });
+
+describe('local manager: cloud writes in local-only mode', () => {
+	const make = config => {
+		const { LocalManager } = require('../lib/local-manager');
+		return new LocalManager({ config, log: {}, namespace: 'x' });
+	};
+
+	it('blocks cloud applies only in local-only mode', () => {
+		assert.equal(make({ localMode: 'off' }).cloudApplyBlockedReason(), null);
+		assert.equal(make({ localMode: 'relay', localAllowCommands: true }).cloudApplyBlockedReason(), null);
+		assert.match(
+			make({ localMode: 'local', localAllowCommands: true }).cloudApplyBlockedReason(),
+			/not supported locally/,
+		);
+		assert.match(
+			make({ localMode: 'local', localAllowCommands: false }).cloudApplyBlockedReason(),
+			/Send commands locally/,
+		);
+	});
+});

@@ -707,9 +707,19 @@ class SchlueterThermostat extends utils.Adapter {
 			return;
 		}
 
-		// Local gateway (beta): schedule/manual go straight to the thermostat
+		// Local gateway (beta): supported modes go straight to the thermostat
 		// when it is connected locally and local commands are enabled.
 		if (this.local?.allowCommands && (await this._tryLocalApply(id))) {
+			this.safeSetState(id, { val: false, ack: true });
+			return;
+		}
+
+		// In local-only mode the thermostat never talks to the cloud: a cloud
+		// write would be accepted there but never reach the device.
+		const blocked = this.local?.cloudApplyBlockedReason();
+		if (blocked) {
+			const modeFolder = id.split('.').slice(-2, -1)[0];
+			this.log.warn(`Apply "${modeFolder}" blocked: ${blocked}`);
 			this.safeSetState(id, { val: false, ack: true });
 			return;
 		}

@@ -344,7 +344,11 @@ gespeichert (Fingerabdruck in `info.localUpstreamFingerprint`). Ändert es sich,
 
 Mit **„Befehle lokal senden“** gehen die Apply-Befehle direkt an das lokal verbundene Thermostat (mit
 Bestätigung, 10 s Timeout): bei WD5 Zeitplan, Manuell, Komfort, Boost, Eco und Frostschutz, bei WG4 Zeitplan und
-Manuell. Schlägt das fehl, wird automatisch die Cloud verwendet. Urlaub und Name laufen immer über die Cloud.
+Manuell. Schlägt das fehl, wird automatisch die Cloud verwendet. Urlaub und Name laufen über die Cloud.
+
+Im Modus **Nur lokal** erreicht kein Cloud-Befehl das Thermostat. Befehle, die nicht lokal ausgeführt werden können
+(Urlaub, Name, oder alle bei ausgeschalteter Option „Befehle lokal senden“), werden deshalb mit einer Warnung
+abgelehnt (`Apply "…" blocked: …`).
 
 ### Hinweise
 

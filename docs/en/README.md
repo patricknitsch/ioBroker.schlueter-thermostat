@@ -344,7 +344,11 @@ If it changes, nothing is forwarded any more.
 
 With **"Send commands locally"** the apply commands go directly to the locally connected thermostat
 (acknowledged, 10 s timeout): on WD5 schedule, manual, comfort, boost, eco and frost protection, on WG4 schedule
-and manual. On failure the cloud is used automatically. Vacation and name always use the cloud.
+and manual. On failure the cloud is used automatically. Vacation and name use the cloud.
+
+In **Local only** mode no cloud command reaches the thermostat. Commands that cannot run locally (vacation, name,
+or all of them with "Send commands locally" switched off) are therefore refused with a warning
+(`Apply "…" blocked: …`).
 
 ### Notes
 
