@@ -86,7 +86,7 @@ Each adapter instance is now listed in Device Manager and shows all thermostats 
 | Username          | Your Schlüter/OJ cloud login  |
 | Password          | Cloud password                |
 | API Key           | Default works in most cases   |
-| Customer ID       | Found in thermostat info      |
+| Customer ID       | Found in thermostat info (default: 3) |
 | Client SW Version | Numeric value from thermostat |
 | Poll Interval     | Default: 60 seconds           |
 
@@ -234,6 +234,8 @@ Activates Push-Notifications, to inform about device events. All Notifications w
 | 2 | **✅ Thermostat Online** 
 | 3 | **⚠️ Cloud Connection lost**
 | 4 | **✅ Cloud Connection restored** 
+| 5 | **⚠️ Local connection lost** (local control only; after 2 minutes without connection, also "no thermostat connected for 10 minutes")
+| 6 | **✅ Local connection restored** (only after a "lost" message)
 
 
 ### Supported Providers

@@ -843,7 +843,7 @@ describe('local manager: no connection warning', () => {
 			safeSetObjectNotExists: async () => {},
 		};
 		const m = new LocalManager(adapter);
-		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set() });
+		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set(), stop: async () => {} });
 		m._startNoConnectionWatch();
 		fire();
 		assert.equal(warnings.length, 1);
@@ -1119,5 +1119,62 @@ describe('local manager: cloud-only users', () => {
 		});
 		await m._setCloudConnection('groups.1.thermostats.2');
 		assert.deepEqual(created, ['groups.1.thermostats.2.connection']);
+	});
+});
+
+describe('local manager: local connection lost / restored', () => {
+	const make = () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const logs = { warn: [], info: [] };
+		const timers = [];
+		const adapter = {
+			config: { localMode: 'relay', notifyEnabled: false },
+			namespace: 'x',
+			log: { warn: t => logs.warn.push(t), info: t => logs.info.push(t), debug() {}, error() {} },
+			setTimeout: (fn, ms) => {
+				const t = { fn, ms, cleared: false };
+				timers.push(t);
+				return t;
+			},
+			clearTimeout: t => (t.cleared = true),
+			safeSetState: () => {},
+			safeSetObjectNotExists: async () => {},
+			safeGetObject: async () => ({ common: { name: 'Bad' } }),
+		};
+		const m = new LocalManager(adapter);
+		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set(), stop: async () => {} });
+		m.registerThermostat('1021410', 'groups.1.thermostats.2');
+		const fire = () =>
+			timers.filter(t => !t.cleared && t.ms === 2 * 60_000).forEach(t => ((t.cleared = true), t.fn()));
+		return { m, logs, timers, fire };
+	};
+
+	it('reports a loss after the grace time and the return after it', async () => {
+		const { m, logs, fire } = make();
+		await m._onState('1021410', { online: false, relayed: false });
+		fire();
+		await wait(10);
+		assert.equal(logs.warn.length, 1);
+		assert.match(logs.warn[0], /local connection of Bad lost/);
+
+		m.gateway.connected = ['1021410'];
+		await m._onState('1021410', { online: true, relayed: true });
+		await wait(10);
+		assert.ok(logs.info.some(t => /local connection of Bad restored/.test(t)));
+	});
+
+	it('stays quiet for a short reconnect and while stopping', async () => {
+		const { m, logs, timers } = make();
+		await m._onState('1021410', { online: false, relayed: false });
+		m.gateway.connected = ['1021410'];
+		await m._onState('1021410', { online: true, relayed: true });
+		assert.ok(timers.every(t => t.cleared || t.ms !== 2 * 60_000));
+		assert.ok(!logs.info.some(t => /restored/.test(t)));
+
+		await m.stop();
+		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set(), stop: async () => {} });
+		await m._onState('1021410', { online: false, relayed: false });
+		assert.equal(timers.filter(t => !t.cleared && t.ms === 2 * 60_000).length, 0);
+		assert.equal(logs.warn.length, 0);
 	});
 });

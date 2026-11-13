@@ -86,7 +86,7 @@ Jede Adapterinstanz wird jetzt im Device Manager angezeigt und listet dort alle 
 | Username          | Cloud Login                     |
 | Password          | Cloud Passwort                  |
 | API Key           | Standard funktioniert meist     |
-| Customer ID       | In den Thermostatinfos          |
+| Customer ID       | In den Thermostatinfos (Standard: 3) |
 | Client SW Version | Numerischer Wert vom Thermostat |
 | Poll Interval     | Standard: 60 Sekunden           |
 
@@ -234,6 +234,8 @@ Aktiviere Push-Benachrichtigungen, um über Geräteereignisse informiert zu werd
 | 2 | **✅ Thermostat Online** 
 | 3 | **⚠️ Cloud Verbindung verloren**
 | 4 | **✅ Cloud Verbindung wieder hergestellt** 
+| 5 | **⚠️ Lokale Verbindung verloren** (nur mit lokaler Steuerung; nach 2 Minuten ohne Verbindung, auch „seit 10 Minuten kein Thermostat verbunden“)
+| 6 | **✅ Lokale Verbindung wiederhergestellt** (nur nach einer Meldung „verloren“)
 
 
 ### Unterstützte Anbieter

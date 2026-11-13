@@ -44,6 +44,8 @@
     "notifyInstanceLabel": "实例（空则自动检测）",
     "notifyOnCloudOfflineLabel": "云连接断开",
     "notifyOnCloudRecoveredLabel": "云连接已恢复",
+    "notifyOnLocalConnectionLostLabel": "本地连接已断开",
+    "notifyOnLocalConnectionRestoredLabel": "本地连接已恢复",
     "notifyOnThermostatOfflineLabel": "温控器离线",
     "notifyOnThermostatOnlineLabel": "温控器在线（恢复）",
     "notifyPhoneSignalLabel": "Signal 电话号码（可选）",

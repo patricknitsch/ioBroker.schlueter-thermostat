@@ -39,7 +39,7 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 | Username          | Your Schlüter/OJ cloud login  |
 | Password          | Cloud password                |
 | API Key           | Below works in most cases     |
-| Customer ID       | Found in thermostat info      |
+| Customer ID       | Found in thermostat info (default: 3) |
 | Client SW Version | Numeric value from thermostat |
 | Poll Interval     | Default: 60 seconds           |
 
@@ -126,6 +126,8 @@ flowchart TB
 * (patricknitsch) Device Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar
 * (patricknitsch) Device Manager: compact single-page controls with thermostat and serial number; information tab removed
 * (patricknitsch) New state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card
+* (patricknitsch) Notifications when the local connection of a thermostat is lost / restored
+* (patricknitsch) Default customer ID is 3 for new instances
 
 ### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker

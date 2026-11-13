@@ -44,6 +44,8 @@
     "notifyInstanceLabel": "Instância (automático se vazio)",
     "notifyOnCloudOfflineLabel": "Ligação à nuvem perdida",
     "notifyOnCloudRecoveredLabel": "Ligação à nuvem recuperada",
+    "notifyOnLocalConnectionLostLabel": "Ligação local perdida",
+    "notifyOnLocalConnectionRestoredLabel": "Ligação local restabelecida",
     "notifyOnThermostatOfflineLabel": "Termostato offline",
     "notifyOnThermostatOnlineLabel": "Termostato online (recuperação)",
     "notifyPhoneSignalLabel": "Número de telefone Signal (opcional)",

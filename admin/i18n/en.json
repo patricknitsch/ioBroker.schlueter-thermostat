@@ -44,6 +44,8 @@
     "notifyInstanceLabel": "Instance (auto-detect if empty)",
     "notifyOnCloudOfflineLabel": "Cloud connection lost",
     "notifyOnCloudRecoveredLabel": "Cloud connection recovered",
+    "notifyOnLocalConnectionLostLabel": "Local connection lost",
+    "notifyOnLocalConnectionRestoredLabel": "Local connection restored",
     "notifyOnThermostatOfflineLabel": "Thermostat offline",
     "notifyOnThermostatOnlineLabel": "Thermostat online (recovery)",
     "notifyPhoneSignalLabel": "Signal phone number (optional)",

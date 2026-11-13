@@ -44,6 +44,8 @@
     "notifyInstanceLabel": "Экземпляр (авто если пусто)",
     "notifyOnCloudOfflineLabel": "Соединение с облаком потеряно",
     "notifyOnCloudRecoveredLabel": "Соединение с облаком восстановлено",
+    "notifyOnLocalConnectionLostLabel": "Локальное соединение потеряно",
+    "notifyOnLocalConnectionRestoredLabel": "Локальное соединение восстановлено",
     "notifyOnThermostatOfflineLabel": "Термостат офлайн",
     "notifyOnThermostatOnlineLabel": "Термостат онлайн (восстановление)",
     "notifyPhoneSignalLabel": "Номер телефона Signal (необязательно)",

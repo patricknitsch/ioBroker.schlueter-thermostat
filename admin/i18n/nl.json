@@ -44,6 +44,8 @@
     "notifyInstanceLabel": "Instantie (auto als leeg)",
     "notifyOnCloudOfflineLabel": "Cloudverbinding verbroken",
     "notifyOnCloudRecoveredLabel": "Cloudverbinding hersteld",
+    "notifyOnLocalConnectionLostLabel": "Lokale verbinding verbroken",
+    "notifyOnLocalConnectionRestoredLabel": "Lokale verbinding hersteld",
     "notifyOnThermostatOfflineLabel": "Thermostaat offline",
     "notifyOnThermostatOnlineLabel": "Thermostaat online (herstel)",
     "notifyPhoneSignalLabel": "Signal-telefoonnummer (optioneel)",
