@@ -13,7 +13,8 @@ const {
 	setField,
 } = require('../lib/local/protobuf');
 const P = require('../lib/local/protocol');
-const { LocalGateway, profileFromJson, profileToJson } = require('../lib/local/gateway');
+const { LocalGateway } = require('../lib/local/gateway');
+const { profileFromJson, profileToJson } = require('../lib/local/handler-wg4');
 const { generateCertificate } = require('../lib/local/cert');
 
 // Captured from real WG4 thermostats: permanent hold, mode 3, temporary
