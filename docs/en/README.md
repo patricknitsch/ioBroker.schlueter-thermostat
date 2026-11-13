@@ -333,7 +333,8 @@ energy and vacation dates. If a thermostat loses the local connection, the norma
 4. In tab **Local (Beta)** choose **Relay**, enter hostname and port, save the instance.
 5. Power-cycle the thermostat so it resolves the name again.
    Test it first with the **"Check DNS"** button: it shows where the hostname points from the ioBroker host and
-   whether the port answers (instance must be running; the test itself shows up as a short
+   whether the port answers (with Docker using its own DNS it may report the cloud although the record works for
+   the thermostat) (instance must be running; the test itself shows up as a short
    `TCP connection from …` in the log).
 6. Check `schlueter-thermostat.0.info.local*`: `localListening`, `localConnected`, `localUpstreamStatus`,
    `localLastEvent`.
@@ -344,8 +345,10 @@ If it changes, nothing is forwarded any more.
 
 **Checks and hints:**
 
-- On start (relay / local only): if the hostname does not point to a local host, the adapter warns that the DNS
-  record is missing; otherwise it logs `DNS check – OK …`.
+- On start (relay / local only) the adapter checks how the hostname resolves **on the ioBroker host**
+  (`DNS check – …`). This is only a hint: if the ioBroker host uses another DNS server than the thermostat
+  (typical for Docker), the name points to the cloud there even though the thermostat is redirected correctly.
+  What counts is whether the thermostat connects.
 - If no thermostat connects within 10 minutes after the start, a warning is logged and – with notifications and
   "Thermostat offline" enabled – a notification is sent. As soon as a thermostat connects, the log confirms it.
 - Mode "off" with the DNS record still active: warning on start.

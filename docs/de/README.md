@@ -334,7 +334,8 @@ wieder im normalen Takt abgefragt.
 4. Im Tab **Lokal (Beta)** Modus **Relay** wählen, Hostname und Port eintragen, Instanz speichern.
 5. Thermostat stromlos neu starten, damit es den Namen neu auflöst.
    Vorher mit dem Button **„DNS prüfen“** testen: Er zeigt, auf welche Adresse der Hostname aus Sicht des
-   ioBroker-Hosts zeigt und ob der Port antwortet (Instanz muss laufen; im Log erscheint dabei eine kurze
+   ioBroker-Hosts zeigt und ob der Port antwortet (bei Docker mit eigenem DNS kann er „Cloud“ melden, obwohl der
+   Eintrag für das Thermostat greift) (Instanz muss laufen; im Log erscheint dabei eine kurze
    `TCP connection from …` des Tests selbst).
 6. Unter `schlueter-thermostat.0.info.local*` prüfen: `localListening`, `localConnected`, `localUpstreamStatus`,
    `localLastEvent`.
@@ -345,8 +346,10 @@ gespeichert (Fingerabdruck in `info.localUpstreamFingerprint`). Ändert es sich,
 
 **Prüfungen und Hinweise:**
 
-- Beim Start (Relay / Nur lokal): Zeigt der Hostname nicht auf einen lokalen Host, warnt der Adapter, dass der
-  DNS-Eintrag fehlt; sonst meldet er `DNS check – OK …`.
+- Beim Start (Relay / Nur lokal) prüft der Adapter, wie der Hostname **auf dem ioBroker-Host** aufgelöst wird
+  (`DNS check – …`). Das ist nur ein Hinweis: Nutzt der ioBroker-Host einen anderen DNS-Server als das Thermostat
+  (typisch bei Docker), zeigt der Name dort auf die Cloud, obwohl das Thermostat korrekt umgeleitet wird.
+  Entscheidend ist, ob sich das Thermostat verbindet.
 - Verbindet sich 10 Minuten nach dem Start kein Thermostat, kommt eine Warnung und – bei aktiven
   Benachrichtigungen und „Thermostat offline“ – eine Nachricht. Sobald ein Thermostat verbindet, wird das im Log
   bestätigt.

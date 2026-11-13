@@ -930,3 +930,36 @@ describe('local gateway: several thermostats', function () {
 		}
 	});
 });
+
+describe('local manager: DNS check on start', () => {
+	it('does not warn when this host resolves the name to the cloud, but keeps it as hint', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const logs = { warn: [], info: [], debug: [] };
+		const m = new LocalManager({
+			config: { localMode: 'local' },
+			namespace: 'x',
+			log: { warn: t => logs.warn.push(t), info: t => logs.info.push(t), debug: t => logs.debug.push(t) },
+		});
+		m.diagnose = async () => ({
+			ok: false,
+			addresses: ['40.68.93.45'],
+			local: null,
+			portOpen: null,
+			text: 'cloud',
+		});
+		await m._checkDnsRecordOnStart('gw.example');
+		assert.equal(logs.warn.length, 0);
+		assert.equal(m.dnsHint, 'cloud');
+
+		m.diagnose = async () => ({
+			ok: true,
+			addresses: ['192.168.1.2'],
+			local: '192.168.1.2',
+			portOpen: true,
+			text: 'OK',
+		});
+		await m._checkDnsRecordOnStart('gw.example');
+		assert.equal(m.dnsHint, '');
+		assert.ok(logs.info.some(t => /DNS check – OK/.test(t)));
+	});
+});
