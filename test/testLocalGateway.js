@@ -1026,3 +1026,25 @@ describe('local gateway: WD5 vacation', () => {
 		assert.equal(W.parseDay(''), null);
 	});
 });
+
+describe('local gateway: WD5 vacation mode', () => {
+	const W = require('../lib/local/wd5');
+	// 13.11.2026 14:10 thermostat-local, as in the captured log
+	const today = new Date(Date.UTC(2026, 10, 13, 14, 10, 0));
+	const v = (enabled, begin, end) => ({ enabled, begin: W.parseDay(begin), end: W.parseDay(end) });
+
+	it('switches to vacation mode at once when the vacation has begun (observed)', () => {
+		assert.equal(W.vacationMode(v(true, '2026-11-13', '2026-11-14'), 1, today), 4);
+		assert.equal(W.vacationMode(v(true, '2026-11-10', '2026-11-13'), 3, today), 4);
+	});
+
+	it('keeps the mode for a vacation in the future (observed)', () => {
+		assert.equal(W.vacationMode(v(true, '2027-01-01', '2027-01-03'), 1, today), undefined);
+	});
+
+	it('returns to the schedule when a running vacation is disabled or moved (assumed)', () => {
+		assert.equal(W.vacationMode(v(false, '2026-11-13', '2026-11-14'), 4, today), 1);
+		assert.equal(W.vacationMode(v(true, '2027-01-01', '2027-01-03'), 4, today), 1);
+		assert.equal(W.vacationMode(v(false, '', ''), 3, today), undefined);
+	});
+});

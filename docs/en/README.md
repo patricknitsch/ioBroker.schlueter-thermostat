@@ -382,8 +382,9 @@ schedule and manual. On failure the cloud is used automatically. The name uses t
 
 **Vacation (WD5):** "enabled", begin and end are set (`YYYY-MM-DD`, `YYYY-MM-DDT00:00:00` or `DD.MM.YYYY`). The
 vacation temperature stays as the thermostat has it – like the cloud, which does not take over another value from
-`apply.vacation.temperature` (observed: 18 °C set, 5 °C sent). The regulation mode is not changed; the thermostat
-switches to vacation mode itself on the begin day.
+`apply.vacation.temperature` (observed: 18 °C set, 5 °C sent; the app does not offer a vacation temperature). If
+the vacation has begun (begin ≤ today ≤ end), vacation mode is set at once – as observed with the cloud. If it lies
+in the future, the mode is kept. Disabling a running vacation returns to the schedule (assumed, not observed yet).
 
 In **Local only** mode no cloud command reaches the thermostat. Commands that cannot run locally (name, or all of
 them with "Send commands locally" switched off) are therefore refused with a warning

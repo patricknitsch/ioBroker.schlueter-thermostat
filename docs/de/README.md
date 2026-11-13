@@ -386,8 +386,10 @@ Manuell. Schlägt das fehl, wird automatisch die Cloud verwendet. Der Name läuf
 
 **Urlaub (WD5):** gesetzt werden „aktiv“, Beginn und Ende (`YYYY-MM-DD`, `YYYY-MM-DDT00:00:00` oder
 `TT.MM.JJJJ`). Die Urlaubstemperatur bleibt wie im Thermostat – genau wie bei der Cloud, die einen anderen Wert in
-`apply.vacation.temperature` nicht übernimmt (beobachtet: 18 °C eingestellt, 5 °C gesendet). Der Regelmodus bleibt
-unverändert; in den Urlaubsmodus wechselt das Thermostat am Beginn-Tag selbst.
+`apply.vacation.temperature` nicht übernimmt (beobachtet: 18 °C eingestellt, 5 °C gesendet; in der App ist die
+Urlaubstemperatur nicht einstellbar). Hat der Urlaub schon begonnen (Beginn ≤ heute ≤ Ende), wird sofort der
+Urlaubsmodus gesetzt – wie bei der Cloud beobachtet. Liegt er in der Zukunft, bleibt der Modus unverändert.
+Wird ein laufender Urlaub deaktiviert, geht das Thermostat in den Zeitplan (Annahme, noch nicht beobachtet).
 
 Im Modus **Nur lokal** erreicht kein Cloud-Befehl das Thermostat. Befehle, die nicht lokal ausgeführt werden können
 (Name, oder alle bei ausgeschalteter Option „Befehle lokal senden“), werden deshalb mit einer Warnung
