@@ -249,7 +249,11 @@ describe('local gateway: relay', function () {
 
 		t.socket.write(encodeFrame(STATE_UPLOAD));
 		await t.next(m => m.has(P.FIELD_CONFIGURATION));
-		const schedUpload = Buffer.concat([encodeField(1, 31), encodeField(2, P.KIND_SCHEDULE_UPLOAD), encodeField(5, 1)]);
+		const schedUpload = Buffer.concat([
+			encodeField(1, 31),
+			encodeField(2, P.KIND_SCHEDULE_UPLOAD),
+			encodeField(5, 1),
+		]);
 		t.socket.write(encodeFrame(schedUpload));
 		await t.next(m => m.has(P.FIELD_SUPPORT));
 		await wait(50);
@@ -342,6 +346,116 @@ describe('local gateway: relay', function () {
 		t.socket.destroy();
 	});
 
+	it('decodes a WD5 thermostat and sends local commands like the vendor gateway', async () => {
+		const W = require('../lib/local/wd5');
+		const wd5Login = Buffer.from(
+			'0825080120012a1f0a073130323134313010031a08313031335732323020012a060806100e1833',
+			'hex',
+		);
+		const dateTime = (y, mo, d, h, mi, sec) =>
+			Buffer.concat([
+				encodeField(1, Buffer.concat([encodeField(1, y), encodeField(2, mo), encodeField(3, d)])),
+				encodeField(2, Buffer.concat([encodeField(1, h), encodeField(2, mi), encodeField(3, sec)])),
+			]);
+		// Shapes as logged from a real OWD5 thermostat.
+		const upload = Buffer.concat([
+			encodeField(1, 13),
+			encodeField(4, 1),
+			encodeField(
+				7,
+				Buffer.concat([encodeField(1, 847837681), encodeField(2, Buffer.from('Bad')), encodeField(3, 3600)]),
+			),
+			encodeField(
+				9,
+				Buffer.concat([
+					encodeField(1, 847837681),
+					encodeField(2, 1),
+					encodeField(5, encodeField(1, 0)),
+					encodeField(8, 1),
+					encodeField(9, 0),
+				]),
+			),
+		]);
+		const heartbeat = Buffer.concat([
+			encodeField(1, 14),
+			encodeField(4, 1),
+			encodeField(
+				6,
+				Buffer.concat([
+					encodeField(1, 847862621),
+					encodeField(2, 1973),
+					encodeField(3, 3301),
+					encodeField(4, 1),
+					encodeField(5, 1),
+				]),
+			),
+		]);
+		// Command of the vendor gateway (manual 23 °C).
+		const cloudState = Buffer.concat([
+			encodeField(1, 847862879),
+			encodeField(2, 3),
+			encodeField(3, Buffer.concat([encodeField(1, 4600), encodeField(2, dateTime(1970, 1, 1, 0, 0, 0))])),
+			encodeField(4, encodeField(1, 4600)),
+			encodeField(7, encodeField(1, 1000)),
+			encodeField(8, 1),
+			encodeField(9, 0),
+		]);
+		let upSocket = null;
+		upstream = await fakeUpstream((socket, chunk, st) => {
+			upSocket = socket;
+			for (const body of st.reader.push(chunk)) {
+				const m = Message.parse(body);
+				if (m.has(4)) {
+					socket.write(encodeFrame(Buffer.concat([encodeField(1, m.varint(1) ?? 0), encodeField(3, 1)])));
+				}
+			}
+		});
+		gateway = new LocalGateway({
+			mode: 'relay',
+			cert: CERT.cert,
+			key: CERT.key,
+			listenPort: 0,
+			listenHost: '127.0.0.1',
+			upstreamIp: '127.0.0.1',
+			upstreamPort: upstream.port,
+			allowLocalUpstream: true,
+		});
+		const states = [];
+		gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
+		await gateway.start();
+		const t = await connectThermostat(gateway.port);
+		t.socket.write(wd5Login);
+		await t.next();
+		t.socket.write(encodeFrame(upload));
+		t.socket.write(encodeFrame(heartbeat));
+		await t.next(m => m.varint(1) === 14);
+		assert.ok(gateway.canCommand('1021410'));
+		assert.ok(states.some(x => x.roomTemperature === 19.73 && x.floorTemperature === 33.01 && x.heating === true));
+		assert.ok(states.some(x => x.room === 'Bad' && x.regulationMode === 1));
+
+		// The vendor gateway changes the mode; it becomes the template.
+		upSocket.write(encodeFrame(Buffer.concat([encodeField(1, 3), encodeField(4, 1), encodeField(9, cloudState)])));
+		await t.next(m => m.varint(1) === 3);
+		assert.ok(states.some(x => x.regulationMode === 3 && x.manualSetpoint === 23));
+
+		const before = Buffer.concat(upstream.received).length;
+		const done = gateway.setModeWd5('1021410', { mode: W.MODE_COMFORT, tempC: 24.5, end: W.localIn(60, 3600) });
+		const cmd = await t.next(m => m.varint(1) === 101);
+		assert.equal(cmd.varint(4), 1);
+		const decoded = W.decodeState(cmd);
+		assert.equal(decoded.regulationMode, 2);
+		assert.equal(decoded.comfortSetpoint, 24.5);
+		assert.equal(decoded.manualSetpoint, 23);
+		assert.equal(decoded.frostProtectionSetpoint, 5);
+		assert.match(decoded.comfortEnd, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/);
+		t.socket.write(encodeFrame(Buffer.concat([encodeField(1, 101), encodeField(3, 1)])));
+		await done;
+		await wait(50);
+		// The answer to an own command is not passed on to the vendor gateway.
+		assert.equal(Buffer.concat(upstream.received).length, before);
+		t.socket.destroy();
+	});
+
 	it('passes unknown traffic through unchanged', async () => {
 		upstream = await fakeUpstream((socket, chunk) => socket.write(Buffer.concat([Buffer.from('echo:'), chunk])));
 		gateway = new LocalGateway({
@@ -362,7 +476,10 @@ describe('local gateway: relay', function () {
 		await wait(300);
 		assert.ok(unknown);
 		assert.equal(Buffer.concat(upstream.received).toString('hex'), '17004243');
-		assert.equal(Buffer.concat(t.raw).toString('hex'), Buffer.concat([Buffer.from('echo:'), Buffer.from([0x17, 0, 0x42, 0x43])]).toString('hex'));
+		assert.equal(
+			Buffer.concat(t.raw).toString('hex'),
+			Buffer.concat([Buffer.from('echo:'), Buffer.from([0x17, 0, 0x42, 0x43])]).toString('hex'),
+		);
 		t.socket.destroy();
 	});
 

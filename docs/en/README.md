@@ -265,9 +265,13 @@ redirects the connection to the ioBroker host. Deleting the record undoes everyt
 ### Status WD5 (OWD5/MWD5)
 
 - TLS connection and framing are confirmed (TLS 1.2, AES256-SHA256), port **9513**.
-- The login is recognised (serial, firmware, thermostat clock). After that, **Relay** mode forwards every
-  message unchanged and logs it in readable form at debug level, to decode the rest of the protocol.
-- Values (temperature, mode …) and local commands are not available for WD5 yet; "Local only" is refused.
+- In **Relay** mode every message is forwarded unchanged and logged in readable form at debug level.
+- Decoded: room and floor temperature, heating, regulation mode, comfort and manual setpoint, comfort and
+  boost end, vacation, frost protection setpoint, name, firmware.
+- Local commands (option "Send commands locally"): schedule, manual, comfort, boost, eco, frost protection.
+  They are built exactly like the vendor cloud's commands; the thermostat then reports its new state to the
+  cloud itself, so the app stays in sync.
+- "Local only" is still refused for WD5.
 - If the network blocks DNS to external servers (typical with Pi-hole), the adapter uses DNS over HTTPS and
   remembers the last working IP. Alternatively enter the IP manually.
 

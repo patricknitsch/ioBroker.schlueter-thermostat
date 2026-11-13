@@ -801,7 +801,7 @@ class SchlueterThermostat extends utils.Adapter {
 		const groupId = parts[idxG + 1];
 		const thermostatId = parts[idxT + 1];
 		const modeFolder = parts[idxApply + 1];
-		if (modeFolder !== 'schedule' && modeFolder !== 'manual') {
+		if (!['schedule', 'manual', 'comfort', 'boost', 'eco', 'frostProtection'].includes(modeFolder)) {
 			return false;
 		}
 		let serial = this.thermostatSerial[thermostatId];

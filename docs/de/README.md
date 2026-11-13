@@ -265,10 +265,13 @@ leitet die Verbindung auf den ioBroker-Host um. Wird der Eintrag gelöscht, ist 
 ### Stand WD5 (OWD5/MWD5)
 
 - TLS-Verbindung und Framing sind bestätigt (TLS 1.2, AES256-SHA256), Port **9513**.
-- Der Login wird erkannt (Seriennummer, Firmware, Uhrzeit des Thermostats). Danach wird im **Relay**-Modus
-  jede Nachricht unverändert weitergeleitet und lesbar im Debug-Log protokolliert, um das restliche Protokoll
-  zu entschlüsseln.
-- Werte (Temperatur, Modus …) und lokale Befehle gibt es für WD5 noch nicht, „Nur lokal“ wird abgelehnt.
+- Im **Relay**-Modus wird jede Nachricht unverändert weitergeleitet und lesbar im Debug-Log protokolliert.
+- Dekodiert werden: Raum- und Bodentemperatur, Heizen, Regelmodus, Komfort- und Manuell-Sollwert,
+  Komfort- und Boost-Ende, Urlaub, Frostschutz-Sollwert, Name, Firmware.
+- Lokale Befehle (Option „Befehle lokal senden“): Zeitplan, Manuell, Komfort, Boost, Eco, Frostschutz.
+  Sie werden exakt wie die Befehle der Hersteller-Cloud aufgebaut; das Thermostat meldet den neuen Zustand
+  danach selbst an die Cloud, die App bleibt synchron.
+- „Nur lokal“ wird für WD5 noch abgelehnt.
 - Blockiert das Netz DNS-Anfragen an externe Server (typisch bei Pi-hole), nutzt der Adapter DNS-over-HTTPS
   und merkt sich die zuletzt funktionierende IP. Alternativ die IP fest eintragen.
 
