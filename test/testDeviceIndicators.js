@@ -80,3 +80,13 @@ describe('device manager indicators', () => {
 		assert.notEqual(local.find(i => i.id === 'energyEstimated')?.defaultVisible, false);
 	});
 });
+
+describe('device manager indicators: setpoint', () => {
+	it('shows the active setpoint', () => {
+		const { thermostatIndicators } = require('../lib/dm-indicators');
+		const base = 'schlueter-thermostat.0.groups.1.thermostats.2';
+		const sp = thermostatIndicators(base, { local: false }).find(i => i.id === 'setpoint');
+		assert.equal(/** @type {any} */ (sp?.value).stateId, `${base}.setpoint.active`);
+		assert.equal(sp?.showValue, true);
+	});
+});

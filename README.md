@@ -125,6 +125,7 @@ flowchart TB
 * (patricknitsch) Local control: vacation for WD5 thermostats (relay and local-only)
 * (patricknitsch) Device Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar
 * (patricknitsch) Device Manager: compact single-page controls with thermostat and serial number; information tab removed
+* (patricknitsch) New state setpoint.active (setpoint of the current mode), shown on the Device Manager card
 
 ### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker

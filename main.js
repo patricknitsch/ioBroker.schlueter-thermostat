@@ -49,6 +49,7 @@ const { createApplyRouter } = require('./lib/apply-handlers');
 const { SchlueterDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
 const { LocalManager } = require('./lib/local-manager');
+const { ActiveSetpoint } = require('./lib/active-setpoint');
 
 const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
@@ -65,6 +66,8 @@ class SchlueterThermostat extends utils.Adapter {
 		this.client = null;
 		/** local device gateway (beta) */
 		this.local = null;
+		/** keeps setpoint.active in line with the regulation mode */
+		this.activeSetpoint = new ActiveSetpoint(this);
 		const messageListenersBeforeDm = this.rawListeners('message');
 		this.deviceManagement = new SchlueterDeviceManagement(this);
 		this._detachDmMessageListeners(messageListenersBeforeDm);
@@ -708,6 +711,7 @@ class SchlueterThermostat extends utils.Adapter {
 		// Values the local gateway delivers win over the (slower) cloud values.
 		const skip = localConnected && this.local ? this.local.localStateIds(serial) : new Set();
 		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal, skip });
+		this.activeSetpoint.schedule(devId);
 
 		// Non-destructive prefill of apply.*
 		await prefillApplyNonDestructive(this, devId, t);
@@ -891,6 +895,7 @@ class SchlueterThermostat extends utils.Adapter {
 			if (this.pollTimer) {
 				this.clearTimeout(this.pollTimer);
 			}
+			this.activeSetpoint.stop();
 
 			if (this.local) {
 				await Promise.race([this.local.stop(), delay(5000, undefined, { ref: false })]);
