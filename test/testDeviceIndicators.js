@@ -42,15 +42,20 @@ describe('device manager indicators', () => {
 			['cloud'],
 		);
 		assert.deepEqual(
-			instanceIndicators('schlueter-thermostat.0', { local: true }).map(i => i.id),
+			instanceIndicators('schlueter-thermostat.0', { local: true, mode: 'relay' }).map(i => i.id),
 			['cloud', 'localGateway', 'vendorGateway'],
+		);
+		// local only has no vendor gateway
+		assert.deepEqual(
+			instanceIndicators('schlueter-thermostat.0', { local: true, mode: 'local' }).map(i => i.id),
+			['cloud', 'localGateway'],
 		);
 	});
 
 	it('uses valid SVG data URIs as icons', () => {
 		for (const ind of [
 			...thermostatIndicators(BASE, { local: true }),
-			...instanceIndicators('x', { local: true }),
+			...instanceIndicators('x', { local: true, mode: 'relay' }),
 		]) {
 			const icons = [ind.icon, ind.iconOn, ...(ind.levels || []).map(l => l.icon)].filter(Boolean);
 			for (const uri of icons) {
