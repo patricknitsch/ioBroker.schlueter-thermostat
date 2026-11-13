@@ -95,3 +95,26 @@ describe('device manager indicators: setpoint', () => {
 		assert.equal(sp?.showValue, true);
 	});
 });
+
+describe('device manager indicators: local gateway in the toolbar', () => {
+	it('shows connected thermostats, listening without thermostat, and off', () => {
+		const { instanceIndicators } = require('../lib/dm-indicators');
+		const gw = instanceIndicators('schlueter-thermostat.0', { local: true, mode: 'local' }).find(
+			i => i.id === 'localGateway',
+		);
+		assert.equal(/** @type {any} */ (gw?.value).stateId, 'schlueter-thermostat.0.info.localThermostats');
+		assert.equal(gw?.showValue, true);
+		const levels = gw?.levels || [];
+		// connected: green, count as text (no level text)
+		assert.equal(levels[0].min, 1);
+		assert.equal(levels[0].text, undefined);
+		// listening, nobody connected
+		assert.equal(levels[1].value, 0);
+		assert.equal(/** @type {any} */ (levels[1].text).de, 'Kein Thermostat');
+		// catch-all: not running (-1)
+		assert.equal(levels[2].value, undefined);
+		assert.equal(/** @type {any} */ (levels[2].text).de, 'Aus');
+		assert.notEqual(levels[0].icon, levels[1].icon);
+		assert.notEqual(levels[1].icon, levels[2].icon);
+	});
+});
