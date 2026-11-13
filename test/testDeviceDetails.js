@@ -37,21 +37,29 @@ describe('device manager details', () => {
 		assert.ok(!('vacationTemperature' in schema.items));
 	});
 
-	it('fills every row with exactly 12 columns', async () => {
+	it('lays out every row within 12 columns on desktop and phone', async () => {
 		const { schema } = /** @type {any} */ (await dm['getDeviceDetails']('101254/258188'));
-		const rows = [];
-		for (const item of Object.values(schema.items)) {
-			const it = /** @type {any} */ (item);
-			if (it.type === 'divider') {
-				continue;
+		const items = Object.values(schema.items).map(i => /** @type {any} */ (i));
+		for (const bp of ['sm', 'xs']) {
+			for (const it of items) {
+				assert.ok(it[bp] >= 1 && it[bp] <= 12, `${bp} width of ${it.type}`);
 			}
+		}
+		// desktop: label left, row content beside it, no row wider than 12
+		const rows = [];
+		for (const it of items) {
 			if (it.newLine || !rows.length) {
 				rows.push(0);
 			}
-			rows[rows.length - 1] += it.xs || 12;
+			rows[rows.length - 1] += it.sm;
 		}
-		// the mode row has two buttons only and may stay shorter
-		assert.ok(rows.every(cols => cols <= 12));
-		assert.ok(rows.filter(cols => cols === 12).length >= 6);
+		assert.ok(
+			rows.every(cols => cols <= 12),
+			JSON.stringify(rows),
+		);
+		// phone: every label takes the full width (fields below it)
+		assert.ok(items.filter(it => it.type === 'staticText').every(it => it.xs === 12));
+		// no divider bar
+		assert.ok(!items.some(it => it.type === 'divider'));
 	});
 });
