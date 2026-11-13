@@ -318,6 +318,11 @@ Local only:
   thermostat reports no energy itself; it reports about once a minute whether it heats. Gaps over 5 minutes are
   not counted. The counter survives restarts. The cloud energy values (`energy.value<N>`) stay as they are.
 
+**Cloud poll while connected locally:** while **all** thermostats are connected locally, the adapter polls the
+cloud only at the interval "Cloud poll while connected locally" (default 300 s; 0 = normal interval). Locally the
+thermostat sends its readings about once a minute and changes immediately; the cloud is then only needed for
+energy and vacation dates. If a thermostat loses the local connection, the normal interval applies right away.
+
 ### Setup
 
 1. Give the ioBroker host a fixed IP.

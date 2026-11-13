@@ -207,7 +207,8 @@
     "localUpstreamPort": 9513,
     "localUpstreamIp": "",
     "localUpstreamPin": "",
-    "localAllowCommands": false
+    "localAllowCommands": false,
+    "localCloudPollSec": 300
   },
   "protectedNative": [
     "username",

@@ -16,6 +16,8 @@
     "localAllowCommandsHelp": "If the thermostat is connected locally, apply commands are sent directly to it (WD5: schedule, manual, comfort, boost, eco, frost protection). On failure or if unsupported, the cloud is used.",
     "localAllowCommandsLabel": "Send commands locally",
     "localBetaWarning": "BETA: Local control is experimental and has not been confirmed on WD5-series thermostats (OWD5/MWD5) yet. Use at your own risk and please report your observations.",
+    "localCloudPollSecHelp": "While all thermostats are connected locally, the cloud is only polled at this interval (energy, vacation dates). 0 = normal poll interval.",
+    "localCloudPollSecLabel": "Cloud poll while connected locally (seconds)",
     "localHint": "The adapter runs its own device gateway. A local DNS record must point the hostname of the vendor's device gateway to the ioBroker host, then the thermostat has to be power-cycled.\nRelay: the connection is passed on to the vendor cloud (app keeps working) and everything is read locally. Local only: the thermostat is answered by ioBroker and never contacts the cloud (WG4: needs one successful relay session first).",
     "localListenPortLabel": "Listen port",
     "localModeLabel": "Local mode",

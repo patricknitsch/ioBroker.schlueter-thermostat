@@ -767,3 +767,24 @@ describe('local manager: cloud writes in local-only mode', () => {
 		);
 	});
 });
+
+describe('local manager: cloud poll interval', () => {
+	it('polls the cloud less often only while every thermostat is connected locally', () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const m = new LocalManager({ config: { localMode: 'relay', localCloudPollSec: 300 }, log: {}, namespace: 'x' });
+		const connected = new Set();
+		m.isConnected = serial => connected.has(serial);
+		assert.equal(m.cloudPollIntervalMs(['a', 'b'], 15_000), 15_000);
+		connected.add('a');
+		assert.equal(m.cloudPollIntervalMs(['a', 'b'], 15_000), 15_000);
+		connected.add('b');
+		assert.equal(m.cloudPollIntervalMs(['a', 'b'], 15_000), 300_000);
+		// never faster than the normal interval
+		assert.equal(m.cloudPollIntervalMs(['a', 'b'], 600_000), 600_000);
+		assert.equal(m.cloudPollIntervalMs([], 15_000), 15_000);
+
+		const off = new LocalManager({ config: { localMode: 'relay', localCloudPollSec: 0 }, log: {}, namespace: 'x' });
+		off.isConnected = () => true;
+		assert.equal(off.cloudPollIntervalMs(['a'], 15_000), 15_000);
+	});
+});

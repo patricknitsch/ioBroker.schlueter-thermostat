@@ -345,6 +345,9 @@ class SchlueterThermostat extends utils.Adapter {
 
 		// Local gateway (beta) starts first: it must work without the cloud.
 		this.local = new LocalManager(this);
+		// A thermostat (dis)connected locally: re-plan the next cloud poll, so
+		// a lost local connection is covered by the cloud right away.
+		this.local.onConnectionChange = () => this._replanPoll();
 		try {
 			await this.local.start();
 		} catch (e) {
@@ -424,7 +427,10 @@ class SchlueterThermostat extends utils.Adapter {
 			delayMs = this.currentIntervalMs;
 			this.log.info(`Fallback polling: interval increased to ${Math.round(this.currentIntervalMs / 1000)}s`);
 		} else {
-			delayMs = this.currentIntervalMs;
+			// Less cloud traffic while every thermostat is connected locally.
+			delayMs = this.local
+				? this.local.cloudPollIntervalMs(Object.values(this.thermostatSerial), this.currentIntervalMs)
+				: this.currentIntervalMs;
 		}
 
 		this.pollTimer = this.setTimeout(() => {
@@ -432,6 +438,15 @@ class SchlueterThermostat extends utils.Adapter {
 				.catch(err => this.log.warn(`Poll error: ${err?.message || err}`))
 				.finally(() => this._scheduleNextPoll());
 		}, delayMs);
+	}
+
+	_replanPoll() {
+		if (this.unloading || this.pollInFlight || !this.pollTimer || this.inFixedSchedule) {
+			return;
+		}
+		this.clearTimeout(this.pollTimer);
+		this.pollTimer = null;
+		this._scheduleNextPoll();
 	}
 
 	/**

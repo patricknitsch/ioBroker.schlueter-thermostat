@@ -318,6 +318,12 @@ Nur lokal verfügbar:
   Thermostat meldet selbst keine Energie; es meldet etwa minütlich, ob es heizt. Lücken über 5 Minuten werden
   nicht gezählt. Der Zähler übersteht Neustarts. Die Cloud-Energiewerte (`energy.value<N>`) bleiben unverändert.
 
+**Cloud-Abfrage bei lokaler Verbindung:** Solange **alle** Thermostate lokal verbunden sind, fragt der Adapter
+die Cloud nur noch im Abstand „Cloud-Abfrage bei lokaler Verbindung“ ab (Standard 300 s; 0 = normales
+Intervall). Lokal liefert das Thermostat Messwerte selbst etwa minütlich und Änderungen sofort; die Cloud wird
+dann nur noch für Energie und Urlaubsdaten gebraucht. Verliert ein Thermostat die lokale Verbindung, wird sofort
+wieder im normalen Takt abgefragt.
+
 ### Einrichtung
 
 1. ioBroker-Host eine feste IP geben.

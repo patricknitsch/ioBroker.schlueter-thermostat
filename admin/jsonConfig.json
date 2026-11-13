@@ -727,6 +727,21 @@
 					"md": 12,
 					"lg": 12,
 					"xl": 12
+				},
+				"localCloudPollSec": {
+					"type": "number",
+					"label": "localCloudPollSecLabel",
+					"default": 300,
+					"min": 0,
+					"max": 3600,
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localCloudPollSecHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
 				}
 			}
 		}
