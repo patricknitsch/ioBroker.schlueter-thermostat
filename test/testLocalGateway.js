@@ -1105,3 +1105,19 @@ describe('local manager: mode off', () => {
 		fs.rmSync(dir, { recursive: true, force: true });
 	});
 });
+
+describe('local manager: cloud-only users', () => {
+	it('create only the connection state, no empty estimate states', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const created = [];
+		const m = new LocalManager({
+			config: { localMode: 'off' },
+			namespace: 'x',
+			log: { debug() {} },
+			safeSetObjectNotExists: async id => created.push(id),
+			safeSetState: () => {},
+		});
+		await m._setCloudConnection('groups.1.thermostats.2');
+		assert.deepEqual(created, ['groups.1.thermostats.2.connection']);
+	});
+});
