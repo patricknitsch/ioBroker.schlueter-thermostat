@@ -1,417 +1,200 @@
 # ioBroker.schlueter-thermostat
 
-Cloud‑Adapter for **Schlüter / OJ Microline OWD5 Thermostats**
+Floor heating with **Schlüter DITRA-HEAT / OJ Microline WD5** (OWD5 / MWD5) in ioBroker – via the vendor cloud and
+optionally **locally in your own network** (beta).
 
 ---
 
 ## 🌍 Overview
 
-This adapter integrates **Schlüter / OJ Microline OWD5 thermostats** into ioBroker via the **official cloud APIs**.
-
-It supports:
-
-- 🌡 Temperature monitoring
-- 🎯 Setpoints
-- 🔄 Mode control
-- ⏱ Comfort & Boost timers
-- 🏖 Vacation mode
-- 📅 Full schedule readout
-- ⚡ Energy statistics
-- 🔔 Optional adapter notifications (Telegram, Pushover, WhatsApp, Email, Signal, Matrix, Synology Chat)
-
-> **Cloud-only** — no local gateway, Modbus, or LAN API required.
+- 🌡 Room and floor temperature, heating status
+- 🎯 Setpoints and regulation modes (schedule, comfort, manual, boost, eco, vacation, frost protection)
+- 📅 Weekly schedule, ⚡ energy consumption
+- 🖥️ Device Manager with live view and compact controls
+- 🔔 Notifications (Telegram, Pushover, WhatsApp, e-mail, Signal, Matrix, Synology Chat)
+- 🏠 **Local control (beta):** the adapter takes over the role of the vendor gateway – faster, and if wanted
+  without any cloud
 
 ---
 
 ## 🧠 Architecture
 
 ```
-ioBroker
-   │
-   │ HTTPS (REST)
-   ▼
-schlueter-thermostat Adapter
-   │
-   ├──► OWD5 Cloud API  (READ)
-   │      - Groups
-   │      - Thermostats
-   │      - Temperatures
-   │      - Modes
-   │      - Schedule
-   │      - Energy
-   │
-   └──► OCD5 Cloud API  (WRITE)
-          - Setpoints
-          - Modes
-          - End times
-          - Vacation
-          - Thermostat name
+                         ┌──────────────── Cloud (default) ─────────────────┐
+ioBroker ── adapter ─────┤  OWD5 API (read) · OCD5 API (write)              ├── thermostat
+            │            └──────────────────────────────────────────────────┘
+            │
+            └─ Local gateway (beta, port 9513) ◄──── thermostat (redirected by a DNS record)
+                  │
+                  └─ Relay: forwards to the vendor cloud (the app keeps working)
 ```
 
----
-
-## 🖥️ Device Manager (Admin)
-
-The previous custom Admin tab was removed and replaced by the official ioBroker Admin **Device Manager**.
-
-Each adapter instance is now listed in Device Manager and shows all thermostats of the instance there.
-
-### Features
-
-| Area | What you can do |
-| ---- | --------------- |
-| **Device list** | See all thermostats grouped by adapter group |
-| **Card** | Online status, ID (serial number), model and live indicators: connection (cloud / relay / local), heating, room and floor temperature, setpoint of the active mode (`setpoint.active`: comfort, manual, vacation and frost protection from their states (vacation/frost protection 5 °C), eco fixed 20 °C, boost fixed 35 °C; in schedule mode the value of the current schedule event – `day1` = Monday, thermostat-local time), regulation mode, vacation (when set), energy. Energy: the cloud value (`energy.value0`); in local-only mode the estimated daily value (`energy.estimatedToday`), because the cloud gets no data then; in relay mode the estimate can be shown additionally. Each indicator can be shown or hidden in the toolbar |
-| **Instance toolbar** | Cloud connection of the adapter; with local control the local gateway (green with the number of connected thermostats, orange "No thermostat" = gateway running but the DNS redirect does not work, red "Off"), in relay mode also the vendor gateway status |
-| **Details (three-dot menu)** | Compact control page: thermostat number and serial number on top, below one row per function with its inputs and a small button |
-| **Control** | Manual (setpoint), comfort (setpoint + duration), boost (duration), mode schedule / eco, vacation (active, begin, end), name. The vacation temperature is left out on purpose: WD5 always uses 5 °C |
-
-### Open Device Manager
-
-1. Open ioBroker Admin
-2. Open the **Device Manager** section
-3. Expand your `schlueter-thermostat.X` instance
-4. Use the three-dot menu on a thermostat card to open details/actions
+Cloud and local connection fill the **same** states. While a thermostat is connected locally, its values come from
+there – immediately instead of by polling.
 
 ---
 
-## 🚀 How to Start
+## 🚀 Quick start
 
-1. Install adapter in ioBroker
-2. Open instance configuration
-3. Enter:
+1. Install the adapter and open the instance
+2. Enter the credentials:
 
-| Setting           | Description                   |
-| ----------------- | ----------------------------- |
-| Username          | Your Schlüter/OJ cloud login  |
-| Password          | Cloud password                |
-| API Key           | Default works in most cases   |
-| Customer ID       | Found in thermostat info (default: 3) |
-| Client SW Version | Numeric value from thermostat |
-| Poll Interval     | Default: 60 seconds           |
+| Setting | Note |
+| --- | --- |
+| Username / Password | Login of the Schlüter / OJ app |
+| API Key | The default value usually works |
+| Customer ID | Default: **3** |
+| Poll interval | Default: 60 s (at least 10 s) |
 
-4. Save & start adapter
+3. Save – the thermostats appear under `groups.<group>.thermostats.<thermostat>` and in the Device Manager.
 
----
-
-## 🔄 Adapter Workflow
-
-### On Startup
-
-- Login to cloud
-- Create object tree
-- Start polling
-
-### Poll Cycle
-
-- Reads all Groups and Thermostats
-- Updates temperatures, modes, setpoints
-- Updates end times (comfort/boost)
-- Reads schedule
-- Reads energy values
-
-### When You Press an Apply Button
-
-- Adapter builds a **full UpdateThermostat payload**
-- Sends to cloud
-- Cloud forwards to thermostat
+To set up local control see [Local control](#-local-control-beta).
 
 ---
 
-## 🧩 Object Structure
+## 🖥️ Device Manager
 
-```
-schlueter-thermostat.0
-└─ groups
-   └─ <GroupId>
-      └─ thermostats
-         └─ <ThermostatId>
-```
+Admin → **Device Manager** → instance `schlueter-thermostat.X`. Each thermostat is a card; the three-dot menu opens
+the controls.
 
----
+### Card
 
-## 📥 Readable States
+| Icon | Meaning |
+| --- | --- |
+| <img src="../images/cloud.svg" width="20"> Cloud · <img src="../images/relay.svg" width="20"> Relay · <img src="../images/home.svg" width="20"> Local | How the thermostat is connected right now |
+| <img src="../images/fire.svg" width="20"> Heating · <img src="../images/fire-off.svg" width="20"> Off | Heating active |
+| <img src="../images/thermometer.svg" width="20"> | Room temperature |
+| <img src="../images/floor.svg" width="20"> | Floor temperature |
+| <img src="../images/target.svg" width="20"> | Setpoint of the active mode (eco 20 °C, boost 35 °C, vacation/frost protection 5 °C, schedule: current event) |
+| <img src="../images/mode.svg" width="20"> | Regulation mode |
+| <img src="../images/flight.svg" width="20"> | Vacation planned or active |
+| <img src="../images/bolt.svg" width="20"> | Energy (cloud; estimated in local-only mode) |
 
-| Category     | States                           |
-| ------------ | -------------------------------- |
-| Temperatures | Room, Floor                      |
-| Setpoints    | Manual, Comfort                  |
-| Modes        | RegulationMode                   |
-| End Times    | Comfort, Boost                   |
-| Vacation     | Enabled, Begin, End, Temperature |
-| Schedule     | All days + events                |
-| Energy       | kWh history values               |
+Each indicator can be shown or hidden in the toolbar.
 
----
+### Instance toolbar
 
-## ✍ Writable States (Apply Concept)
+| Icon | Meaning |
+| --- | --- |
+| <img src="../images/cloud-ok.svg" width="20"> / <img src="../images/cloud-error.svg" width="20"> | Adapter connected / not connected to the cloud |
+| <img src="../images/home.svg" width="20"> **1** | Local gateway: number of locally connected thermostats |
+| <img src="../images/home-warning.svg" width="20"> No thermostat | Gateway running, but no thermostat connected → check the DNS record |
+| <img src="../images/home-error.svg" width="20"> Off | Gateway not running (e.g. port in use) |
+| <img src="../images/relay.svg" width="20"> / <img src="../images/relay-warning.svg" width="20"> / <img src="../images/relay-error.svg" width="20"> | Relay only: vendor gateway connected / unreachable / certificate not trusted |
 
-Direct writes are **not used anymore**.  
-All actions go through **Apply buttons**.
+### Controls
 
-| Apply Mode           | Function                |
-| -------------------- | ----------------------- |
-| apply.schedule.apply | Activate schedule       |
-| apply.comfort.apply  | Comfort mode + duration |
-| apply.manual.apply   | Manual temperature      |
-| apply.boost.apply    | Boost mode              |
-| apply.eco.apply      | Eco mode                |
-| apply.vacation.apply | Vacation settings       |
-| apply.name.apply     | Rename thermostat       |
+One page with thermostat and serial number and one row per function: **manual**, **comfort** (with duration),
+**boost** (duration), **schedule / eco**, **vacation** (active, begin, end), **name**.
 
 ---
 
-## 🔥 Regulation Modes
+## 🧩 States
 
-| Mode     | Number | Behavior                     |
-| -------- | ------ | ---------------------------- |
-| Schedule | 1      | Uses weekly schedule         |
-| Comfort  | 2      | Temporary comfort temp       |
-| Manual   | 3      | Fixed temperature            |
-| Boost    | 8      | Temporary boost max. 60 Min. |
-| Eco      | 9      | Energy saving mode           |
+Per thermostat: `groups.<group>.thermostats.<thermostat>`
 
----
+| Area | States |
+| --- | --- |
+| Status | `online`, `heating`, `connection` (cloud / relay / local), `regulationMode`, `thermostatName`, `softwareVersion` |
+| Temperatures | `temperature.room`, `temperature.floor` |
+| Setpoints | `setpoint.active`, `setpoint.manual`, `setpoint.comfort`, `setpoint.frostProtection` |
+| End times | `endTime.comfort`, `endTime.boost` (thermostat-local time) |
+| Vacation | `vacation.enabled`, `.begin`, `.end`, `.temperature` |
+| Schedule | `schedule.day1` (Monday) … `day7`, each `event0…5` |
+| Energy | `energy.value0…` (cloud); with local control also `energy.estimatedToday` / `estimatedTotal` (heating time × load) and `energy.loadWatts` |
 
-## ⏱ Time Handling
+**Control** only through the apply folders: set the values under `apply.<mode>.*`, then set
+`apply.<mode>.apply` to `true`.
 
-- End times are sent in **thermostat local time**
-- No timezone suffix (no `Z`)
-- Boost and Comfort durations supported (Boost max. 60 Min.)
-- Thermostat timezone offset is respected
-
----
-
-## ⚡ Energy
-
-Each thermostat provides:
-
-```
-energy.count
-energy.value0
-energy.value1
-...
-```
-
-Values start with **today**.
+| Mode | No. | Apply | Setpoint |
+| --- | --- | --- | --- |
+| Schedule | 1 | `apply.schedule` | current event |
+| Comfort | 2 | `apply.comfort` | adjustable, with duration |
+| Manual | 3 | `apply.manual` | adjustable |
+| Vacation | 4 | `apply.vacation` | 5 °C (fixed in the device) |
+| Frost protection | 6 | – (on the device) | 5 °C |
+| Boost | 8 | `apply.boost` | 35 °C, with duration |
+| Eco | 9 | `apply.eco` | 20 °C |
+| Name | – | `apply.name` | – |
 
 ---
 
-## 🛡 Stability & Safety
+## 🔁 Polling and fallback
 
-- Safe DB wrappers
-- Poll protection (no overlapping polls)
-- Offline detection
-- Cloud connection monitoring
-- Apply error handling
-- Graceful shutdown
-- Fallback polling (automatic backoff, see below)
+| Situation | Cloud poll |
+| --- | --- |
+| Normal | at the configured interval (default 60 s) |
+| All thermostats connected **locally** (beta) | less often, default every 300 s – the values come locally |
+| Cloud unreachable or **all** thermostats offline | interval doubles up to 1 h, then only at 12:00 and 00:00 |
+| A thermostat is reachable again | back to the normal interval at once |
 
----
-
-## 🔁 Fallback Polling
-
-When the cloud is unreachable or **all** thermostats are offline, the adapter automatically reduces polling frequency to conserve resources:
-
-| Phase | Behavior |
-| ----- | -------- |
-| Normal | Polls at the configured interval (default: 60 s) |
-| Backoff | On each consecutive failure the interval doubles (60 s → 120 s → 240 s → … → 1 h) |
-| Fixed schedule | After reaching 1 h, polling switches to a fixed schedule at **12:00** and **00:00** |
-| Recovery | As soon as at least one thermostat is online again, the interval resets to the configured value |
+A locally connected thermostat counts as online – so local-only mode does not fall back just because the cloud
+does not see the device.
 
 ---
 
-## Tab „Notification“
+## 🔔 Notifications
 
-Activates Push-Notifications, to inform about device events. All Notifications will send in preconfigured system language.
+Tab **Notifications**: enable the channels (Telegram, Pushover, WhatsApp, e-mail, Signal, Matrix, Synology Chat).
+Without a selected instance a running one is used automatically.
 
-### Notification Categories
-
-| # | Category |
-|---|---|
-| 1 | **⚠️ Thermostat Offline** 
-| 2 | **✅ Thermostat Online** 
-| 3 | **⚠️ Cloud Connection lost**
-| 4 | **✅ Cloud Connection restored** 
-| 5 | **⚠️ Local connection lost** (local control only; after 2 minutes without connection, also "no thermostat connected for 10 minutes")
-| 6 | **✅ Local connection restored** (only after a "lost" message)
-
-
-### Supported Providers
-
-Each enabled provider supports an optional adapter instance selector (`type:instance`) in the instance config.
-If left empty, the adapter automatically detects a running instance and prefers the lowest instance number (`.0`, `.1`, ...).
-
-| Provider | Optional Configuration |
-|---|---|
-| **Telegram** | User or Chat-ID (optional) |
-| **Pushover** | Title, Device (optional) |
-| **WhatsApp** (`whatsapp-cmb`) | Phone Nr. (optional) |
-| **E-Mail** | Receiver, Subject (optional) |
-| **Signal** (`signal-cmb`) | Phone Nr. (optional) |
-| **Matrix** (`matrix-org`) | No additional configuration |
-| **Synology Chat** | Channelname (necessary) |
+| Message | When |
+| --- | --- |
+| ⚠️ / ✅ Thermostat offline / online | Reachability of the thermostat changes |
+| ⚠️ / ✅ Cloud connection lost / restored | The adapter cannot reach the cloud any more / again |
+| ⚠️ / ✅ Local connection lost / restored | **Relay and local only:** thermostat without local connection for 2 min, or none connected 10 min after the start |
 
 ---
 
-## 🏠 Local Control (BETA)
+## 🏠 Local control (beta)
 
-> ⚠️ **Beta.** Confirmed on an OWD5 (WD5 series, firmware 1013W220) in all three modes. The WG4 series (North
-> America) is supported but not yet tested on real hardware. We are watching the behaviour during the beta and will
-> react to feedback.
+> Confirmed on an **OWD5** (firmware 1013W220) in all modes. The WG4 series (North America) is supported but not
+> tested on real hardware. Feedback welcome.
 
-Besides the app cloud, the thermostat keeps its own TLS connection to the vendor's **device gateway**.
-The adapter can provide that gateway itself. Nothing on the thermostat is modified – a local DNS record
-redirects the connection to the ioBroker host. Deleting the record undoes everything.
-
-### Status WD5 (OWD5/MWD5)
-
-- TLS connection and framing are confirmed (TLS 1.2, AES256-SHA256), port **9513**.
-- In **Relay** mode every message is forwarded unchanged and logged in readable form at debug level.
-- Decoded: room and floor temperature, heating, regulation mode, comfort and manual setpoint, comfort and
-  boost end, vacation, frost protection setpoint, name, firmware.
-- Local commands (option "Send commands locally"): schedule, manual, comfort, boost, eco, frost protection,
-  vacation.
-  They are built exactly like the vendor cloud's commands; the thermostat then reports its new state to the
-  cloud itself, so the app stays in sync.
-- **Local only (test):** the adapter answers the thermostat itself (login, upload request, acknowledgements with
-  server time); WD5 needs no recorded profile. App and cloud show the thermostat offline; in the adapter it
-  counts as online while it is connected locally.
-- **Relay without internet:** if the vendor cloud is unreachable, the adapter answers the thermostat itself
-  as well and tries every 5 minutes to relay to the cloud again.
-- If the network blocks DNS to external servers (typical with Pi-hole), the adapter uses DNS over HTTPS and
-  remembers the last working IP. Alternatively enter the IP manually.
+The thermostat keeps its own connection to the vendor's **device gateway**. A DNS record redirects it to the ioBroker
+host – nothing on the thermostat is changed. Delete the DNS record = everything as before.
 
 ### Modes
 
-| Mode | Vendor app | Internet down |
-| --- | --- | --- |
-| **Off** (default) | works | cloud only |
-| **Relay** | works | values keep being read locally, local commands possible (if a profile exists) |
-| **Local only** | shows offline | no change – the cloud is never contacted |
-
-In **Relay** mode the connection is passed on unchanged to the vendor gateway and read along the way.
-The two answers the vendor gateway sends after login are stored as **profile**. With it the adapter can answer
-the thermostat itself afterwards ("Local only", or Relay without internet).
-
-If the adapter does not understand the data (e.g. a different protocol on WD5), Relay mode falls back to a
-**pure pass-through** and logs the traffic as hex at debug level. The thermostat keeps working as before –
-please attach that debug log to an issue.
-
-### Modes at a glance (tested with OWD5)
-
-| Mode | Control via app | Control via adapter | Values in the adapter | Note |
-| --- | --- | --- | --- | --- |
-| **Off (cloud)** | ✔ | ✔ via the cloud | from the cloud | The DNS record must be removed, otherwise the thermostat is offline (the adapter warns on start). |
-| **Relay** | ✔ | ✔ locally, app stays in sync | local, immediately | Recommended. Without internet the adapter takes over automatically. |
-| **Local only** | ✘ app shows offline | ✔ locally | local | Cloud and app are no longer synchronised. |
-
-There is **one** structure per thermostat (`groups.<G>.thermostats.<T>.*`), filled by the cloud and the local
-connection together. While the thermostat is connected locally, the local values win and the cloud poll skips
-those states; if the local connection drops, the cloud takes over again. Delivered locally: `online`, `heating`,
-`temperature.*`, `regulationMode`, `setpoint.manual`, `setpoint.comfort`, `setpoint.frostProtection`,
-`endTime.*`, `vacation.enabled`, `vacation.temperature`, `thermostatName`, `softwareVersion` and the schedule
-`schedule.day<N>.event<N>.*`.
-
-Local only:
-
-- `connection`: `cloud`, `relay` or `local`.
-- `energy.loadWatts`: heating load reported by the thermostat (e.g. 350 W).
-- `energy.estimatedToday` / `energy.estimatedTotal`: **estimated** consumption from heating time × load. The
-  thermostat reports no energy itself; it reports about once a minute whether it heats. Gaps over 5 minutes are
-  not counted. The counter survives restarts. The cloud energy values (`energy.value<N>`) stay as they are.
-
-**Cloud poll while connected locally:** while **all** thermostats are connected locally, the adapter polls the
-cloud only at the interval "Cloud poll while connected locally" (default 300 s; 0 = normal interval). Locally the
-thermostat sends its readings about once a minute and changes immediately; the cloud is then only needed for
-energy and vacation dates. If a thermostat loses the local connection, the normal interval applies right away.
+| Mode | App | Control from ioBroker | Without internet |
+| --- | --- | --- | --- |
+| **Off** | ✔ | via the cloud | ✘ |
+| **Relay** ⭐ | ✔ (in sync) | local, immediate | ✔ the adapter takes over automatically |
+| **Local only** | ✘ (offline) | local, immediate | ✔ |
 
 ### Setup
 
-1. Give the ioBroker host a fixed IP.
-2. Find the hostname of the vendor gateway: look in the DNS log (router / Pi-hole / AdGuard) for queries of
-   the thermostat to `*.ojelectronics.com` (observed so far: `owd5-sl003-thermostat.ojelectronics.com`, used as
-   default). According to the manual the WD5 series uses port **9513**.
-3. Add a DNS record: that hostname → IP of the ioBroker host.
-4. In tab **Local (Beta)** choose **Relay**, enter hostname and port, save the instance.
-5. Power-cycle the thermostat so it resolves the name again.
-   Test it first with the **"Check DNS"** button: it shows where the hostname points from the ioBroker host and
-   whether the port answers (with Docker using its own DNS it may report the cloud although the record works for
-   the thermostat) (instance must be running; the test itself shows up as a short
-   `TCP connection from …` in the log).
-6. Check `schlueter-thermostat.0.info.local*`: `localListening`, `localConnected`, `localUpstreamStatus`,
-   `localLastEvent`.
+1. Give the ioBroker host a **fixed IP**.
+2. Add a DNS record (Pi-hole, AdGuard, router):
+   `owd5-sl003-thermostat.ojelectronics.com` → **IP of the ioBroker host**
+   (check the hostname in the DNS log of the thermostat if needed).
+3. Tab **Local (Beta)**: mode **Relay**, "Send commands locally" on, save.
+4. **Power-cycle** the thermostat.
+5. Check the toolbar: <img src="../images/home.svg" width="20"> **1** = connected.
+   <img src="../images/home-warning.svg" width="20"> "No thermostat" = the DNS record does not work.
 
-The real address of the vendor gateway is resolved via public DNS (1.1.1.1 / 8.8.8.8), or can be entered
-manually. The vendor gateway certificate is pinned on first contact (fingerprint in `info.localUpstreamFingerprint`).
-If it changes, nothing is forwarded any more.
+The **"Check DNS"** button shows where the name points from ioBroker's point of view. If ioBroker runs in Docker with
+its own DNS, it may say "cloud" although the redirect works for the thermostat.
 
-**Checks and hints:**
+### Good to know
 
-- On start (relay / local only) the adapter checks how the hostname resolves **on the ioBroker host**
-  (`DNS check – …`). This is only a hint: if the ioBroker host uses another DNS server than the thermostat
-  (typical for Docker), the name points to the cloud there even though the thermostat is redirected correctly.
-  What counts is whether the thermostat connects.
-- If no thermostat connects within 10 minutes after the start, a warning is logged and – with notifications and
-  "Thermostat offline" enabled – a notification is sent. As soon as a thermostat connects, the log confirms it.
-- Mode "off" with the DNS record still active: if local control has been used before, the adapter listens
-  passively on the gateway port. If a thermostat tries to connect there, a warning (and possibly a notification) is
-  issued: the DNS record still sends it here, so it cannot reach the cloud. This also works when the ioBroker host
-  uses another DNS server (Docker).
-
-**Several thermostats** (**not tested yet** on a real system with several devices – feedback welcome):
-
-- One DNS record for all: every thermostat connects to the same hostname and port; the adapter recognises each by
-  its serial number and maps it to the matching cloud device.
-- Commands, values, energy counter, schedule and time zone are kept per thermostat; if one drops, the others stay
-  local.
-- The slower cloud poll applies only while **all** thermostats are connected locally.
-- Check in the DNS log that **all** thermostats query the same hostname. In relay mode all are forwarded to the one
-  configured host; the thermostats send no hostname (SNI), so the adapter cannot tell them apart beforehand.
-- Port 9513 can be used by only one instance per host (one instance with any number of thermostats is fine).
-- "Local only" accepts only thermostats the adapter knows from the cloud; a new device has to be added in the app
-  and polled once first.
-
-### Objects
-### Objects
-
-- `info.localListening`, `info.localUpstreamStatus`, `info.localUpstreamFingerprint`, `info.localConnected`,
-  `info.localLastEvent`
-- per thermostat: see above (shared structure with the cloud)
-
-### Commands
-
-With **"Send commands locally"** the apply commands go directly to the locally connected thermostat
-(acknowledged, 10 s timeout): on WD5 schedule, manual, comfort, boost, eco, frost protection and vacation, on WG4
-schedule and manual. On failure the cloud is used automatically. The name uses the cloud.
-
-**Vacation (WD5):** "enabled", begin and end are set (`YYYY-MM-DD`, `YYYY-MM-DDT00:00:00` or `DD.MM.YYYY`). The
-vacation temperature stays as the thermostat has it – like the cloud, which does not take over another value from
-`apply.vacation.temperature` (observed: 18 °C set, 5 °C sent; the app does not offer a vacation temperature). If
-the vacation has begun (begin ≤ today ≤ end), vacation mode is set at once – as observed with the cloud. If it lies
-in the future, the mode is kept. Disabling a running vacation returns to the schedule (assumed, not observed yet).
-
-In **Local only** mode no cloud command reaches the thermostat. Commands that cannot run locally (name, or all of
-them with "Send commands locally" switched off) are therefore refused with a warning
-(`Apply "…" blocked: …`).
-
-### Notes
-
-- Port 9513 must be free on the ioBroker host (Docker: host network or publish the port).
-- Any device on the network can connect to the port – only use it on trusted networks.
-- Certificate and profiles are stored in the instance data directory (`iobroker-data/schlueter-thermostat.0/`).
-- Back to cloud: mode **Off**, delete the DNS record, power-cycle the thermostat.
+- **Runs locally:** schedule, manual, comfort, boost, eco, vacation. The name always goes via the cloud (refused in
+  local-only mode).
+- **A local command fails** → it is sent via the cloud automatically.
+- **Energy in local-only mode** does not come from the cloud; it is estimated from heating time × load.
+- **Port 9513** must be free and reachable by the thermostat (Docker: publish the port, VLAN: firewall).
+- **Several thermostats:** one DNS record for all (not yet tested with several real devices).
+- **Back to the cloud:** mode "Off", delete the DNS record, power-cycle the thermostat. If the record stays active,
+  the adapter warns.
+- **Security:** any device on the network can reach port 9513 – only use it on a trusted network.
 
 ---
 
-## 🐞 Debugging
+## 🐞 Troubleshooting
 
-Set log level to **debug** to see cloud communication.
-
----
-
-## 📌 Notes
-
-- Developed and tested with a single thermostat
-- Multi-device environments supported, but feedback welcome
+| Problem | Solution |
+| --- | --- |
+| Toolbar <img src="../images/home-warning.svg" width="20"> "No thermostat" | DNS record active? Thermostat power-cycled? Port 9513 reachable? |
+| Thermostat offline in mode "Off" | DNS record still active – delete it and power-cycle the thermostat |
+| Card shows <img src="../images/cloud.svg" width="20"> Cloud although relay is set | The thermostat is not connected to the adapter (see above) |
+| Need details | Log level **debug**: all cloud requests and – with local control – every message (`Thermostat (…)` / `Vendor gateway (…)`) |

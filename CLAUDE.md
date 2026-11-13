@@ -25,6 +25,7 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 | `test/testLocalGateway.js` | Unit tests of the local gateway (simulated thermostat and vendor gateway over real TLS) |
 | `admin/jsonConfig.json`, `admin/i18n/*.json` | Admin UI and its translations |
 | `docs/en/README.md`, `docs/de/README.md` | User documentation |
+| `docs/images/*.svg` | Indicator icons used in the docs, generated from `lib/dm-indicators.js` (`icon()`); regenerate when icons change |
 | `README.md` | Overview and changelog |
 | `io-package.json` | Adapter metadata, `native` defaults, `news` (maintained by the release script) |
 
@@ -89,7 +90,7 @@ Every user-visible change needs:
 1. **Changelog entry in `README.md`** under the `### **WORK IN PROGRESS**` heading. If the heading doesn't exist yet, add it directly below the placeholder comment in the `## Changelog` section.
    - Format: `* (patricknitsch) <short description in English>`.
    - Don't edit released versions, and don't edit `io-package.json` `news` or the version numbers. The release script (`npm run release`) does that.
-2. **Docs in both languages**, `docs/en/README.md` **and** `docs/de/README.md`. Keep them in sync:
+2. **Docs in both languages**, `docs/en/README.md` **and** `docs/de/README.md`. Keep them in sync, short and user-oriented (tables and icons rather than long text; technical details belong here, not in the user docs):
    - new or changed states
    - modes and setup of local control (including the confirmed WD5 status)
    - polling / fallback strategy

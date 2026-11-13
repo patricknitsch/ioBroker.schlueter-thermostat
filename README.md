@@ -40,10 +40,11 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 | Password          | Cloud password                |
 | API Key           | Below works in most cases     |
 | Customer ID       | Found in thermostat info (default: 3) |
-| Client SW Version | Numeric value from thermostat |
 | Poll Interval     | Default: 60 seconds           |
 
 4. Save & start adapter
+
+Optional local control (beta): see the documentation, section *Local control*.
 
 For API-Key you can try with: `f219aab4-9ac0-4343-8422-b72203e2fac9`.
 You can find this Key in Forum: `https://community.home-assistant.io/t/mwd5-wifi-thermostat-oj-electronics-microtemp/445601`, so it looks like a
@@ -65,6 +66,7 @@ global Key.
 
 ![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
 ![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
+![Local Control](https://img.shields.io/badge/Local-Relay%20|%20Local%20only%20(beta)-brightgreen?style=for-the-badge)
 ![Mode Support](https://img.shields.io/badge/Modes-Schedule%20|%20Comfort%20|%20Manual%20|%20Boost%20|%20Eco%20|%20Frost%20Protection%20|%20Vacation-orange?style=for-the-badge)
 
 ### Compact Program Structure
@@ -77,6 +79,10 @@ flowchart LR
   ADP -->|read| OWD5[OWD5 Cloud]
   ADP -->|write| OCD5[OCD5 Cloud]
   OCD5 --> TH[Thermostat]
+
+  TH -->|DNS redirect, port 9513| GW[Local gateway - beta]
+  GW --> ADP
+  GW -.->|relay| VG[Vendor device gateway]
 
   ADP --> OBJ[Object Tree]
   OBJ --> RO[Read States]
@@ -96,7 +102,9 @@ flowchart TB
   INC --> POLL
   RESET --> POLL
 
-  APPLYBTN[Apply Button] --> ROUTER[applyRouter]
+  APPLYBTN[Apply Button] --> LOCAL{Connected locally?}
+  LOCAL -- yes --> CMD[Local command + acknowledgement]
+  LOCAL -- no / failed --> ROUTER[applyRouter]
   ROUTER --> API[updateThermostat]
 ```
 
