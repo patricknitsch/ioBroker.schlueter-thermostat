@@ -653,6 +653,8 @@ describe('local manager: main states', () => {
 		};
 		const m = new LocalManager(adapter);
 		const dev = 'groups.1.thermostats.2';
+		const gw = { connected: ['1021410'], isRelayed: () => false, allowedSerials: new Set(), stop: async () => {} };
+		m.gateway = /** @type {any} */ (gw);
 		m.registerThermostat('1021410', dev);
 		await m._onState('1021410', { online: true, relayed: false });
 		await m._onState('1021410', { roomTemperature: 19.73, floorTemperature: 33.01, heating: true });
@@ -700,6 +702,7 @@ describe('local manager: main states', () => {
 		assert.ok(skip.has('thermostatName'));
 
 		// After a disconnect the cloud values are written again.
+		gw.connected = [];
 		await m._onState('1021410', { online: false, relayed: false });
 		assert.deepEqual([...m.localStateIds('1021410')], ['online']);
 		assert.equal(written[`${dev}.connection`], 'cloud');
@@ -843,7 +846,13 @@ describe('local manager: no connection warning', () => {
 			safeSetObjectNotExists: async () => {},
 		};
 		const m = new LocalManager(adapter);
-		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set(), stop: async () => {} });
+		m.gateway = /** @type {any} */ ({
+			connected: [],
+			port: 9513,
+			allowedSerials: new Set(),
+			stop: async () => {},
+			isRelayed: () => true,
+		});
 		m._startNoConnectionWatch();
 		fire();
 		assert.equal(warnings.length, 1);
@@ -1117,7 +1126,7 @@ describe('local manager: cloud-only users', () => {
 			safeSetObjectNotExists: async id => created.push(id),
 			safeSetState: () => {},
 		});
-		await m._setCloudConnection('groups.1.thermostats.2');
+		await m._syncConnection('1021410', 'groups.1.thermostats.2', 'test');
 		assert.deepEqual(created, ['groups.1.thermostats.2.connection']);
 	});
 });
@@ -1142,7 +1151,13 @@ describe('local manager: local connection lost / restored', () => {
 			safeGetObject: async () => ({ common: { name: 'Bad' } }),
 		};
 		const m = new LocalManager(adapter);
-		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set(), stop: async () => {} });
+		m.gateway = /** @type {any} */ ({
+			connected: [],
+			port: 9513,
+			allowedSerials: new Set(),
+			stop: async () => {},
+			isRelayed: () => true,
+		});
 		m.registerThermostat('1021410', 'groups.1.thermostats.2');
 		const fire = () =>
 			timers.filter(t => !t.cleared && t.ms === 2 * 60_000).forEach(t => ((t.cleared = true), t.fn()));
@@ -1172,9 +1187,52 @@ describe('local manager: local connection lost / restored', () => {
 		assert.ok(!logs.info.some(t => /restored/.test(t)));
 
 		await m.stop();
-		m.gateway = /** @type {any} */ ({ connected: [], port: 9513, allowedSerials: new Set(), stop: async () => {} });
+		m.gateway = /** @type {any} */ ({
+			connected: [],
+			port: 9513,
+			allowedSerials: new Set(),
+			stop: async () => {},
+			isRelayed: () => true,
+		});
 		await m._onState('1021410', { online: false, relayed: false });
 		assert.equal(timers.filter(t => !t.cleared && t.ms === 2 * 60_000).length, 0);
 		assert.equal(logs.warn.length, 0);
+	});
+});
+
+describe('local manager: connection state', () => {
+	it('heals a wrong connection value on the next cloud poll, from the gateway itself', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const written = [];
+		const m = new LocalManager({
+			config: { localMode: 'local' },
+			namespace: 'x',
+			log: { debug() {}, info() {}, warn() {} },
+			safeSetObjectNotExists: async () => {},
+			safeSetState: (id, st) => id.endsWith('.connection') && written.push(st.val),
+		});
+		const gw = { connected: [], isRelayed: () => false, allowedSerials: new Set(), stop: async () => {} };
+		m.gateway = /** @type {any} */ (gw);
+		const dev = 'groups.1.thermostats.2';
+		m.registerThermostat('1021410', dev); // first poll: not connected yet
+		await wait(10);
+		assert.deepEqual(written, ['cloud']);
+
+		// the thermostat is connected locally, but the event got lost / overtaken
+		gw.connected = ['1021410'];
+		m.registerThermostat('1021410', dev); // next poll
+		await wait(10);
+		assert.deepEqual(written, ['cloud', 'local']);
+
+		// nothing is written while the value is right
+		m.registerThermostat('1021410', dev);
+		await wait(10);
+		assert.deepEqual(written, ['cloud', 'local']);
+
+		// relay
+		gw.isRelayed = () => true;
+		m.registerThermostat('1021410', dev);
+		await wait(10);
+		assert.deepEqual(written, ['cloud', 'local', 'relay']);
 	});
 });
