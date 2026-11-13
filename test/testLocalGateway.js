@@ -292,6 +292,56 @@ describe('local gateway: relay', function () {
 		assert.ok(states.some(s => s.online === false));
 	});
 
+	it('relays a WD5 thermostat frame by frame', async () => {
+		// Real first frame of an OWD5 thermostat (firmware 1013W220).
+		const wd5Login = Buffer.from(
+			'0825080120012a1f0a073130323134313010031a08313031335732323020012a060806100e1833',
+			'hex',
+		);
+		const answer = encodeFrame(Buffer.concat([encodeField(1, 1), encodeField(3, 1)]));
+		upstream = await fakeUpstream((socket, chunk, st) => {
+			for (const body of st.reader.push(chunk)) {
+				if (Message.parse(body).has(5)) {
+					socket.write(answer);
+				}
+			}
+		});
+		gateway = new LocalGateway({
+			mode: 'relay',
+			cert: CERT.cert,
+			key: CERT.key,
+			listenPort: 0,
+			listenHost: '127.0.0.1',
+			upstreamIp: '127.0.0.1',
+			upstreamPort: upstream.port,
+			allowLocalUpstream: true,
+		});
+		const states = [];
+		let unknown = false;
+		gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
+		gateway.on('unknownProtocol', () => (unknown = true));
+		const logs = [];
+		gateway.on('log', (level, text) => logs.push(text));
+		await gateway.start();
+
+		const t = await connectThermostat(gateway.port);
+		t.socket.write(wd5Login);
+		const ack = await t.next();
+		assert.equal(ack.varint(3), 1);
+		assert.equal(Buffer.concat(upstream.received).toString('hex'), wd5Login.toString('hex'));
+		assert.equal(unknown, false);
+		assert.ok(states.some(x => x.serial === '1021410' && x.firmware === '1013W220'));
+		assert.ok(states.some(x => x.serial === '1021410' && x.online === true && x.relayed === true));
+		assert.ok(logs.some(l => l.includes('1=1 3=1')));
+		assert.equal(gateway.canCommand('1021410'), false);
+
+		const next = encodeFrame(Buffer.concat([encodeField(1, 2), encodeField(7, Buffer.from([0x08, 0x05]))]));
+		t.socket.write(next);
+		await wait(100);
+		assert.ok(Buffer.concat(upstream.received).subarray(wd5Login.length).equals(next));
+		t.socket.destroy();
+	});
+
 	it('passes unknown traffic through unchanged', async () => {
 		upstream = await fakeUpstream((socket, chunk) => socket.write(Buffer.concat([Buffer.from('echo:'), chunk])));
 		gateway = new LocalGateway({

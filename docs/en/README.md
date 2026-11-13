@@ -262,6 +262,15 @@ Besides the app cloud, the thermostat keeps its own TLS connection to the vendor
 The adapter can provide that gateway itself. Nothing on the thermostat is modified – a local DNS record
 redirects the connection to the ioBroker host. Deleting the record undoes everything.
 
+### Status WD5 (OWD5/MWD5)
+
+- TLS connection and framing are confirmed (TLS 1.2, AES256-SHA256), port **9513**.
+- The login is recognised (serial, firmware, thermostat clock). After that, **Relay** mode forwards every
+  message unchanged and logs it in readable form at debug level, to decode the rest of the protocol.
+- Values (temperature, mode …) and local commands are not available for WD5 yet; "Local only" is refused.
+- If the network blocks DNS to external servers (typical with Pi-hole), the adapter uses DNS over HTTPS and
+  remembers the last working IP. Alternatively enter the IP manually.
+
 ### Modes
 
 | Mode | Vendor app | Internet down |
