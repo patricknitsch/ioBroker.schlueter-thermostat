@@ -124,6 +124,7 @@ flowchart TB
 * (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
 * (patricknitsch) Local control: vacation for WD5 thermostats (relay and local-only)
 * (patricknitsch) Device Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar
+* (patricknitsch) Device Manager: compact single-page controls with thermostat and serial number; information tab removed
 
 ### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker
