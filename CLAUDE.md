@@ -75,10 +75,11 @@ Run all of these before every commit or push. They must pass:
 
 ```bash
 npm run lint      # ESLint + Prettier (must be free of errors; `npx prettier --write <file>` for formatting)
+npm run check     # TypeScript check of the JSDoc types (tsc, must report no errors)
 npm test          # unit tests + package tests
 ```
 
-- `npm run check` (tsc) currently reports errors in the test files (missing mocha types) and one known error in `main.js` (`Function` passed to an event listener). It must not report **new** errors in `main.js` or `lib/`.
+- `npm run check` covers `main.js`, `lib/` and the tests (with mocha types). Fix type errors with JSDoc casts (`/** @type {…} */ (value)`) instead of disabling the check.
 - Every new module or bug fix gets unit tests. Put them under `test/` as `test/test<Name>.js` (picked up by `npm run test:js`; files under `lib/` are shipped to users). Use `node:assert/strict` or chai.
 - Tests must not use the network or real credentials. Mock `OJClient` / the adapter; for the local gateway use the simulated thermostat and vendor gateway on loopback (`allowLocalUpstream: true`).
 - Integration tests (`npm run test:integration`) run in CI on Node 22/24/26 for Linux, Windows and macOS.

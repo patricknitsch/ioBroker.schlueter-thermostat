@@ -112,7 +112,9 @@ function fakeUpstream(onData) {
 			});
 			socket.on('error', () => {});
 		});
-		server.listen(0, '127.0.0.1', () => resolve({ server, port: server.address().port, received }));
+		server.listen(0, '127.0.0.1', () =>
+			resolve({ server, port: /** @type {import('node:net').AddressInfo} */ (server.address()).port, received }),
+		);
 	});
 }
 
@@ -132,7 +134,7 @@ describe('local gateway: protobuf', () => {
 		const changed = setField(msg, 3, Buffer.from('xy'));
 		const parsed = Message.parse(changed);
 		assert.equal(parsed.varint(1), 5);
-		assert.equal(parsed.data(3).toString(), 'xy');
+		assert.equal(String(parsed.data(3)), 'xy');
 		assert.equal(parsed.varint(7), 9);
 		// inserted in order
 		const inserted = Message.parse(setField(msg, 5, 1));
@@ -204,7 +206,7 @@ describe('local gateway: relay', function () {
 
 	afterEach(async () => {
 		await gateway?.stop();
-		await new Promise(r => (upstream ? upstream.server.close(() => r()) : r()));
+		await /** @type {Promise<void>} */ (new Promise(r => (upstream ? upstream.server.close(() => r()) : r())));
 		gateway = null;
 		upstream = null;
 	});
@@ -236,17 +238,17 @@ describe('local gateway: relay', function () {
 		});
 		const states = [];
 		const profiles = [];
-		let pin = null;
+		let pin = /** @type {string | null} */ (null);
 		gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
 		gateway.on('profile', (serial, profile) => profiles.push({ serial, profile }));
 		gateway.on('pin', fp => (pin = fp));
 		await gateway.start();
 
-		const t = await connectThermostat(gateway.port);
+		const t = await connectThermostat(Number(gateway.port));
 		t.socket.write(encodeFrame(LOGIN));
 		const ack = await t.next();
 		assert.ok(ack.raw.equals(CLOUD_LOGIN_ACK));
-		assert.match(pin, /^[0-9a-f]{64}$/);
+		assert.match(String(pin), /^[0-9a-f]{64}$/);
 
 		t.socket.write(encodeFrame(STATE_UPLOAD));
 		await t.next(m => m.has(P.FIELD_CONFIGURATION));
@@ -329,7 +331,7 @@ describe('local gateway: relay', function () {
 		gateway.on('log', (level, text) => logs.push(text));
 		await gateway.start();
 
-		const t = await connectThermostat(gateway.port);
+		const t = await connectThermostat(Number(gateway.port));
 		t.socket.write(wd5Login);
 		const ack = await t.next();
 		assert.equal(ack.varint(3), 1);
@@ -401,7 +403,7 @@ describe('local gateway: relay', function () {
 			encodeField(8, 1),
 			encodeField(9, 0),
 		]);
-		let upSocket = null;
+		let upSocket = /** @type {any} */ (null);
 		upstream = await fakeUpstream((socket, chunk, st) => {
 			upSocket = socket;
 			for (const body of st.reader.push(chunk)) {
@@ -424,7 +426,7 @@ describe('local gateway: relay', function () {
 		const states = [];
 		gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
 		await gateway.start();
-		const t = await connectThermostat(gateway.port);
+		const t = await connectThermostat(Number(gateway.port));
 		t.socket.write(wd5Login);
 		await t.next();
 		t.socket.write(encodeFrame(upload));
@@ -472,7 +474,7 @@ describe('local gateway: relay', function () {
 		let unknown = null;
 		gateway.on('unknownProtocol', info => (unknown = info));
 		await gateway.start();
-		const t = await connectThermostat(gateway.port);
+		const t = await connectThermostat(Number(gateway.port));
 		t.socket.write(Buffer.from([0x17, 0x00, 0x42, 0x43]));
 		await wait(300);
 		assert.ok(unknown);
@@ -498,7 +500,7 @@ describe('local gateway: relay', function () {
 			allowLocalUpstream: true,
 		});
 		await gateway.start();
-		const t = await connectThermostat(gateway.port);
+		const t = await connectThermostat(Number(gateway.port));
 		t.socket.write(encodeFrame(LOGIN));
 		await wait(300);
 		assert.equal(gateway.upstreamStatus, 'untrusted');
@@ -524,7 +526,7 @@ describe('local gateway: local mode', function () {
 		});
 		await gateway.start();
 		try {
-			const t = await connectThermostat(gateway.port);
+			const t = await connectThermostat(Number(gateway.port));
 			t.socket.write(encodeFrame(LOGIN));
 			const ack = await t.next();
 			assert.equal(ack.varint(1), 29);
@@ -540,13 +542,13 @@ describe('local gateway: local mode', function () {
 			const done = gateway.setMode(SERIAL, P.REGULATION_SCHEDULE);
 			const cmd = await t.next(m => m.has(P.FIELD_STATE));
 			assert.equal(P.decodeState(cmd).regulationMode, 1);
-			t.socket.write(encodeFrame(Buffer.concat([encodeField(1, cmd.varint(1)), encodeField(3, 1)])));
+			t.socket.write(encodeFrame(Buffer.concat([encodeField(1, cmd.varint(1) ?? 0), encodeField(3, 1)])));
 			await done;
 
 			// A refused command is reported.
 			const refused = gateway.setMode(SERIAL, P.REGULATION_MANUAL, 20);
 			const cmd2 = await t.next(m => m.has(P.FIELD_STATE));
-			t.socket.write(encodeFrame(Buffer.concat([encodeField(1, cmd2.varint(1)), encodeField(3, 0)])));
+			t.socket.write(encodeFrame(Buffer.concat([encodeField(1, cmd2.varint(1) ?? 0), encodeField(3, 0)])));
 			await assert.rejects(refused, /refused/);
 			t.socket.destroy();
 		} finally {
@@ -576,7 +578,7 @@ describe('local gateway: local mode', function () {
 			gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
 			await gateway.start();
 			try {
-				const t = await connectThermostat(gateway.port);
+				const t = await connectThermostat(Number(gateway.port));
 				t.socket.write(wd5Login);
 				const loginAnswer = await t.next(m => m.varint(1) === 1);
 				assert.equal(loginAnswer.varint(3), 1);
@@ -622,7 +624,7 @@ describe('local gateway: local mode', function () {
 		});
 		await gateway.start();
 		try {
-			const t = await connectThermostat(gateway.port);
+			const t = await connectThermostat(Number(gateway.port));
 			const closed = new Promise(r => t.socket.once('close', r));
 			t.socket.write(encodeFrame(LOGIN));
 			await closed;
@@ -761,11 +763,11 @@ describe('local manager: cloud writes in local-only mode', () => {
 		assert.equal(make({ localMode: 'off' }).cloudApplyBlockedReason(), null);
 		assert.equal(make({ localMode: 'relay', localAllowCommands: true }).cloudApplyBlockedReason(), null);
 		assert.match(
-			make({ localMode: 'local', localAllowCommands: true }).cloudApplyBlockedReason(),
+			String(make({ localMode: 'local', localAllowCommands: true }).cloudApplyBlockedReason()),
 			/not supported locally/,
 		);
 		assert.match(
-			make({ localMode: 'local', localAllowCommands: false }).cloudApplyBlockedReason(),
+			String(make({ localMode: 'local', localAllowCommands: false }).cloudApplyBlockedReason()),
 			/Send commands locally/,
 		);
 	});
@@ -801,9 +803,12 @@ describe('local manager: DNS check', () => {
 	it('reports a hostname that points to this host with an open port', async () => {
 		const net = require('node:net');
 		const server = net.createServer(s => s.destroy());
-		await new Promise(r => server.listen(0, '127.0.0.1', r));
+		await /** @type {Promise<void>} */ (new Promise(r => server.listen(0, '127.0.0.1', () => r())));
 		try {
-			const r = await make().diagnose('localhost', server.address().port);
+			const r = await make().diagnose(
+				'localhost',
+				/** @type {import('node:net').AddressInfo} */ (server.address()).port,
+			);
 			assert.equal(r.ok, true);
 			assert.equal(r.local, '127.0.0.1');
 			assert.match(r.text, /^OK:/);
@@ -831,7 +836,7 @@ describe('local manager: no connection warning', () => {
 		const { LocalManager } = require('../lib/local-manager');
 		const warnings = [];
 		const infos = [];
-		let fire = null;
+		let fire = /** @type {any} */ (null);
 		const adapter = {
 			config: { localMode: 'relay', localUpstreamHost: 'gw.example', notifyEnabled: false },
 			namespace: 'x',
@@ -905,8 +910,8 @@ describe('local gateway: several thermostats', function () {
 		gateway.on('state', (serial, fields) => states.push({ serial, ...fields }));
 		await gateway.start();
 		try {
-			const bad = await connectThermostat(gateway.port);
-			const kitchen = await connectThermostat(gateway.port);
+			const bad = await connectThermostat(Number(gateway.port));
+			const kitchen = await connectThermostat(Number(gateway.port));
 			bad.socket.write(wd5Login('1000001'));
 			kitchen.socket.write(wd5Login('1000002'));
 			await bad.next(m => m.has(10));
@@ -943,7 +948,11 @@ describe('local gateway: several thermostats', function () {
 describe('local manager: DNS check on start', () => {
 	it('does not warn when this host resolves the name to the cloud, but keeps it as hint', async () => {
 		const { LocalManager } = require('../lib/local-manager');
-		const logs = { warn: [], info: [], debug: [] };
+		const logs = /** @type {{ warn: string[], info: string[], debug: string[] }} */ ({
+			warn: [],
+			info: [],
+			debug: [],
+		});
 		const m = new LocalManager({
 			config: { localMode: 'local' },
 			namespace: 'x',
@@ -1086,7 +1095,7 @@ describe('local manager: mode off', () => {
 		});
 		m._instanceDataDir = () => dir;
 		await m._watchStaleDnsRecord();
-		await new Promise(r => m.staleWatch?.once('listening', r) ?? r());
+		await /** @type {Promise<void>} */ (new Promise(r => m.staleWatch?.once('listening', () => r()) ?? r()));
 		try {
 			for (let i = 0; i < 2; i++) {
 				await new Promise(resolve => {
@@ -1134,7 +1143,7 @@ describe('local manager: cloud-only users', () => {
 describe('local manager: local connection lost / restored', () => {
 	const make = () => {
 		const { LocalManager } = require('../lib/local-manager');
-		const logs = { warn: [], info: [] };
+		const logs = /** @type {{ warn: string[], info: string[] }} */ ({ warn: [], info: [] });
 		const timers = [];
 		const adapter = {
 			config: { localMode: 'relay', notifyEnabled: false },
@@ -1172,7 +1181,7 @@ describe('local manager: local connection lost / restored', () => {
 		assert.equal(logs.warn.length, 1);
 		assert.match(logs.warn[0], /local connection of Bad lost/);
 
-		m.gateway.connected = ['1021410'];
+		/** @type {any} */ (m.gateway).connected = ['1021410'];
 		await m._onState('1021410', { online: true, relayed: true });
 		await wait(10);
 		assert.ok(logs.info.some(t => /local connection of Bad restored/.test(t)));
@@ -1181,7 +1190,7 @@ describe('local manager: local connection lost / restored', () => {
 	it('stays quiet for a short reconnect and while stopping', async () => {
 		const { m, logs, timers } = make();
 		await m._onState('1021410', { online: false, relayed: false });
-		m.gateway.connected = ['1021410'];
+		/** @type {any} */ (m.gateway).connected = ['1021410'];
 		await m._onState('1021410', { online: true, relayed: true });
 		assert.ok(timers.every(t => t.cleared || t.ms !== 2 * 60_000));
 		assert.ok(!logs.info.some(t => /restored/.test(t)));
@@ -1211,7 +1220,12 @@ describe('local manager: connection state', () => {
 			safeSetObjectNotExists: async () => {},
 			safeSetState: (id, st) => id.endsWith('.connection') && written.push(st.val),
 		});
-		const gw = { connected: [], isRelayed: () => false, allowedSerials: new Set(), stop: async () => {} };
+		const gw = /** @type {any} */ ({
+			connected: [],
+			isRelayed: () => false,
+			allowedSerials: new Set(),
+			stop: async () => {},
+		});
 		m.gateway = /** @type {any} */ (gw);
 		const dev = 'groups.1.thermostats.2';
 		m.registerThermostat('1021410', dev); // first poll: not connected yet

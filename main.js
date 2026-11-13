@@ -330,7 +330,7 @@ class SchlueterThermostat extends utils.Adapter {
 			listener => !messageListenersBeforeDm.includes(listener),
 		);
 		for (const listener of dmMessageListeners) {
-			this.off('message', listener);
+			this.off('message', /** @type {(...args: any[]) => void} */ (listener));
 		}
 	}
 
