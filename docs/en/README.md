@@ -61,7 +61,8 @@ Each adapter instance is now listed in Device Manager and shows all thermostats 
 | Area | What you can do |
 | ---- | --------------- |
 | **Device list** | See all thermostats grouped by adapter group |
-| **Card** | Connection icon on the card plus summary values in card details (room/floor temperature, heating, regulation mode, consumption) |
+| **Card** | Online status, ID (serial number), model and live indicators: connection (cloud / relay / local, only with local control), heating, room and floor temperature, regulation mode, vacation (when set), energy. Each indicator can be shown or hidden in the toolbar |
+| **Instance toolbar** | Cloud connection; with local control also the local gateway and the vendor gateway status |
 | **Details (three-dot menu)** | Open thermostat details with an **Information** tab (Group ID, Thermostat ID, Model) and a **Controls** tab |
 | **Control** | Set manual/comfort setpoints, trigger schedule/eco/manual/comfort apply actions, configure boost duration + apply, manage vacation settings, and rename the thermostat |
 

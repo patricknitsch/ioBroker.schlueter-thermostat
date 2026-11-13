@@ -123,6 +123,7 @@ flowchart TB
 * (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
 * (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
 * (patricknitsch) Local control: vacation for WD5 thermostats (relay and local-only)
+* (patricknitsch) Device Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar
 
 ### 0.7.4 (2026-06-05)
 * (copilot) Fixes for Repo Checker

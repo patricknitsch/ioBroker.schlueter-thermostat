@@ -13,6 +13,7 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 | `lib/apply-handlers.js` | Cloud writes for the `apply.<mode>.apply` buttons |
 | `lib/time.js`, `lib/util.js` | Thermostat-local time strings, unit conversion, `safeId` |
 | `lib/device-manager.js` | Device Manager UI (`@iobroker/dm-utils`) |
+| `lib/dm-indicators.js` | Live status indicators of the Device Manager cards and toolbar (SVG icons, read states directly) |
 | `lib/notificationManager.js` | Push notifications (Telegram, Pushover, …) |
 | `lib/local-manager.js` | Local control: glue between the gateway and the adapter (config, states, persistence, local apply, energy estimate) |
 | `lib/local/gateway.js` | Gateway core: TLS server, links, login detection, relay, local answering, commands with acknowledgement, pass-through |
