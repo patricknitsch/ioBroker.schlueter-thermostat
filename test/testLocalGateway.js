@@ -682,3 +682,43 @@ describe('local manager: main states', () => {
 		assert.deepEqual([...m.localStateIds('1021410')], ['online']);
 	});
 });
+
+describe('local manager: energy estimate', () => {
+	it('counts heating time x load between heartbeats', async () => {
+		const { LocalManager } = require('../lib/local-manager');
+		const written = {};
+		const adapter = {
+			config: { localMode: 'relay' },
+			namespace: 'schlueter-thermostat.0',
+			log: { debug() {}, info() {}, warn() {}, error() {} },
+			safeSetState: (id, st) => (written[id] = st.val),
+			safeSetObjectNotExists: async () => {},
+		};
+		const m = new LocalManager(adapter);
+		m._saveStore = () => {};
+		const dev = 'groups.1.thermostats.2';
+		m.registerThermostat('1021410', dev);
+		const realNow = Date.now;
+		let now = realNow();
+		Date.now = () => now;
+		try {
+			await m._onState('1021410', { online: true });
+			await m._onState('1021410', { loadWatts: 350, room: 'Bad' });
+			await m._onState('1021410', { heating: true });
+			now += 60_000;
+			await m._onState('1021410', { heating: true }); // 1 min at 350 W
+			now += 60_000;
+			await m._onState('1021410', { heating: false }); // 1 min at 350 W
+			now += 60_000;
+			await m._onState('1021410', { heating: false }); // off
+			now += 10 * 60_000;
+			await m._onState('1021410', { heating: true }); // gap > 5 min is not counted
+		} finally {
+			Date.now = realNow;
+		}
+		// 2 minutes x 350 W = 0.01167 kWh
+		assert.equal(written[`${dev}.local.energyToday`], 0.012);
+		assert.equal(written[`${dev}.local.energyTotal`], 0.012);
+		assert.equal(written[`${dev}.local.loadWatts`], 350);
+	});
+});

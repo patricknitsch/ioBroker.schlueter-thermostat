@@ -305,8 +305,17 @@ please attach that debug log to an issue.
 
 While the thermostat is connected locally, the main states (`online`, `heating`, `temperature.*`,
 `regulationMode`, `setpoint.*`, `endTime.*`) come from the local connection; the cloud poll does not overwrite
-them. If the local connection drops, the cloud takes over again. Energy, schedule and vacation always come from
-the cloud.
+them. If the local connection drops, the cloud takes over again. Vacation and the cloud energy values still come
+from the cloud.
+
+Additionally local (WD5):
+
+- `local.schedule`: weekly schedule straight from the thermostat (JSON: day, time, temperature, active, next day).
+  The meaning of the "active"/"next day" flags is not confirmed yet, so the cloud schedule states stay as they are.
+- `local.loadWatts`: heating load reported by the thermostat (e.g. 350 W).
+- `local.energyToday` / `local.energyTotal`: **estimated** consumption from heating time × load. The thermostat
+  reports no energy itself; it reports about once a minute whether it heats. Gaps over 5 minutes (disconnects)
+  are not counted. The counter is persisted across restarts.
 
 ### Setup
 

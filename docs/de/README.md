@@ -305,8 +305,18 @@ weiter wie bisher – bitte in diesem Fall das Debug-Log an ein Issue anhängen.
 
 Solange das Thermostat lokal verbunden ist, stammen die Hauptstates (`online`, `heating`, `temperature.*`,
 `regulationMode`, `setpoint.*`, `endTime.*`) aus der lokalen Verbindung; die Cloud-Abfrage überschreibt sie dann
-nicht. Bricht die lokale Verbindung ab, übernimmt wieder die Cloud. Energie, Zeitplan und Urlaub kommen immer
-aus der Cloud.
+nicht. Bricht die lokale Verbindung ab, übernimmt wieder die Cloud. Urlaub und die Cloud-Energiewerte kommen
+weiterhin aus der Cloud.
+
+Zusätzlich lokal (WD5):
+
+- `local.schedule`: Wochenzeitplan direkt vom Thermostat (JSON: Tag, Uhrzeit, Temperatur, aktiv, Folgetag).
+  Die Zuordnung der Flags „aktiv“/„Folgetag“ ist noch nicht bestätigt; die Zeitplan-States der Cloud bleiben
+  deshalb vorerst unverändert.
+- `local.loadWatts`: Heizlast laut Thermostat (z. B. 350 W).
+- `local.energyToday` / `local.energyTotal`: **geschätzter** Verbrauch aus Heizzeit × Heizlast. Das Thermostat
+  meldet selbst keine Energie; es meldet etwa minütlich, ob es heizt. Lücken über 5 Minuten (Verbindungsabbruch)
+  werden nicht gezählt. Der Zähler wird gespeichert und übersteht Neustarts.
 
 ### Einrichtung
 
