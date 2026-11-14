@@ -1,4 +1,8 @@
 # Older changes
+## 0.7.0 (2026-05-14)
+
+- (claude) Add Notification Manager
+
 ## 0.6.3 (2026-05-14)
 
 - (patricknitsch) Update Icon and Online State automatically when Folder exists

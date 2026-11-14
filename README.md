@@ -123,8 +123,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.8.0 (2026-11-14)
 
 - (patricknitsch) Add Node.js 26 in test-and-release.yml
 - (patricknitsch) Update Dependencies
@@ -155,10 +154,6 @@ flowchart TB
 
 - (copilot) Modify notification manager to work with instances
 - (copilot) Update Dependencies
-
-### 0.7.0 (2026-05-14)
-
-- (claude) Add Notification Manager
 
 **Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).**
 
