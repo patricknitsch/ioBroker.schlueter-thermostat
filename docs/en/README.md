@@ -165,9 +165,12 @@ host – nothing on the thermostat is changed. Delete the DNS record = everythin
 ### Setup
 
 1. Give the ioBroker host a **fixed IP**.
-2. Add a DNS record (Pi-hole, AdGuard, router):
-   `owd5-sl003-thermostat.ojelectronics.com` → **IP of the ioBroker host**
-   (check the hostname in the DNS log of the thermostat if needed).
+2. Redirect `owd5-sl003-thermostat.ojelectronics.com` to the ioBroker host in your DNS (Pi-hole, AdGuard, router)
+   (check the hostname in the DNS log of the thermostat if needed):
+   - **Recommended – CNAME** to the name of the ioBroker host (e.g. `iobroker.lan`). The host keeps its name; a
+     plain record (A record) makes Pi-hole show the ioBroker host under the thermostat name.
+     Pi-hole: *Local DNS → CNAME Records*; Pi-hole must know the target itself (own DNS record or DHCP).
+   - Alternatively: record `owd5-sl003-thermostat.ojelectronics.com` → **IP of the ioBroker host**.
 3. Tab **Local (Beta)**: mode **Relay**, "Send commands locally" on, save.
 4. **Power-cycle** the thermostat.
 5. Check the toolbar: <img src="../images/home.svg" width="20"> **1** = connected.
