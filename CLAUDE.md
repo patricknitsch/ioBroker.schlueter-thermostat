@@ -67,7 +67,7 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 - Create states with `ensureState` / `ensureContainer` (`lib/objects.js`) or `safeSetObjectNotExists`; write with `safeSetState`. Use proper ioBroker roles (`value.temperature`, `indicator.working`, `value.energy`, …).
 - Hierarchy: `groups` (folder) → `<GroupId>` (folder) → `thermostats` (folder) → `<ThermostatId>` (device) → channels → states. Channels must not contain devices.
 - **Apply concept:** user writes go only through `apply.<mode>.*`; values are stored with `ack: true`, only pressing `apply.<mode>.apply` sends data. React only to `ack: false` in `onStateChange`.
-- Renaming or removing states breaks users' scripts and visualisations. Avoid it, or document it clearly in the changelog and migrate/clean up automatically (see `legacyCleanup`, `_removeOldLocalObjects`).
+- Renaming or removing states breaks users' scripts and visualisations. Avoid it, or document it clearly in the changelog and migrate/clean up automatically (delete only objects that exist, once per start).
 
 ## Tests and checks
 

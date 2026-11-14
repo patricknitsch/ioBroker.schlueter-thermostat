@@ -174,7 +174,6 @@
     "pollIntervalSec": 60,
     "energyHistory": 0,
     "energyViewType": 2,
-    "legacyCleanup": false,
     "notifyEnabled": false,
     "notifyOnThermostatOffline": true,
     "notifyOnThermostatOnline": true,

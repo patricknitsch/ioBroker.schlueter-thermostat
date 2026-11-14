@@ -92,8 +92,6 @@ class SchlueterThermostat extends utils.Adapter {
 		this.pollFailCount = 0;
 		this.POLL_FAIL_THRESHOLD = 3;
 		this.warnedNoCloud = false;
-		/** devId -> legacy deleted */
-		this.legacyStatesDeleted = {};
 
 		this.pollTimer = null;
 		this.unloading = false;
@@ -219,62 +217,6 @@ class SchlueterThermostat extends utils.Adapter {
 				return;
 			}
 			throw e;
-		}
-	}
-
-	// ============================================================================
-	// Legacy cleanup
-	// ============================================================================
-
-	async legacyCleanup() {
-		// Old root: schlueter-thermostat.0.thermostats.*
-		// New root: schlueter-thermostat.0.groups.*
-		try {
-			const legacyRoot = await this.safeGetObject('thermostats');
-			if (!legacyRoot) {
-				this.log.debug('legacyCleanup(): no legacy root "thermostats" found - nothing to delete.');
-				return;
-			}
-
-			this.log.warn('legacyCleanup(): deleting legacy object tree "thermostats.*" (recursive).');
-			await this.safeDelObject('thermostats', { recursive: true });
-			this.log.warn('legacyCleanup(): legacy object tree deleted successfully.');
-		} catch (e) {
-			this.log.warn(`legacyCleanup(): failed to delete legacy objects: ${e?.message || e}`);
-		}
-	}
-
-	async deleteOldWritableStates(devId) {
-		if (this.legacyStatesDeleted[devId]) {
-			return;
-		}
-		this.legacyStatesDeleted[devId] = true;
-
-		// Old direct-write states that should not exist anymore
-		const legacyIds = [
-			`${devId}.setpoint.manualSet`,
-			`${devId}.setpoint.comfortSet`,
-			`${devId}.regulationModeSet`,
-			`${devId}.thermostatNameSet`,
-			`${devId}.endTime.comfortSet`,
-			`${devId}.endTime.boostSet`,
-			`${devId}.vacation.enabledSet`,
-			`${devId}.vacation.beginSet`,
-			`${devId}.vacation.endSet`,
-			`${devId}.vacation.temperatureSet`,
-		];
-
-		for (const id of legacyIds) {
-			try {
-				// Only existing states: this migration runs on every start.
-				if (!(await this.safeGetObject(id))) {
-					continue;
-				}
-				await this.safeDelObject(id);
-				this.log.debug(`Deleted legacy state: ${id}`);
-			} catch (e) {
-				this.log.debug(`Could not delete legacy state ${id}: ${e?.message || e}`);
-			}
 		}
 	}
 
@@ -411,13 +353,6 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 
 		await ensureContainer(this, 'groups', 'folder', 'Groups');
-
-		// Cleanup legacy object tree from old versions (optional via config)
-		if (this.config.legacyCleanup === true) {
-			await this.legacyCleanup();
-		} else {
-			this.log.debug('legacyCleanup(): disabled by config');
-		}
 
 		// Poll interval: min 10 seconds; clamp to Node max delay
 		const MAX_TIMER_MS = 2147483647;
@@ -676,9 +611,6 @@ class SchlueterThermostat extends utils.Adapter {
 		// Ensure objects
 		await ensureThermostatObjects(this, devId, { groupId, thermostatId, serialNumber: serial }, thermostatName);
 		await ensureApplyObjects(this, devId);
-
-		// Delete legacy direct-write states once
-		await this.deleteOldWritableStates(devId);
 
 		// Track online status for fallback polling
 		// A thermostat connected to the local gateway counts as online, also when

@@ -130,6 +130,7 @@ flowchart TB
 * (patricknitsch) Change icon from png to jpg
 * (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
 * (patricknitsch) Local control: answer every message that asks for an answer (seen with 4=6 when the internet was down); a local connection change no longer postpones the cloud poll during the error backoff
+* (patricknitsch) Remove the legacy cleanup (option "Legacy Cleanup" and the removal of objects of very old versions); delete `thermostats.*` or `*Set` states of very old versions manually if they still exist
 * (patricknitsch) Local control: relay returns within a minute after an internet outage (was 5 min) and never cuts off a running local command
 * (patricknitsch) Docs: DNS redirect via CNAME recommended (keeps the name of the ioBroker host in Pi-hole)
 * (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects

@@ -3,7 +3,6 @@
     "Customer ID": "Идентификатор клиента",
     "Energy History (0=current)": "История энергопотребления (0=текущая)",
     "Energy ViewType (2=week,3=month,4=year)": "Energy ViewType (2=неделя, 3=месяц, 4=год)",
-    "Legacy Cleanup": "Очистка устаревших данных",
     "Main": "Основное",
     "Notifications": "Уведомления",
     "OCD5 Base URL": "Базовый URL-адрес OCD5",
