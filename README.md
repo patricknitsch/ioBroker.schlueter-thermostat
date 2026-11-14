@@ -34,17 +34,17 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 2. Open instance configuration
 3. Enter:
 
-| Setting           | Description                   |
-| ----------------- | ----------------------------- |
-| Username          | Your Schlüter/OJ cloud login  |
-| Password          | Cloud password                |
-| API Key           | Below works in most cases     |
-| Customer ID       | Found in thermostat info (default: 3) |
-| Poll Interval     | Default: 60 seconds           |
+| Setting       | Description                           |
+| ------------- | ------------------------------------- |
+| Username      | Your Schlüter/OJ cloud login          |
+| Password      | Cloud password                        |
+| API Key       | Below works in most cases             |
+| Customer ID   | Found in thermostat info (default: 3) |
+| Poll Interval | Default: 60 seconds                   |
 
 4. Save & start adapter
 
-Optional local control (in testing, for users who know DNS): see the documentation, section *Local control*.
+Optional local control (in testing, for users who know DNS): see the documentation, section _Local control_.
 
 For API-Key you can try with: `f219aab4-9ac0-4343-8422-b72203e2fac9`.
 You can find this Key in Forum: `https://community.home-assistant.io/t/mwd5-wifi-thermostat-oj-electronics-microtemp/445601`, so it looks like a
@@ -66,7 +66,7 @@ global Key.
 
 ![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
 ![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
-![Local Control](https://img.shields.io/badge/Local-Relay%20|%20Local%20only%20(in%20testing)-brightgreen?style=for-the-badge)
+![Local Control](<https://img.shields.io/badge/Local-Relay%20|%20Local%20only%20(in%20testing)-brightgreen?style=for-the-badge>)
 ![Mode Support](https://img.shields.io/badge/Modes-Schedule%20|%20Comfort%20|%20Manual%20|%20Boost%20|%20Eco%20|%20Frost%20Protection%20|%20Vacation-orange?style=for-the-badge)
 
 ### Compact Program Structure
@@ -125,35 +125,36 @@ flowchart TB
 -->
 
 ### **WORK IN PROGRESS**
-* (patricknitsch) Add Node.js 26 in test-and-release.yml
-* (patricknitsch) Update Dependencies
-* (patricknitsch) Change icon from png to jpg
-* (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
-* (patricknitsch) Local control: answer every message that asks for an answer (seen with 4=6 when the internet was down); a local connection change no longer postpones the cloud poll during the error backoff
-* (patricknitsch) Remove the legacy cleanup (option "Legacy Cleanup"); no longer needed since 0.5.2
-* (patricknitsch) Admin: tab "Local" (was "Local (Beta)") with a setup guide; marked as "in testing" for users who know DNS and hostnames
-* (patricknitsch) Local control: relay returns within a minute after an internet outage (was 5 min) and never cuts off a running local command
-* (patricknitsch) Docs: DNS redirect via CNAME recommended (keeps the name of the ioBroker host in Pi-hole)
-* (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
-* (patricknitsch) Local control: vacation for WD5 thermostats (relay and local-only)
-* (patricknitsch) Device Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar
-* (patricknitsch) Device Manager: compact single-page controls with thermostat and serial number; information tab removed
-* (patricknitsch) New state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card
-* (patricknitsch) Notifications when the local connection of a thermostat is lost / restored
-* (patricknitsch) Default customer ID is 3 for new instances
+
+- (patricknitsch) Add Node.js 26 in test-and-release.yml
+- (patricknitsch) Update Dependencies
+- (patricknitsch) Change icon from png to jpg
+- (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
+- (patricknitsch) Remove the legacy cleanup (option "Legacy Cleanup"); no longer needed since 0.5.2
+- (patricknitsch) Docs: DNS redirect via CNAME
+- (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
+- (patricknitsch) Device Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar
+- (patricknitsch) Device Manager: compact single-page controls with thermostat and serial number; information tab removed
+- (patricknitsch) New state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card
+- (patricknitsch) Notifications when the local connection of a thermostat is lost / restored
+- (patricknitsch) Default customer ID is 3 for new instances
 
 ### 0.7.4 (2026-06-05)
-* (copilot) Fixes for Repo Checker
+
+- (copilot) Fixes for Repo Checker
 
 ### 0.7.3 (2026-05-25)
-* (copilot) Fixes for Repo Checker
+
+- (copilot) Fixes for Repo Checker
 
 ### 0.7.2 (2026-05-23)
-* (copilot) Add Icons for Notifications
+
+- (copilot) Add Icons for Notifications
 
 ### 0.7.1 (2026-05-21)
-* (copilot) Modify notification manager to work with instances
-* (copilot) Update Dependencies
+
+- (copilot) Modify notification manager to work with instances
+- (copilot) Update Dependencies
 
 ### 0.7.0 (2026-05-14)
 
