@@ -59,7 +59,7 @@
 				"customerId": {
 					"type": "number",
 					"label": "Customer ID",
-					"default": 1,
+					"default": 3,
 					"xs": 12,
 					"sm": 12,
 					"md": 6,
@@ -97,17 +97,6 @@
 					"md": 6,
 					"lg": 4,
 					"xl": 4
-				},
-				"legacyCleanup": {
-					"type": "checkbox",
-					"label": "Legacy Cleanup",
-					"default": true,
-					"xs": 12,
-					"sm": 12,
-					"md": 6,
-					"lg": 4,
-					"xl": 4,
-					"newLine": true
 				},
 				"_help": {
 					"type": "staticText",
@@ -208,6 +197,30 @@
 					"label": "notifyOnCloudRecoveredLabel",
 					"default": true,
 					"hidden": "!data.notifyEnabled",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnLocalConnectionLost": {
+					"type": "checkbox",
+					"label": "notifyOnLocalConnectionLostLabel",
+					"default": true,
+					"hidden": "!data.notifyEnabled || data.localMode === 'off' || !data.localMode",
+					"newLine": true,
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"notifyOnLocalConnectionRestored": {
+					"type": "checkbox",
+					"label": "notifyOnLocalConnectionRestoredLabel",
+					"default": true,
+					"hidden": "!data.notifyEnabled || data.localMode === 'off' || !data.localMode",
 					"newLine": true,
 					"xs": 12,
 					"sm": 12,
@@ -584,6 +597,175 @@
 					"label": "notifyChannelSynoChatLabel",
 					"hidden": "!data.notifyEnabled || !data.notifyUseSynoChat",
 					"newLine": false,
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				}
+			}
+		},
+		"tabLocal": {
+			"type": "panel",
+			"label": "localTabLabel",
+			"items": {
+				"_localWarning": {
+					"type": "staticText",
+					"text": "localWarning",
+					"newLine": true,
+					"style": {
+						"color": "#d32f2f",
+						"fontWeight": "bold",
+						"whiteSpace": "pre-line"
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"_localHint": {
+					"type": "staticText",
+					"text": "localHint",
+					"newLine": true,
+					"style": {
+						"fontSize": "0.85em",
+						"color": "#888",
+						"whiteSpace": "pre-line"
+					},
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"localMode": {
+					"type": "select",
+					"label": "localModeLabel",
+					"default": "off",
+					"newLine": true,
+					"options": [
+						{
+							"label": "localModeOff",
+							"value": "off"
+						},
+						{
+							"label": "localModeRelay",
+							"value": "relay"
+						},
+						{
+							"label": "localModeLocal",
+							"value": "local"
+						}
+					],
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localListenPort": {
+					"type": "number",
+					"label": "localListenPortLabel",
+					"default": 9513,
+					"min": 1,
+					"max": 65535,
+					"hidden": "data.localMode === 'off'",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamHost": {
+					"type": "text",
+					"label": "localUpstreamHostLabel",
+					"default": "owd5-sl003-thermostat.ojelectronics.com",
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localUpstreamHostHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamPort": {
+					"type": "number",
+					"label": "localUpstreamPortLabel",
+					"default": 9513,
+					"min": 1,
+					"max": 65535,
+					"hidden": "data.localMode === 'off'",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamIp": {
+					"type": "text",
+					"label": "localUpstreamIpLabel",
+					"default": "",
+					"hidden": "data.localMode === 'off'",
+					"help": "localUpstreamIpHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"_checkLocalDns": {
+					"type": "sendTo",
+					"command": "checkLocalDns",
+					"label": "localCheckDnsLabel",
+					"help": "localCheckDnsHelp",
+					"variant": "outlined",
+					"showProcess": true,
+					"jsonData": "{\"host\":\"${data.localUpstreamHost}\",\"port\":\"${data.localListenPort}\"}",
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"xs": 12,
+					"sm": 12,
+					"md": 6,
+					"lg": 4,
+					"xl": 4
+				},
+				"localUpstreamPin": {
+					"type": "text",
+					"label": "localUpstreamPinLabel",
+					"default": "",
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localUpstreamPinHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 8,
+					"xl": 8
+				},
+				"localAllowCommands": {
+					"type": "checkbox",
+					"label": "localAllowCommandsLabel",
+					"default": false,
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localAllowCommandsHelp",
+					"xs": 12,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"xl": 12
+				},
+				"localCloudPollSec": {
+					"type": "number",
+					"label": "localCloudPollSecLabel",
+					"default": 300,
+					"min": 0,
+					"max": 3600,
+					"newLine": true,
+					"hidden": "data.localMode === 'off'",
+					"help": "localCloudPollSecHelp",
 					"xs": 12,
 					"sm": 12,
 					"md": 6,

@@ -23,7 +23,10 @@
 		"noImplicitAny": false,
 		// "noUnusedLocals": true,
 		// "noUnusedParameters": true,
-		"useUnknownInCatchVariables": false
+		"useUnknownInCatchVariables": false,
+
+		// mocha globals (describe, it, …) for the test files
+		"types": ["node", "mocha"]
 	},
 	"include": ["**/*.js", "**/*.d.ts"],
 	"exclude": ["node_modules/**", "widgets/**"]

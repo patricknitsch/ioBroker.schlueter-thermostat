@@ -148,6 +148,7 @@
     "adminUI": {
       "config": "json"
     },
+    "messagebox": true,
     "supportedMessages": {
       "deviceManager": true
     },
@@ -169,16 +170,17 @@
     "username": "",
     "password": "",
     "apiKey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
-    "customerId": 1,
+    "customerId": 3,
     "pollIntervalSec": 60,
     "energyHistory": 0,
     "energyViewType": 2,
-    "legacyCleanup": false,
     "notifyEnabled": false,
     "notifyOnThermostatOffline": true,
     "notifyOnThermostatOnline": true,
     "notifyOnCloudOffline": true,
     "notifyOnCloudRecovered": true,
+    "notifyOnLocalConnectionLost": true,
+    "notifyOnLocalConnectionRestored": true,
     "notifyUseTelegram": false,
     "notifyInstanceTelegram": "",
     "notifyUserTelegram": "",
@@ -200,7 +202,15 @@
     "notifyInstanceMatrix": "",
     "notifyUseSynoChat": false,
     "notifyInstanceSynoChat": "",
-    "notifyChannelSynoChat": ""
+    "notifyChannelSynoChat": "",
+    "localMode": "off",
+    "localListenPort": 9513,
+    "localUpstreamHost": "owd5-sl003-thermostat.ojelectronics.com",
+    "localUpstreamPort": 9513,
+    "localUpstreamIp": "",
+    "localUpstreamPin": "",
+    "localAllowCommands": false,
+    "localCloudPollSec": 300
   },
   "protectedNative": [
     "username",

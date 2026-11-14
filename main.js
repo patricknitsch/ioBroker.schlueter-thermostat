@@ -48,6 +48,8 @@ const {
 const { createApplyRouter } = require('./lib/apply-handlers');
 const { SchlueterDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
+const { LocalManager } = require('./lib/local-manager');
+const { ActiveSetpoint } = require('./lib/active-setpoint');
 
 const BACKOFF_MAX_MS = 3600000; // 1 hour maximum backoff before switching to fixed schedule
 
@@ -62,6 +64,10 @@ class SchlueterThermostat extends utils.Adapter {
 		this._origSetState = this.setState.bind(this);
 
 		this.client = null;
+		/** local device gateway (beta) */
+		this.local = null;
+		/** keeps setpoint.active in line with the regulation mode */
+		this.activeSetpoint = new ActiveSetpoint(this);
 		const messageListenersBeforeDm = this.rawListeners('message');
 		this.deviceManagement = new SchlueterDeviceManagement(this);
 		this._detachDmMessageListeners(messageListenersBeforeDm);
@@ -86,8 +92,6 @@ class SchlueterThermostat extends utils.Adapter {
 		this.pollFailCount = 0;
 		this.POLL_FAIL_THRESHOLD = 3;
 		this.warnedNoCloud = false;
-		/** devId -> legacy deleted */
-		this.legacyStatesDeleted = {};
 
 		this.pollTimer = null;
 		this.unloading = false;
@@ -217,58 +221,6 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	// ============================================================================
-	// Legacy cleanup
-	// ============================================================================
-
-	async legacyCleanup() {
-		// Old root: schlueter-thermostat.0.thermostats.*
-		// New root: schlueter-thermostat.0.groups.*
-		try {
-			const legacyRoot = await this.safeGetObject('thermostats');
-			if (!legacyRoot) {
-				this.log.debug('legacyCleanup(): no legacy root "thermostats" found - nothing to delete.');
-				return;
-			}
-
-			this.log.warn('legacyCleanup(): deleting legacy object tree "thermostats.*" (recursive).');
-			await this.safeDelObject('thermostats', { recursive: true });
-			this.log.warn('legacyCleanup(): legacy object tree deleted successfully.');
-		} catch (e) {
-			this.log.warn(`legacyCleanup(): failed to delete legacy objects: ${e?.message || e}`);
-		}
-	}
-
-	async deleteOldWritableStates(devId) {
-		if (this.legacyStatesDeleted[devId]) {
-			return;
-		}
-		this.legacyStatesDeleted[devId] = true;
-
-		// Old direct-write states that should not exist anymore
-		const legacyIds = [
-			`${devId}.setpoint.manualSet`,
-			`${devId}.setpoint.comfortSet`,
-			`${devId}.regulationModeSet`,
-			`${devId}.thermostatNameSet`,
-			`${devId}.endTime.comfortSet`,
-			`${devId}.endTime.boostSet`,
-			`${devId}.vacation.enabledSet`,
-			`${devId}.vacation.beginSet`,
-			`${devId}.vacation.endSet`,
-			`${devId}.vacation.temperatureSet`,
-		];
-
-		for (const id of legacyIds) {
-			try {
-				await this.safeDelObject(id);
-				this.log.debug(`Deleted legacy state: ${id}`);
-			} catch (e) {
-				this.log.debug(`Could not delete legacy state ${id}: ${e?.message || e}`);
-			}
-		}
-	}
-
-	// ============================================================================
 	// Small helpers
 	// ============================================================================
 
@@ -320,15 +272,38 @@ class SchlueterThermostat extends utils.Adapter {
 			listener => !messageListenersBeforeDm.includes(listener),
 		);
 		for (const listener of dmMessageListeners) {
-			this.off('message', listener);
+			this.off('message', /** @type {(...args: any[]) => void} */ (listener));
 		}
 	}
 
 	onMessage(obj) {
-		if (!this.deviceManagement || !obj) {
+		if (!obj) {
+			return;
+		}
+		if (obj.command === 'checkLocalDns') {
+			this._onCheckLocalDns(obj).catch(e => this.log.warn(`DNS check failed: ${e?.message || e}`));
+			return;
+		}
+		if (!this.deviceManagement) {
 			return;
 		}
 		this.deviceManagement.handleAdapterMessage(obj);
+	}
+
+	/**
+	 * "Check DNS" button of the local tab: uses the values currently in the form.
+	 *
+	 * @param {ioBroker.Message} obj message from admin
+	 */
+	async _onCheckLocalDns(obj) {
+		const data = /** @type {any} */ (obj.message) || {};
+		const host = String(data.host || this.config.localUpstreamHost || '');
+		const port = Math.trunc(Number(data.port)) || Number(this.config.localListenPort) || 9513;
+		const manager = this.local || new LocalManager(this);
+		const r = await manager.diagnose(host, port);
+		if (obj.callback) {
+			this.sendTo(obj.from, obj.command, r.ok ? { result: r.text } : { error: r.text }, obj.callback);
+		}
 	}
 
 	async onReady() {
@@ -338,6 +313,17 @@ class SchlueterThermostat extends utils.Adapter {
 		if (!this.config.username || !this.config.password || !this.config.apiKey || !this.config.customerId) {
 			this.log.error('Missing config (username/password/apiKey/customerId).');
 			return;
+		}
+
+		// Local gateway (beta) starts first: it must work without the cloud.
+		this.local = new LocalManager(this);
+		// A thermostat (dis)connected locally: re-plan the next cloud poll, so
+		// a lost local connection is covered by the cloud right away.
+		this.local.onConnectionChange = () => this._replanPoll();
+		try {
+			await this.local.start();
+		} catch (e) {
+			this.log.error(`Local gateway failed to start: ${e?.message || e}`);
 		}
 
 		this.client = new OJClient({
@@ -357,17 +343,16 @@ class SchlueterThermostat extends utils.Adapter {
 			this.safeSetState('info.connection', true, true);
 		} catch (e) {
 			this.log.error(`Login failed: ${e?.message || e}`);
-			return;
+			if (!this.local?.enabled) {
+				return;
+			}
+			// With local control the adapter keeps running; the poll retries the login.
+			this.log.warn(
+				'Cloud login failed – continuing with local gateway only, cloud login is retried on each poll.',
+			);
 		}
 
 		await ensureContainer(this, 'groups', 'folder', 'Groups');
-
-		// Cleanup legacy object tree from old versions (optional via config)
-		if (this.config.legacyCleanup === true) {
-			await this.legacyCleanup();
-		} else {
-			this.log.debug('legacyCleanup(): disabled by config');
-		}
 
 		// Poll interval: min 10 seconds; clamp to Node max delay
 		const MAX_TIMER_MS = 2147483647;
@@ -407,7 +392,10 @@ class SchlueterThermostat extends utils.Adapter {
 			delayMs = this.currentIntervalMs;
 			this.log.info(`Fallback polling: interval increased to ${Math.round(this.currentIntervalMs / 1000)}s`);
 		} else {
-			delayMs = this.currentIntervalMs;
+			// Less cloud traffic while every thermostat is connected locally.
+			delayMs = this.local
+				? this.local.cloudPollIntervalMs(Object.values(this.thermostatSerial), this.currentIntervalMs)
+				: this.currentIntervalMs;
 		}
 
 		this.pollTimer = this.setTimeout(() => {
@@ -415,6 +403,23 @@ class SchlueterThermostat extends utils.Adapter {
 				.catch(err => this.log.warn(`Poll error: ${err?.message || err}`))
 				.finally(() => this._scheduleNextPoll());
 		}, delayMs);
+	}
+
+	_replanPoll() {
+		// During the error backoff the local connection does not change the
+		// delay; restarting the timer would only postpone the next poll.
+		if (
+			this.unloading ||
+			this.pollInFlight ||
+			!this.pollTimer ||
+			this.inFixedSchedule ||
+			this.currentIntervalMs > this.baseIntervalMs
+		) {
+			return;
+		}
+		this.clearTimeout(this.pollTimer);
+		this.pollTimer = null;
+		this._scheduleNextPoll();
 	}
 
 	/**
@@ -594,6 +599,7 @@ class SchlueterThermostat extends utils.Adapter {
 			this.thermostatSerial[thermostatId] = serial;
 		}
 		this.thermostatGroup[thermostatId] = groupId;
+		this.local?.registerThermostat(serial, devId);
 
 		const thermostatName = String(t?.ThermostatName || `Thermostat ${thermostatId}`);
 		this.thermostatNameCache[thermostatId] = thermostatName;
@@ -606,11 +612,11 @@ class SchlueterThermostat extends utils.Adapter {
 		await ensureThermostatObjects(this, devId, { groupId, thermostatId, serialNumber: serial }, thermostatName);
 		await ensureApplyObjects(this, devId);
 
-		// Delete legacy direct-write states once
-		await this.deleteOldWritableStates(devId);
-
 		// Track online status for fallback polling
-		const onlineNow = Boolean(t?.Online);
+		// A thermostat connected to the local gateway counts as online, also when
+		// the cloud does not see it (local-only mode or internet down).
+		const localConnected = Boolean(serial && this.local?.isConnected(serial));
+		const onlineNow = Boolean(t?.Online) || localConnected;
 		this._hadThermostatsThisPoll = true;
 		if (onlineNow) {
 			this._anyOnlineThisPoll = true;
@@ -642,13 +648,18 @@ class SchlueterThermostat extends utils.Adapter {
 		const boostEndLocal = toThermostatLocalNoZFromAny(t?.BoostEndTime || '', tzSec);
 
 		// Write read-only states
-		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal });
+		// Values the local gateway delivers win over the (slower) cloud values.
+		const skip = localConnected && this.local ? this.local.localStateIds(serial) : new Set();
+		await writeThermostatStates(this, devId, t, { comfortEndLocal, boostEndLocal, skip });
+		this.activeSetpoint.schedule(devId);
 
 		// Non-destructive prefill of apply.*
 		await prefillApplyNonDestructive(this, devId, t);
 
 		// Schedule
-		await writeScheduleStates(this, devId, t?.Schedule);
+		if (!skip.has('schedule')) {
+			await writeScheduleStates(this, devId, t?.Schedule);
+		}
 
 		// Energy
 		if (this.client && serial) {
@@ -679,6 +690,23 @@ class SchlueterThermostat extends utils.Adapter {
 
 		const client = this.client;
 		if (!client) {
+			return;
+		}
+
+		// Local gateway (beta): supported modes go straight to the thermostat
+		// when it is connected locally and local commands are enabled.
+		if (this.local?.allowCommands && (await this._tryLocalApply(id))) {
+			this.safeSetState(id, { val: false, ack: true });
+			return;
+		}
+
+		// In local-only mode the thermostat never talks to the cloud: a cloud
+		// write would be accepted there but never reach the device.
+		const blocked = this.local?.cloudApplyBlockedReason();
+		if (blocked) {
+			const modeFolder = id.split('.').slice(-2, -1)[0];
+			this.log.warn(`Apply "${modeFolder}" blocked: ${blocked}`);
+			this.safeSetState(id, { val: false, ack: true });
 			return;
 		}
 
@@ -759,6 +787,42 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * Try to apply a mode via the local gateway.
+	 *
+	 * @param {string} id state id of the apply button
+	 * @returns {Promise<boolean>} true if handled (successfully or with error)
+	 */
+	async _tryLocalApply(id) {
+		const parts = id.split('.');
+		const idxG = parts.indexOf('groups');
+		const idxT = parts.indexOf('thermostats');
+		const idxApply = parts.indexOf('apply');
+		if (idxG === -1 || idxT === -1 || idxApply === -1) {
+			return false;
+		}
+		const groupId = parts[idxG + 1];
+		const thermostatId = parts[idxT + 1];
+		const modeFolder = parts[idxApply + 1];
+		if (!['schedule', 'manual', 'comfort', 'boost', 'eco', 'frostProtection', 'vacation'].includes(modeFolder)) {
+			return false;
+		}
+		let serial = this.thermostatSerial[thermostatId];
+		if (!serial) {
+			serial = await this._getSerialFromObject(groupId, thermostatId);
+		}
+		if (!serial || !this.local?.canCommand(serial)) {
+			return false;
+		}
+		const devPrefix = `groups.${safeId(groupId)}.thermostats.${safeId(thermostatId)}`;
+		try {
+			return await this.local.apply(modeFolder, serial, devPrefix);
+		} catch (e) {
+			this.log.warn(`Local apply failed for ${id}: ${e?.message || e} – falling back to cloud`);
+			return false;
+		}
+	}
+
 	// ============================================================================
 	// ON UNLOAD
 	// ============================================================================
@@ -770,6 +834,11 @@ class SchlueterThermostat extends utils.Adapter {
 
 			if (this.pollTimer) {
 				this.clearTimeout(this.pollTimer);
+			}
+			this.activeSetpoint.stop();
+
+			if (this.local) {
+				await Promise.race([this.local.stop(), delay(5000, undefined, { ref: false })]);
 			}
 
 			// Wait for in-flight poll (best effort)
