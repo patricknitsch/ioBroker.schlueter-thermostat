@@ -1,7 +1,7 @@
 # ioBroker.schlueter-thermostat
 
 Floor heating with **Schlüter DITRA-HEAT / OJ Microline WD5** (OWD5 / MWD5) in ioBroker – via the vendor cloud and
-optionally **locally in your own network** (beta).
+optionally **locally in your own network** (in testing).
 
 ---
 
@@ -12,7 +12,7 @@ optionally **locally in your own network** (beta).
 - 📅 Weekly schedule, ⚡ energy consumption
 - 🖥️ Device Manager with live view and compact controls
 - 🔔 Notifications (Telegram, Pushover, WhatsApp, e-mail, Signal, Matrix, Synology Chat)
-- 🏠 **Local control (beta):** the adapter takes over the role of the vendor gateway – faster, and if wanted
+- 🏠 **Local control (in testing):** the adapter takes over the role of the vendor gateway – faster, and if wanted
   without any cloud
 
 ---
@@ -24,7 +24,7 @@ optionally **locally in your own network** (beta).
 ioBroker ── adapter ─────┤  OWD5 API (read) · OCD5 API (write)              ├── thermostat
             │            └──────────────────────────────────────────────────┘
             │
-            └─ Local gateway (beta, port 9513) ◄──── thermostat (redirected by a DNS record)
+            └─ Local gateway (port 9513) ◄──── thermostat (redirected by a DNS record)
                   │
                   └─ Relay: forwards to the vendor cloud (the app keeps working)
 ```
@@ -48,7 +48,7 @@ there – immediately instead of by polling.
 
 3. Save – the thermostats appear under `groups.<group>.thermostats.<thermostat>` and in the Device Manager.
 
-To set up local control see [Local control](#-local-control-beta).
+To set up local control see [Local control](#-local-control).
 
 ---
 
@@ -124,7 +124,7 @@ Per thermostat: `groups.<group>.thermostats.<thermostat>`
 | Situation | Cloud poll |
 | --- | --- |
 | Normal | at the configured interval (default 60 s) |
-| All thermostats connected **locally** (beta) | less often, default every 300 s – the values come locally |
+| All thermostats connected **locally** | less often, default every 300 s – the values come locally |
 | Cloud unreachable or **all** thermostats offline | interval doubles up to 1 h, then only at 12:00 and 00:00 |
 | A thermostat is reachable again | back to the normal interval at once |
 
@@ -146,8 +146,9 @@ Without a selected instance a running one is used automatically.
 
 ---
 
-## 🏠 Local control (beta)
+## 🏠 Local control
 
+> **In testing** – for users who know DNS and hostnames.
 > Confirmed on an **OWD5** (firmware 1013W220) in all modes. The WG4 series (North America) is supported but not
 > tested on real hardware. Feedback welcome.
 
@@ -171,7 +172,7 @@ host – nothing on the thermostat is changed. Delete the DNS record = everythin
      plain record (A record) makes Pi-hole show the ioBroker host under the thermostat name.
      Pi-hole: *Local DNS → CNAME Records*; Pi-hole must know the target itself (own DNS record or DHCP).
    - Alternatively: record `owd5-sl003-thermostat.ojelectronics.com` → **IP of the ioBroker host**.
-3. Tab **Local (Beta)**: mode **Relay**, "Send commands locally" on, save.
+3. Tab **Local**: mode **Relay**, "Send commands locally" on, save.
 4. **Power-cycle** the thermostat.
 5. Check the toolbar: <img src="../images/home.svg" width="20"> **1** = connected.
    <img src="../images/home-warning.svg" width="20"> "No thermostat" = the DNS record does not work.

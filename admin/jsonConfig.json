@@ -611,7 +611,7 @@
 			"items": {
 				"_localWarning": {
 					"type": "staticText",
-					"text": "localBetaWarning",
+					"text": "localWarning",
 					"newLine": true,
 					"style": {
 						"color": "#d32f2f",

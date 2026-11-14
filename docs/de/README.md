@@ -1,7 +1,7 @@
 # ioBroker.schlueter-thermostat
 
 Fußbodenheizung mit **Schlüter DITRA-HEAT / OJ Microline WD5** (OWD5 / MWD5) in ioBroker – über die Hersteller-Cloud
-und optional **lokal im eigenen Netz** (Beta).
+und optional **lokal im eigenen Netz** (in Erprobung).
 
 ---
 
@@ -12,7 +12,7 @@ und optional **lokal im eigenen Netz** (Beta).
 - 📅 Wochenzeitplan, ⚡ Energieverbrauch
 - 🖥️ Device Manager mit Live-Anzeige und kompakter Steuerung
 - 🔔 Benachrichtigungen (Telegram, Pushover, WhatsApp, E-Mail, Signal, Matrix, Synology Chat)
-- 🏠 **Lokale Steuerung (Beta):** Der Adapter übernimmt die Rolle des Hersteller-Gateways – schneller, und auf
+- 🏠 **Lokale Steuerung (in Erprobung):** Der Adapter übernimmt die Rolle des Hersteller-Gateways – schneller, und auf
   Wunsch ganz ohne Cloud
 
 ---
@@ -24,7 +24,7 @@ und optional **lokal im eigenen Netz** (Beta).
 ioBroker ── Adapter ─────┤  OWD5-API (lesen) · OCD5-API (schreiben)         ├── Thermostat
             │            └──────────────────────────────────────────────────┘
             │
-            └─ Lokales Gateway (Beta, Port 9513) ◄──── Thermostat (per DNS-Eintrag umgeleitet)
+            └─ Lokales Gateway (Port 9513) ◄──── Thermostat (per DNS-Eintrag umgeleitet)
                   │
                   └─ Relay: leitet an die Hersteller-Cloud weiter (App funktioniert weiter)
 ```
@@ -48,7 +48,7 @@ Werte von dort – sofort statt per Abfrage.
 
 3. Speichern – die Thermostate erscheinen unter `groups.<Gruppe>.thermostats.<Thermostat>` und im Device Manager.
 
-Lokale Steuerung einrichten: siehe [Lokale Steuerung](#-lokale-steuerung-beta).
+Lokale Steuerung einrichten: siehe [Lokale Steuerung](#-lokale-steuerung).
 
 ---
 
@@ -124,7 +124,7 @@ Pro Thermostat: `groups.<Gruppe>.thermostats.<Thermostat>`
 | Situation | Cloud-Abfrage |
 | --- | --- |
 | Normal | im eingestellten Intervall (Standard 60 s) |
-| Alle Thermostate **lokal** verbunden (Beta) | seltener, Standard alle 300 s – die Werte kommen lokal |
+| Alle Thermostate **lokal** verbunden | seltener, Standard alle 300 s – die Werte kommen lokal |
 | Cloud nicht erreichbar oder **alle** Thermostate offline | Intervall verdoppelt sich bis 1 h, danach nur noch 12:00 und 00:00 |
 | Ein Thermostat wieder erreichbar | sofort zurück zum normalen Intervall |
 
@@ -146,8 +146,9 @@ Synology Chat). Ohne ausgewählte Instanz wird automatisch eine laufende genutzt
 
 ---
 
-## 🏠 Lokale Steuerung (Beta)
+## 🏠 Lokale Steuerung
 
+> **In Erprobung** – für Nutzer, die sich mit DNS und Hostnamen auskennen.
 > Bestätigt an einem **OWD5** (Firmware 1013W220) in allen Modi. Die WG4-Serie (Nordamerika) ist unterstützt,
 > aber nicht an echter Hardware getestet. Rückmeldungen willkommen.
 
@@ -171,7 +172,7 @@ den ioBroker-Host um – am Thermostat wird nichts verändert. DNS-Eintrag lösc
      ein normaler Eintrag (A-Record) lässt Pi-hole den ioBroker-Host unter dem Thermostat-Namen anzeigen.
      Pi-hole: *Local DNS → CNAME Records*; das Ziel muss Pi-hole selbst kennen (eigener DNS-Eintrag oder DHCP).
    - Alternativ: Eintrag `owd5-sl003-thermostat.ojelectronics.com` → **IP des ioBroker-Hosts**.
-3. Tab **Lokal (Beta)**: Modus **Relay**, „Befehle lokal senden“ an, speichern.
+3. Tab **Lokal**: Modus **Relay**, „Befehle lokal senden“ an, speichern.
 4. Thermostat **stromlos neu starten**.
 5. Toolbar prüfen: <img src="../images/home.svg" width="20"> **1** = verbunden.
    <img src="../images/home-warning.svg" width="20"> „Kein Thermostat“ = DNS-Eintrag greift nicht.

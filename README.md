@@ -24,7 +24,7 @@ This adapter integrates <strong>Schlüter / OJ Microline OWD5 thermostats</stron
 
 It is based on the HA Integration from @robbinjanssen. For more informations see the documentation.
 
-> Works via the cloud out of the box. Optional **local control (beta)**: the adapter can act as the thermostats' device gateway on your LAN (relay or local-only mode) – see the documentation.
+> Works via the cloud out of the box. Optional **local control (in testing)**: the adapter can act as the thermostats' device gateway on your LAN (relay or local-only mode) – see the documentation.
 
 ##
 
@@ -44,7 +44,7 @@ It is based on the HA Integration from @robbinjanssen. For more informations see
 
 4. Save & start adapter
 
-Optional local control (beta): see the documentation, section *Local control*.
+Optional local control (in testing, for users who know DNS): see the documentation, section *Local control*.
 
 For API-Key you can try with: `f219aab4-9ac0-4343-8422-b72203e2fac9`.
 You can find this Key in Forum: `https://community.home-assistant.io/t/mwd5-wifi-thermostat-oj-electronics-microtemp/445601`, so it looks like a
@@ -66,7 +66,7 @@ global Key.
 
 ![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud%20API%20Bridge-blue?style=for-the-badge&logo=cloudflare)
 ![Apply Concept](https://img.shields.io/badge/Control-Apply%20Based-green?style=for-the-badge)
-![Local Control](https://img.shields.io/badge/Local-Relay%20|%20Local%20only%20(beta)-brightgreen?style=for-the-badge)
+![Local Control](https://img.shields.io/badge/Local-Relay%20|%20Local%20only%20(in%20testing)-brightgreen?style=for-the-badge)
 ![Mode Support](https://img.shields.io/badge/Modes-Schedule%20|%20Comfort%20|%20Manual%20|%20Boost%20|%20Eco%20|%20Frost%20Protection%20|%20Vacation-orange?style=for-the-badge)
 
 ### Compact Program Structure
@@ -80,7 +80,7 @@ flowchart LR
   ADP -->|write| OCD5[OCD5 Cloud]
   OCD5 --> TH[Thermostat]
 
-  TH -->|DNS redirect, port 9513| GW[Local gateway - beta]
+  TH -->|DNS redirect, port 9513| GW[Local gateway - in testing]
   GW --> ADP
   GW -.->|relay| VG[Vendor device gateway]
 
@@ -130,7 +130,8 @@ flowchart TB
 * (patricknitsch) Change icon from png to jpg
 * (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
 * (patricknitsch) Local control: answer every message that asks for an answer (seen with 4=6 when the internet was down); a local connection change no longer postpones the cloud poll during the error backoff
-* (patricknitsch) Remove the legacy cleanup (option "Legacy Cleanup" and the removal of objects of very old versions); delete `thermostats.*` or `*Set` states of very old versions manually if they still exist
+* (patricknitsch) Remove the legacy cleanup (option "Legacy Cleanup"); no longer needed since 0.5.2
+* (patricknitsch) Admin: tab "Local" (was "Local (Beta)") with a setup guide; marked as "in testing" for users who know DNS and hostnames
 * (patricknitsch) Local control: relay returns within a minute after an internet outage (was 5 min) and never cuts off a running local command
 * (patricknitsch) Docs: DNS redirect via CNAME recommended (keeps the name of the ioBroker host in Pi-hole)
 * (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
