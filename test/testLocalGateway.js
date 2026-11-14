@@ -1036,6 +1036,55 @@ describe('local gateway: WD5 vacation', () => {
 		assert.equal(fields.regulationMode, 1);
 	});
 
+	it('changes only year … second inside end times and vacation days', () => {
+		// Unknown extra fields (field 9 in each struct) must survive a command.
+		const extra = encodeField(9, 7);
+		const xDate = Buffer.concat([date(1970, 1, 1), extra]);
+		const xTime = Buffer.concat([encodeField(1, 0), encodeField(2, 0), encodeField(3, 0), extra]);
+		const xDateTime = Buffer.concat([encodeField(1, xDate), encodeField(2, xTime), extra]);
+		const base = Buffer.concat([
+			encodeField(1, 847890037),
+			encodeField(2, 1),
+			encodeField(3, Buffer.concat([encodeField(1, 4600), encodeField(2, xDateTime)])),
+			encodeField(4, encodeField(1, 0)),
+			encodeField(
+				5,
+				Buffer.concat([encodeField(1, 0), encodeField(2, xDate), encodeField(3, xDate), encodeField(4, 1000)]),
+			),
+			encodeField(6, encodeField(1, xDateTime)),
+			encodeField(7, encodeField(1, 1000)),
+		]);
+		const end = new Date(Date.UTC(2027, 0, 2, 13, 45, 30));
+		const kept = (buf, ...path) => {
+			let m = Message.parse(buf);
+			for (const n of path) {
+				m = /** @type {Message} */ (m.message(n));
+			}
+			return m.varint(9);
+		};
+
+		const comfort = W.changedState(base, { mode: W.MODE_COMFORT, tempC: 22, end });
+		assert.equal(W.decodeState(Message.parse(encodeField(9, comfort))).comfortEnd, '2027-01-02T13:45:30');
+		assert.equal(kept(comfort, 3, 2), 7);
+		assert.equal(kept(comfort, 3, 2, 1), 7);
+		assert.equal(kept(comfort, 3, 2, 2), 7);
+
+		const boost = W.changedState(base, { mode: W.MODE_BOOST, end });
+		assert.equal(W.decodeState(Message.parse(encodeField(9, boost))).boostEnd, '2027-01-02T13:45:30');
+		assert.equal(kept(boost, 6, 1), 7);
+		assert.equal(kept(boost, 6, 1, 1), 7);
+		assert.equal(kept(boost, 6, 1, 2), 7);
+
+		const vacation = W.changedState(base, {
+			vacation: { enabled: true, begin: W.parseDay('2027-01-01'), end: W.parseDay('2027-01-02') },
+		});
+		const v = W.decodeState(Message.parse(encodeField(9, vacation)));
+		assert.equal(v.vacationBegin, '2027-01-01T00:00:00');
+		assert.equal(v.vacationEnd, '2027-01-02T00:00:00');
+		assert.equal(kept(vacation, 5, 2), 7);
+		assert.equal(kept(vacation, 5, 3), 7);
+	});
+
 	it('parses vacation days in the formats of the states', () => {
 		assert.deepEqual(W.parseDay('2027-01-01'), { y: 2027, m: 1, d: 1 });
 		assert.deepEqual(W.parseDay('2027-01-02T00:00:00'), { y: 2027, m: 1, d: 2 });
