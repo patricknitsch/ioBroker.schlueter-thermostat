@@ -471,7 +471,15 @@ class SchlueterThermostat extends utils.Adapter {
 	}
 
 	_replanPoll() {
-		if (this.unloading || this.pollInFlight || !this.pollTimer || this.inFixedSchedule) {
+		// During the error backoff the local connection does not change the
+		// delay; restarting the timer would only postpone the next poll.
+		if (
+			this.unloading ||
+			this.pollInFlight ||
+			!this.pollTimer ||
+			this.inFixedSchedule ||
+			this.currentIntervalMs > this.baseIntervalMs
+		) {
 			return;
 		}
 		this.clearTimeout(this.pollTimer);

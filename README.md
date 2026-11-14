@@ -129,6 +129,7 @@ flowchart TB
 * (patricknitsch) Update Dependencies
 * (patricknitsch) Change icon from png to jpg
 * (patricknitsch) Add experimental local control (BETA): own device gateway with relay and local-only mode, see docs
+* (patricknitsch) Local control: answer every message that asks for an answer (seen with 4=6 when the internet was down); a local connection change no longer postpones the cloud poll during the error backoff
 * (patricknitsch) Docs: DNS redirect via CNAME recommended (keeps the name of the ioBroker host in Pi-hole)
 * (patricknitsch) Local control: DNS check button, DNS check on start and warning when no thermostat connects
 * (patricknitsch) Local control: vacation for WD5 thermostats (relay and local-only)

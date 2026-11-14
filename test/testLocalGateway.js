@@ -1085,6 +1085,33 @@ describe('local gateway: WD5 vacation', () => {
 		assert.equal(kept(vacation, 5, 3), 7);
 	});
 
+	it('answers a heartbeat with 4=6 (sent while the vendor gateway did not answer)', () => {
+		// Captured on a real OWD5 after the internet connection was cut in relay mode.
+		const heartbeat = Message.parse(
+			Buffer.concat([
+				encodeField(1, 4),
+				encodeField(4, 6),
+				encodeField(
+					6,
+					Buffer.concat([
+						encodeField(1, 847967446),
+						encodeField(2, 1880),
+						encodeField(3, 3141),
+						encodeField(4, 1),
+						encodeField(5, 1),
+						encodeField(6, 0),
+						encodeField(7, 0),
+					]),
+				),
+				encodeField(12, Buffer.concat([encodeField(1, 847967446), encodeField(2, 3600), encodeField(3, 0)])),
+			]),
+		);
+		assert.equal(W.wantsAnswer(heartbeat), true);
+		assert.equal(W.isAnswer(heartbeat), false);
+		assert.equal(W.wantsAnswer(Message.parse(Buffer.concat([encodeField(1, 4), encodeField(3, 1)]))), false);
+		assert.equal(W.decodeTelemetry(heartbeat).roomTemperature, 18.8);
+	});
+
 	it('parses vacation days in the formats of the states', () => {
 		assert.deepEqual(W.parseDay('2027-01-01'), { y: 2027, m: 1, d: 1 });
 		assert.deepEqual(W.parseDay('2027-01-02T00:00:00'), { y: 2027, m: 1, d: 2 });
