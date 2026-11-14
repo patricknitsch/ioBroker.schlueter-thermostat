@@ -159,7 +159,7 @@ host – nothing on the thermostat is changed. Delete the DNS record = everythin
 | Mode | App | Control from ioBroker | Without internet |
 | --- | --- | --- | --- |
 | **Off** | ✔ | via the cloud | ✘ |
-| **Relay** ⭐ | ✔ (in sync) | local, immediate | ✔ the adapter takes over automatically |
+| **Relay** ⭐ | ✔ (in sync) | local, immediate | ✔ the adapter takes over automatically, back to relay ≤ 1 min after the internet returns |
 | **Local only** | ✘ (offline) | local, immediate | ✔ |
 
 ### Setup

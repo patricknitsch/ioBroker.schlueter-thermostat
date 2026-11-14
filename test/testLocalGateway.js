@@ -869,6 +869,49 @@ describe('local manager: no connection warning', () => {
 	});
 });
 
+describe('local gateway: back to relay after an outage', () => {
+	const make = () => {
+		const gw = /** @type {any} */ (
+			new LocalGateway({ mode: 'relay', cert: CERT.cert, key: CERT.key, listenPort: 0 })
+		);
+		gw.closed = [];
+		gw._close = link => gw.closed.push(link);
+		gw.vendor = { open: async () => ({ destroy() {} }) };
+		return gw;
+	};
+	const link = () => ({ serial: '1021410', closed: false, pending: new Map(), timers: [] });
+
+	it('retries the vendor gateway every minute', () => {
+		assert.equal(make().timeouts.retry, 60_000);
+	});
+
+	it('reconnects the thermostat once the vendor gateway answers again', async () => {
+		const gw = make();
+		const l = link();
+		assert.equal(await gw._tryUpstreamAgain(l), true);
+		assert.deepEqual(gw.closed, [l]);
+	});
+
+	it('does not cut off a command waiting for its acknowledgement', async () => {
+		// Seen on a real OWD5: the reconnect closed the link 50 ms after a local command was sent.
+		const gw = make();
+		const l = link();
+		l.pending.set(101, {});
+		assert.equal(await gw._tryUpstreamAgain(l), false);
+		const l2 = link();
+		gw.vendor = { open: async () => (l2.pending.set(102, {}), { destroy() {} }) };
+		assert.equal(await gw._tryUpstreamAgain(l2), false);
+		assert.deepEqual(gw.closed, []);
+	});
+
+	it('keeps answering locally while the vendor gateway is still unreachable', async () => {
+		const gw = make();
+		gw.vendor = { open: async () => null };
+		assert.equal(await gw._tryUpstreamAgain(link()), false);
+		assert.deepEqual(gw.closed, []);
+	});
+});
+
 describe('local gateway: several thermostats', function () {
 	this.timeout(10000);
 

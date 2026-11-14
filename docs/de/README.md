@@ -159,7 +159,7 @@ den ioBroker-Host um – am Thermostat wird nichts verändert. DNS-Eintrag lösc
 | Modus | App | Steuerung aus ioBroker | Ohne Internet |
 | --- | --- | --- | --- |
 | **Aus** | ✔ | über die Cloud | ✘ |
-| **Relay** ⭐ | ✔ (synchron) | lokal, sofort | ✔ Adapter übernimmt automatisch |
+| **Relay** ⭐ | ✔ (synchron) | lokal, sofort | ✔ Adapter übernimmt automatisch, zurück zum Relay ≤ 1 min nach Rückkehr des Internets |
 | **Nur lokal** | ✘ (offline) | lokal, sofort | ✔ |
 
 ### Einrichtung
