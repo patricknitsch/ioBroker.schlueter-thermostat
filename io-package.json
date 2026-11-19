@@ -1,7 +1,7 @@
 {
 	"common": {
 		"name": "schlueter-thermostat",
-		"version": "0.9.0",
+		"version": "0.8.0",
 		"news": {
 			"0.8.0": {
 				"en": "Add Node.js 26 in test-and-release.yml\nUpdate Dependencies\nChange icon from png to jpg\nAdd experimental local control (BETA): own device gateway with relay and local-only mode, see docs\nRemove the legacy cleanup (option \"Legacy Cleanup\"); no longer needed since 0.5.2\nDocs: DNS redirect via CNAME\nLocal control: DNS check button, DNS check on start and warning when no thermostat connects\nDevice Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar\nDevice Manager: compact single-page controls with thermostat and serial number; information tab removed\nNew state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card\nNotifications when the local connection of a thermostat is lost / restored\nDefault customer ID is 3 for new instances",
