@@ -1,250 +1,223 @@
 {
-  "common": {
-    "name": "schlueter-thermostat",
-    "version": "0.9.0",
-    "news": {
-      "0.9.0": {
-        "en": "Web component `iob-schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts\nUpdate Dependencies",
-        "de": "Web-Komponente `iob-schlueter-thermostat-card` (ioBroker Web-Components): Thermostatkarte im Gerätemanager mit Temperaturen, Status und Steuerung, nutzbar in VIS-2, Geräten, Admin und anderen Hosts\nAbhängigkeiten updaten",
-        "ru": "Веб-компонент `iob-schlueter-thermostat-card` (веб-компоненты IOBroker): карта термостата в виде диспетчера устройств с температурой, состоянием и элементами управления, используемая в vis-2, устройствах, администраторах и других хостах\nОбновить зависимости",
-        "pt": "Componente web `iob-schlueter-thermostat-card`: placa termostática na aparência do Device Manager com temperaturas, status e controles, utilizável em vis-2, dispositivos, admin e outros hosts\nAtualizar dependências",
-        "nl": "Webcomponent `iob-schlueter-thermostat-card` (IOBroker-webcomponenten): thermostaatkaart in de vorm van de apparaatbeheerder met temperaturen, status en bedieningselementen, bruikbaar in vis-2, apparaten, admin en andere hosts\nAfhankelijkheden bijwerken",
-        "fr": "Composant Web « iob-schlueter-thermostat-card » (ioBroker Web-Components) : carte de thermostat au look du Device Manager avec températures, état et commandes, utilisable dans Vis-2, Devices, Admin et autres hôtes\nMettre à jour les dépendances",
-        "it": "Componente web `iob-schlueter-thermostat-card`: scheda termostatica nell'aspetto di Device Manager con temperature, stato e controlli, utilizzabile in vis-2, devices, admin e altri host\nAggiorna dipendenze",
-        "es": "Componente web `iob-schlueter-thermostat-card` (ioBroker webcomponents): tarjeta de termostato con aspecto de administrador de dispositivos con temperatura, estado y controles, utilizable en vis-2, dispositivos, administradores y otros hosts\nActualizar dependencias",
-        "pl": "Komponent sieciowy `iob-schlueter-thermostat-card` (komponenty internetowe ioBroker): karta termostatu w wyglądzie Menedżera urządzeń z temperaturą, stanem i kontrolą, używana w vis-2, urządzeniach, administratorach i innych hostach\nZależności aktualizacji",
-        "uk": "Веб-компонент `iob-schlueter-thermostat-card` (web-компоненти IObroker): карта термостата в зовнішньому вигляді Диспетчера пристроїв з температурами, станом і елементами управління, придатною для використання в vis-2, пристроях, адміністраторах та інших хостах\nОновити залежності",
-        "zh-cn": "网络组件 “iob-schlueter-thermostat-card”（ioBroker 网络组件）：设备管理器外观中的恒温器卡，带有温度、状态和控件，可用于 vis-2、设备、管理员和其他主机\n更新依赖关系"
-      },
-      "0.8.0": {
-        "en": "Add Node.js 26 in test-and-release.yml\nUpdate Dependencies\nChange icon from png to jpg\nAdd experimental local control (BETA): own device gateway with relay and local-only mode, see docs\nRemove the legacy cleanup (option \"Legacy Cleanup\"); no longer needed since 0.5.2\nDocs: DNS redirect via CNAME\nLocal control: DNS check button, DNS check on start and warning when no thermostat connects\nDevice Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar\nDevice Manager: compact single-page controls with thermostat and serial number; information tab removed\nNew state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card\nNotifications when the local connection of a thermostat is lost / restored\nDefault customer ID is 3 for new instances",
-        "de": "Füge Node.js 26 in test-and-release.yml hinzu\nAbhängigkeiten updaten\nIcon von PNG zu JPG ändern\nAdd Test Local Control (BETA): eigenes Geräte-Gateway mit Relay und LC-Modus, siehe Dokumente\nEntferne das alte Cleanup (Option „Legacy Cleanup“); seit 0.5.2 nicht mehr nötig\nDocs: DNS-Redirect per CNAME\nLokale Steuerung: DNS-Prüftaste, DNS-Prüfung beim Start und Warnung ohne Thermostat\nGerätemanager: Live-Statusanzeigen auf den Karten (Heizung, Temperatur, Modus, Urlaub, Strom, Verbindung) und in der Instanzleiste\nGerätemanager: kompakte Einseitensteuerung mit Thermostat und Seriennummer; Info-Tab entfernt\nNeuer Status setpoint.active (Sollwert des aktuellen Modus, im Zeitplanmodus), auf der Geräte-Manager-Karte\nMeldungen bei verloren/erneutem lokalen Thermostatanschluss\nStandardkunden-ID ist 3 für neue Instanzen",
-        "ru": "Добавьте файл Node.js 26 в файл test-and-release.yml\nОбновить зависимости\nИзменить значок с png на jpg\nДобавьте экспериментальное локальное управление (BETA): собственный шлюз устройств с ретрансляцией и режимом только локальной сети, см. документацию\nУдалите устаревшую очистку (опция «Legacy Cleanup»); больше не требуется, начиная с версии 0.5.2\nДокументация: Переадресация DNS через CNAME\nМестное управление: кнопка проверки DNS, проверка DNS при запуске и предупреждение при отсутствии подключения термостата\nДиспетчер устройств: индикаторы состояния в реальном времени на картах (отопление, температура, режим, отпуск, энергопотребление, подключение) и на панели инструментов экземпляра\nДиспетчер устройств: компактные одностраничные элементы управления с термостатом и серийным номером; информационная вкладка удалена\nНовое состояние setpoint.active (заданное значение текущего режима в режиме расписания текущего события), отображаемое на карте диспетчера устройств\nУведомления о потере или восстановлении локального подключения термостата\nИдентификатор клиента по умолчанию равен 3 для новых экземпляров",
-        "pt": "Adicione o Node.js 26 em teste-release.yml\nAtualizar dependências\nMudar ícone de png a jpg\nAdicione controle local experimental (BETA): gateway próprio com relé e modo local, veja docs\nRemova a limpeza antiga (opção “Limpeza antiga”); não é mais usada desde 0.5.2\nDocs: DNS redirect via CNAME\nControle local: botão de DNS, início e aviso quando não há termostato conectado\nDevice Manager: indicadores de status ao vivo nos cartões (aquecimento, temperatura, modo, férias, energia, conexão) e na barra\nDevice Manager: controles compactos de página única com termostato e número de série; aba removida\nNovo estado setpoint.active (setpoint do modo atual, no modo agendado do evento atual), exibido na placa Device Manager\nAvisos quando a conexão local do termostato é perdida/restaurada\nO ID padrão é 3 para novas instâncias",
-        "nl": "Voeg Node.js 26 toe aan test-and-release.yml\nAfhankelijkheden bijwerken\nPictogram wijzigen van png naar jpg\nExperimentele lokale besturing (BETA) toevoegen: gateway voor eigen apparaten met relais en modus voor alleen lokaal gebruik, zie documenten\nVerwijder de oude opruiming (optie „Legacy Cleanup”); niet meer nodig sinds 0.5.2\nDocumenten: DNS-omleiding via CNAME\nLokale bediening: DNS-controleknop, DNS-controle bij start en waarschuwing wanneer er geen thermostaat wordt aangesloten\nApparaatbeheer: actuele statusindicatoren op de kaarten (verwarming, temperaturen, modus, vakantie, energie, verbinding) en op de instantiewerkbalk\nApparaatbeheer: compacte bedieningselementen van één pagina met thermostaat en serienummer; informatietabblad verwijderd\nNieuwe status setpoint.active (instelpunt van de huidige modus, in planningsmodus van de huidige gebeurtenis), weergegeven op de kaart van Apparaatbeheer\nMeldingen wanneer de lokale verbinding van een thermostaat wordt verbroken of hersteld\nDe standaard-klant-ID is 3 voor nieuwe exemplaren",
-        "fr": "Ajoutez Node.js 26 à test-and-release.yml\nMettre à jour les dépendances\nChanger l'icône du PNG au JPG\nAjouter un contrôle local expérimental (BETA) : passerelle interne avec mode relais et mode local uniquement, voir docs\nSupprimer l'ancien nettoyage (option « Legacy Cleanup ») ; plus nécessaire depuis la 0.5.2\nDocs : Redirection DNS via CNAME\nContrôle local : bouton DNS, démarrage DNS et alerte si aucun thermostat ne se connecte\nDevice Manager : indicateurs d'état en temps réel sur les cartes (chauffage, température, mode, vacances, énergie, connexion) et dans la barre d'outils\nDevice Manager : commandes compactes d'une seule page avec thermostat et numéro de série ; onglet d'information supprimé\nNouvel état setpoint.active (point de réglage du mode actuel, en mode planning de l'événement en cours), affiché sur la carte Device Manager\nNotifications en cas de perte ou de rétablissement de la connexion locale\nID client par défaut : 3 pour les nouveaux cas",
-        "it": "Aggiunga Node.js 26 in test-and-release.yml\nAggiorna dipendenze\nCambia icona da png a jpg\nAggiungi controllo locale sperimentale (BETA): gateway proprio con relè e solo locale, vedi documenti\nRimuovi la pulizia legacy (opzione «Legacy Cleanup»); non più necessaria dalla 0.5.2\nDocs: DNS redirect via CNAME\nControllo locale: pulsante DNS all'avvio e avviso se il termostato non si connette\nDevice Manager: indicatori di stato in tempo reale sulle schede (riscaldamento, temperatura, modalità, ferie, energia) e nella barra\nDevice Manager: comandi compatti a pagina singola con termostato e numero di serie; scheda dati rimossa\nNuovo stato setpoint.active (setpoint della modalità attuale, programmato dell'evento), sulla scheda Device Manager\nNotifiche in caso di perso/ripristino della connessione locale del termostato\nL'ID cliente predefinito è 3 per i nuovi casi",
-        "es": "Añada Node.js 26 en test-and-release.yml\nActualizar dependencias\nCambiar el icono de png a jpg\nAñada el control local experimental (BETA): puerta de enlace propia con modo de retransmisión y solo local, consulte\nEliminar la limpieza antigua (opción «Legacy Cleanup»); ya no la necesita desde la 0.5.2\nDocs: redireccionamiento DNS por CNAME\nControl local: botón de control de DNS, control de DNS al iniciar y aviso cuando no hay termostato\nDevice Manager: indicadores de estado en vivo en las tarjetas (calefacción, temperatura, modo, vacaciones, energía, conexión) y en la barra de herramientas\nDevice Manager: controles compactos de una página con termostato y número de serie; pestaña de información quitada\nNuevo estado setpoint.active (punto de ajuste del modo actual, en modo horario del evento actual), que se muestra en la tarjeta Device Manager\nNotificaciones cuando se pierde o se restablece la conexión local de un termostato\nEl ID de cliente por defecto es 3 en casos nuevos",
-        "pl": "Dodaj Node.js 26 w test-and-release.yml\nZależności aktualizacji\nZmień ikonę z png na jpg\nDodaj eksperymentalną kontrolę lokalną (BETA): własna brama urządzenia z przekaźnikiem i trybem tylko lokalnym, patrz dokumenty\nUsuń starsze czyszczenie (opcja „Starsze czyszczenie”); nie jest już potrzebne od 0.5.2\nDokumenty: przekierowanie DNS przez CNAME\nSterowanie lokalne: przycisk sprawdzania DNS, kontrola DNS przy starcie i ostrzeżenie, gdy nie podłącza się termostat\nMenedżer urządzeń: wskaźniki stanu na żywo na kartach (ogrzewanie, temperatura, tryb, urlop, energia, połączenie) oraz na pasku narzędzi instancji\nMenedżer urządzeń: kompaktowe jednostronicowe elementy sterujące z termostatem i numerem seryjnym; karta informacyjna usunięta\nNowy stan setpoint.active (wartość zadana bieżącego trybu, w trybie harmonogramu bieżącego zdarzenia), wyświetlany na karcie Menedżera urządzeń\nPowiadomienia o utracie/przywróceniu lokalnego połączenia termostatu\nDomyślny identyfikator klienta to 3 dla nowych instancji",
-        "uk": "Додайте Node.js 26 у тестово-випускний.yml\nОновити залежності\nЗмінити піктограму з png на jpg\nДодати експериментальний локальний контроль (BETA): власний шлюз пристрою з ретрансляційним та локальним режимом, див. Документи\nВидаліть застаріле очищення (опція «Очищення застарілого зразка»); більше не потрібно з 0.5.2\nДокументи: перенаправлення DNS через CNAME\nЛокальне управління: кнопка перевірки DNS, перевірка DNS при запуску та попередження, коли термостат не підключається\nДиспетчер пристроїв: індикатори стану в реальному часі на картках (опалення, температури, режим, відпустка, енергія, підключення) і на панелі інструментів примірника\nДиспетчер пристроїв: компактні односторінкові елементи управління з термостатом і серійним номером; вкладка інформації видалена\nНовий стан setpoint.active (задана точка поточного режиму, в режимі розкладу поточної події), показаний на картці Диспетчера пристроїв\nПовідомлення про втрату або відновлення локального підключення термостата\nІдентифікатор клієнта за замовчуванням - 3 для нових екземплярів",
-        "zh-cn": "在 test-and-release.yml 中添加 Node.js 26\n更新依赖关系\n将图标从 png 更改为 jpg\n添加实验性本地控制 (BETA)：自有设备网关，支持中继和仅限本地模式，参见文档\n移除旧版清理（选项 “旧版清理”）；从 0.5.2 版本起不再需要\n文档：通过 CNAME 重定向 DNS\n本地控制：DNS 检查按钮，启动时进行 DNS 检查，未连接恒温器时发出警告\n设备管理器：卡片上的实时状态指示灯（加热、温度、模式、休假、能源、连接）和实例工具栏中的实时状态指示器\n设备管理器：带有恒温器和序列号的紧凑型单页控件；信息选项卡已删除\n设备管理器卡上显示的新状态 setpoint.active（当前事件的计划模式下当前模式的设定点）\n恒温器的本地连接丢失/恢复时发出通知\n新实例的默认客户 ID 为 3"
-      },
-      "0.7.4": {
-        "en": "Fixes for Repo Checker",
-        "de": "Fixes für Repo Checker",
-        "ru": "Обсуждение Repo Checker",
-        "pt": "Correcções para o Verificador de Repo",
-        "nl": "Fixes voor Repo Checker",
-        "fr": "Corrections pour Repo Checker",
-        "it": "Riparazioni per Checker Repo",
-        "es": "Fijas para el Checker Repo",
-        "pl": "Poprawki dla Repo Checker",
-        "uk": "Виправлення для репо-перевірки",
-        "zh-cn": "Repo 检查器的修复"
-      },
-      "0.7.3": {
-        "en": "Fixes for Repo Checker",
-        "de": "Fixes für Repo Checker",
-        "ru": "Обсуждение Repo Checker",
-        "pt": "Correcções para o Verificador de Repo",
-        "nl": "Fixes voor Repo Checker",
-        "fr": "Corrections pour Repo Checker",
-        "it": "Riparazioni per Checker Repo",
-        "es": "Fijas para el Checker Repo",
-        "pl": "Poprawki dla Repo Checker",
-        "uk": "Виправлення для репо-перевірки",
-        "zh-cn": "Repo 检查器的修复"
-      },
-      "0.7.2": {
-        "en": "Add Icons for Notifications",
-        "de": "Icons for Notifications hinzufügen",
-        "ru": "Добавить иконки для уведомлений",
-        "pt": "Adicionar Ícones para Notificações",
-        "nl": "Pictogrammen voor meldingen toevoegen",
-        "fr": "Ajouter des icônes pour les notifications",
-        "it": "Aggiungi icone per le notifiche",
-        "es": "Añadir iconos para las notificaciones",
-        "pl": "Dodaj ikony powiadomień",
-        "uk": "Додати іконки для повідомлень",
-        "zh-cn": "添加通知图标"
-      },
-      "0.7.1": {
-        "en": "Modify notification manager to work with instances\nUpdate Dependencies",
-        "de": "Benachrichtigungsmanager ändern, um mit Instanzen zu arbeiten\nAnpassungsabhängigkeiten",
-        "ru": "Изменить менеджер уведомлений для работы с экземплярами\nОбновление зависимостей",
-        "pt": "Modificar o gerenciador de notificações para trabalhar com instâncias\nAtualizar dependências",
-        "nl": "Notificatiebeheer aanpassen om met instanties te werken\nAfhankelijkheden bijwerken",
-        "fr": "Modifier le gestionnaire de notification pour travailler avec les instances\nMettre à jour les dépendances",
-        "it": "Modificare il gestore di notifiche per lavorare con le istanze\nDipendenze di aggiornamento",
-        "es": "Modificar el administrador de notificación para trabajar con casos\nDependencias de actualización",
-        "pl": "Zmień menedżera powiadomień do pracy z instancjami\nAktualizuj zależności",
-        "uk": "Зміна диспетчера повідомлень для роботи з екземплярами\nОновлення залежності",
-        "zh-cn": "修改通知管理器以配合实例\n更新依赖关系"
-      },
-      "0.7.0": {
-        "en": "Add Notification Manager",
-        "de": "Notification Manager hinzufügen",
-        "ru": "Добавить менеджер уведомлений",
-        "pt": "Adicionar Gerenciador de Notificações",
-        "nl": "Notificatiebeheer toevoegen",
-        "fr": "Ajouter un gestionnaire de notification",
-        "it": "Aggiungi Gestione notifiche",
-        "es": "Añadir administrador de notificaciones",
-        "pl": "Dodaj menedżera powiadomień",
-        "uk": "Додати менеджер повідомлень",
-        "zh-cn": "添加通知管理器"
-      }
-    },
-    "titleLang": {
-      "en": "Schlueter Ditra Heat Thermostat",
-      "de": "Schlüter Ditra Wärmethermostat",
-      "ru": "Тепловой термостат Schlueter Ditra",
-      "pt": "Termostato de calor Schlueter Ditra",
-      "nl": "Schlueter Ditra Heat-thermostaat",
-      "fr": "Thermostat de chaleur Schlueter Ditra",
-      "it": "Termostato termico Schlueter Ditra",
-      "es": "Termostato Schlueter Ditra Heat",
-      "pl": "Termostat grzewczy Schlueter Ditra",
-      "uk": "Тепловий термостат Schlueter Ditra",
-      "zh-cn": "Schlueter Ditra 热恒温器"
-    },
-    "desc": {
-      "en": "Floor heating controlled with Ditra Heat Thermostat",
-      "de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
-      "ru": "Подогрев пола контролируется термостатом Ditra Heat.",
-      "pt": "Aquecimento de piso controlado com termostato Ditra Heat",
-      "nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
-      "fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
-      "it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
-      "es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
-      "pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
-      "uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
-      "zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
-    },
-    "authors": [
-      "patricknitsch <patricknitsch@web.de>"
-    ],
-    "keywords": [
-      "ditra heat",
-      "climate-control",
-      "cloud"
-    ],
-    "licenseInformation": {
-      "type": "free",
-      "license": "MIT"
-    },
-    "platform": "Javascript/Node.js",
-    "icon": "schlueter-thermostat.jpg",
-    "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.jpg",
-    "readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
-    "loglevel": "info",
-    "tier": 3,
-    "mode": "daemon",
-    "type": "climate-control",
-    "compact": true,
-    "connectionType": "cloud",
-    "dataSource": "poll",
-    "adminUI": {
-      "config": "json"
-    },
-    "webComponents": [
-      "webcomponents/thermostat-card.json"
-    ],
-    "messagebox": true,
-    "supportedMessages": {
-      "deviceManager": true
-    },
-    "dependencies": [
-      {
-        "js-controller": ">=6.0.11"
-      }
-    ],
-    "globalDependencies": [
-      {
-        "admin": ">=7.8.23"
-      }
-    ]
-  },
-  "native": {
-    "provider": "owd5",
-    "baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
-    "baseUrlOcd5": "https://ocd5.azurewebsites.net",
-    "username": "",
-    "password": "",
-    "apiKey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
-    "customerId": 3,
-    "pollIntervalSec": 60,
-    "energyHistory": 0,
-    "energyViewType": 2,
-    "notifyEnabled": false,
-    "notifyOnThermostatOffline": true,
-    "notifyOnThermostatOnline": true,
-    "notifyOnCloudOffline": true,
-    "notifyOnCloudRecovered": true,
-    "notifyOnLocalConnectionLost": true,
-    "notifyOnLocalConnectionRestored": true,
-    "notifyUseTelegram": false,
-    "notifyInstanceTelegram": "",
-    "notifyUserTelegram": "",
-    "notifyUsePushover": false,
-    "notifyInstancePushover": "",
-    "notifyDevicePushover": "",
-    "notifyTitlePushover": "Schlüter Thermostat",
-    "notifyUseWhatsapp": false,
-    "notifyInstanceWhatsapp": "",
-    "notifyPhoneWhatsapp": "",
-    "notifyUseEmail": false,
-    "notifyInstanceEmail": "",
-    "notifyEmailTo": "",
-    "notifyEmailSubject": "Schlüter Thermostat",
-    "notifyUseSignal": false,
-    "notifyInstanceSignal": "",
-    "notifyPhoneSignal": "",
-    "notifyUseMatrix": false,
-    "notifyInstanceMatrix": "",
-    "notifyUseSynoChat": false,
-    "notifyInstanceSynoChat": "",
-    "notifyChannelSynoChat": "",
-    "localMode": "off",
-    "localListenPort": 9513,
-    "localUpstreamHost": "owd5-sl003-thermostat.ojelectronics.com",
-    "localUpstreamPort": 9513,
-    "localUpstreamIp": "",
-    "localUpstreamPin": "",
-    "localAllowCommands": false,
-    "localCloudPollSec": 300
-  },
-  "protectedNative": [
-    "username",
-    "password",
-    "customerId"
-  ],
-  "encryptedNative": [
-    "password"
-  ],
-  "objects": [],
-  "instanceObjects": [
-    {
-      "_id": "info",
-      "type": "channel",
-      "common": {
-        "name": "Information"
-      },
-      "native": {}
-    },
-    {
-      "_id": "info.connection",
-      "type": "state",
-      "common": {
-        "role": "indicator.connected",
-        "name": "Device or service connected",
-        "type": "boolean",
-        "read": true,
-        "write": false,
-        "def": false
-      },
-      "native": {}
-    }
-  ]
+	"common": {
+		"name": "schlueter-thermostat",
+		"version": "0.9.0",
+		"news": {
+			"0.8.0": {
+				"en": "Add Node.js 26 in test-and-release.yml\nUpdate Dependencies\nChange icon from png to jpg\nAdd experimental local control (BETA): own device gateway with relay and local-only mode, see docs\nRemove the legacy cleanup (option \"Legacy Cleanup\"); no longer needed since 0.5.2\nDocs: DNS redirect via CNAME\nLocal control: DNS check button, DNS check on start and warning when no thermostat connects\nDevice Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar\nDevice Manager: compact single-page controls with thermostat and serial number; information tab removed\nNew state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card\nNotifications when the local connection of a thermostat is lost / restored\nDefault customer ID is 3 for new instances",
+				"de": "Füge Node.js 26 in test-and-release.yml hinzu\nAbhängigkeiten updaten\nIcon von PNG zu JPG ändern\nAdd Test Local Control (BETA): eigenes Geräte-Gateway mit Relay und LC-Modus, siehe Dokumente\nEntferne das alte Cleanup (Option „Legacy Cleanup“); seit 0.5.2 nicht mehr nötig\nDocs: DNS-Redirect per CNAME\nLokale Steuerung: DNS-Prüftaste, DNS-Prüfung beim Start und Warnung ohne Thermostat\nGerätemanager: Live-Statusanzeigen auf den Karten (Heizung, Temperatur, Modus, Urlaub, Strom, Verbindung) und in der Instanzleiste\nGerätemanager: kompakte Einseitensteuerung mit Thermostat und Seriennummer; Info-Tab entfernt\nNeuer Status setpoint.active (Sollwert des aktuellen Modus, im Zeitplanmodus), auf der Geräte-Manager-Karte\nMeldungen bei verloren/erneutem lokalen Thermostatanschluss\nStandardkunden-ID ist 3 für neue Instanzen",
+				"ru": "Добавьте файл Node.js 26 в файл test-and-release.yml\nОбновить зависимости\nИзменить значок с png на jpg\nДобавьте экспериментальное локальное управление (BETA): собственный шлюз устройств с ретрансляцией и режимом только локальной сети, см. документацию\nУдалите устаревшую очистку (опция «Legacy Cleanup»); больше не требуется, начиная с версии 0.5.2\nДокументация: Переадресация DNS через CNAME\nМестное управление: кнопка проверки DNS, проверка DNS при запуске и предупреждение при отсутствии подключения термостата\nДиспетчер устройств: индикаторы состояния в реальном времени на картах (отопление, температура, режим, отпуск, энергопотребление, подключение) и на панели инструментов экземпляра\nДиспетчер устройств: компактные одностраничные элементы управления с термостатом и серийным номером; информационная вкладка удалена\nНовое состояние setpoint.active (заданное значение текущего режима в режиме расписания текущего события), отображаемое на карте диспетчера устройств\nУведомления о потере или восстановлении локального подключения термостата\nИдентификатор клиента по умолчанию равен 3 для новых экземпляров",
+				"pt": "Adicione o Node.js 26 em teste-release.yml\nAtualizar dependências\nMudar ícone de png a jpg\nAdicione controle local experimental (BETA): gateway próprio com relé e modo local, veja docs\nRemova a limpeza antiga (opção “Limpeza antiga”); não é mais usada desde 0.5.2\nDocs: DNS redirect via CNAME\nControle local: botão de DNS, início e aviso quando não há termostato conectado\nDevice Manager: indicadores de status ao vivo nos cartões (aquecimento, temperatura, modo, férias, energia, conexão) e na barra\nDevice Manager: controles compactos de página única com termostato e número de série; aba removida\nNovo estado setpoint.active (setpoint do modo atual, no modo agendado do evento atual), exibido na placa Device Manager\nAvisos quando a conexão local do termostato é perdida/restaurada\nO ID padrão é 3 para novas instâncias",
+				"nl": "Voeg Node.js 26 toe aan test-and-release.yml\nAfhankelijkheden bijwerken\nPictogram wijzigen van png naar jpg\nExperimentele lokale besturing (BETA) toevoegen: gateway voor eigen apparaten met relais en modus voor alleen lokaal gebruik, zie documenten\nVerwijder de oude opruiming (optie „Legacy Cleanup”); niet meer nodig sinds 0.5.2\nDocumenten: DNS-omleiding via CNAME\nLokale bediening: DNS-controleknop, DNS-controle bij start en waarschuwing wanneer er geen thermostaat wordt aangesloten\nApparaatbeheer: actuele statusindicatoren op de kaarten (verwarming, temperaturen, modus, vakantie, energie, verbinding) en op de instantiewerkbalk\nApparaatbeheer: compacte bedieningselementen van één pagina met thermostaat en serienummer; informatietabblad verwijderd\nNieuwe status setpoint.active (instelpunt van de huidige modus, in planningsmodus van de huidige gebeurtenis), weergegeven op de kaart van Apparaatbeheer\nMeldingen wanneer de lokale verbinding van een thermostaat wordt verbroken of hersteld\nDe standaard-klant-ID is 3 voor nieuwe exemplaren",
+				"fr": "Ajoutez Node.js 26 à test-and-release.yml\nMettre à jour les dépendances\nChanger l'icône du PNG au JPG\nAjouter un contrôle local expérimental (BETA) : passerelle interne avec mode relais et mode local uniquement, voir docs\nSupprimer l'ancien nettoyage (option « Legacy Cleanup ») ; plus nécessaire depuis la 0.5.2\nDocs : Redirection DNS via CNAME\nContrôle local : bouton DNS, démarrage DNS et alerte si aucun thermostat ne se connecte\nDevice Manager : indicateurs d'état en temps réel sur les cartes (chauffage, température, mode, vacances, énergie, connexion) et dans la barre d'outils\nDevice Manager : commandes compactes d'une seule page avec thermostat et numéro de série ; onglet d'information supprimé\nNouvel état setpoint.active (point de réglage du mode actuel, en mode planning de l'événement en cours), affiché sur la carte Device Manager\nNotifications en cas de perte ou de rétablissement de la connexion locale\nID client par défaut : 3 pour les nouveaux cas",
+				"it": "Aggiunga Node.js 26 in test-and-release.yml\nAggiorna dipendenze\nCambia icona da png a jpg\nAggiungi controllo locale sperimentale (BETA): gateway proprio con relè e solo locale, vedi documenti\nRimuovi la pulizia legacy (opzione «Legacy Cleanup»); non più necessaria dalla 0.5.2\nDocs: DNS redirect via CNAME\nControllo locale: pulsante DNS all'avvio e avviso se il termostato non si connette\nDevice Manager: indicatori di stato in tempo reale sulle schede (riscaldamento, temperatura, modalità, ferie, energia) e nella barra\nDevice Manager: comandi compatti a pagina singola con termostato e numero di serie; scheda dati rimossa\nNuovo stato setpoint.active (setpoint della modalità attuale, programmato dell'evento), sulla scheda Device Manager\nNotifiche in caso di perso/ripristino della connessione locale del termostato\nL'ID cliente predefinito è 3 per i nuovi casi",
+				"es": "Añada Node.js 26 en test-and-release.yml\nActualizar dependencias\nCambiar el icono de png a jpg\nAñada el control local experimental (BETA): puerta de enlace propia con modo de retransmisión y solo local, consulte\nEliminar la limpieza antigua (opción «Legacy Cleanup»); ya no la necesita desde la 0.5.2\nDocs: redireccionamiento DNS por CNAME\nControl local: botón de control de DNS, control de DNS al iniciar y aviso cuando no hay termostato\nDevice Manager: indicadores de estado en vivo en las tarjetas (calefacción, temperatura, modo, vacaciones, energía, conexión) y en la barra de herramientas\nDevice Manager: controles compactos de una página con termostato y número de serie; pestaña de información quitada\nNuevo estado setpoint.active (punto de ajuste del modo actual, en modo horario del evento actual), que se muestra en la tarjeta Device Manager\nNotificaciones cuando se pierde o se restablece la conexión local de un termostato\nEl ID de cliente por defecto es 3 en casos nuevos",
+				"pl": "Dodaj Node.js 26 w test-and-release.yml\nZależności aktualizacji\nZmień ikonę z png na jpg\nDodaj eksperymentalną kontrolę lokalną (BETA): własna brama urządzenia z przekaźnikiem i trybem tylko lokalnym, patrz dokumenty\nUsuń starsze czyszczenie (opcja „Starsze czyszczenie”); nie jest już potrzebne od 0.5.2\nDokumenty: przekierowanie DNS przez CNAME\nSterowanie lokalne: przycisk sprawdzania DNS, kontrola DNS przy starcie i ostrzeżenie, gdy nie podłącza się termostat\nMenedżer urządzeń: wskaźniki stanu na żywo na kartach (ogrzewanie, temperatura, tryb, urlop, energia, połączenie) oraz na pasku narzędzi instancji\nMenedżer urządzeń: kompaktowe jednostronicowe elementy sterujące z termostatem i numerem seryjnym; karta informacyjna usunięta\nNowy stan setpoint.active (wartość zadana bieżącego trybu, w trybie harmonogramu bieżącego zdarzenia), wyświetlany na karcie Menedżera urządzeń\nPowiadomienia o utracie/przywróceniu lokalnego połączenia termostatu\nDomyślny identyfikator klienta to 3 dla nowych instancji",
+				"uk": "Додайте Node.js 26 у тестово-випускний.yml\nОновити залежності\nЗмінити піктограму з png на jpg\nДодати експериментальний локальний контроль (BETA): власний шлюз пристрою з ретрансляційним та локальним режимом, див. Документи\nВидаліть застаріле очищення (опція «Очищення застарілого зразка»); більше не потрібно з 0.5.2\nДокументи: перенаправлення DNS через CNAME\nЛокальне управління: кнопка перевірки DNS, перевірка DNS при запуску та попередження, коли термостат не підключається\nДиспетчер пристроїв: індикатори стану в реальному часі на картках (опалення, температури, режим, відпустка, енергія, підключення) і на панелі інструментів примірника\nДиспетчер пристроїв: компактні односторінкові елементи управління з термостатом і серійним номером; вкладка інформації видалена\nНовий стан setpoint.active (задана точка поточного режиму, в режимі розкладу поточної події), показаний на картці Диспетчера пристроїв\nПовідомлення про втрату або відновлення локального підключення термостата\nІдентифікатор клієнта за замовчуванням - 3 для нових екземплярів",
+				"zh-cn": "在 test-and-release.yml 中添加 Node.js 26\n更新依赖关系\n将图标从 png 更改为 jpg\n添加实验性本地控制 (BETA)：自有设备网关，支持中继和仅限本地模式，参见文档\n移除旧版清理（选项 “旧版清理”）；从 0.5.2 版本起不再需要\n文档：通过 CNAME 重定向 DNS\n本地控制：DNS 检查按钮，启动时进行 DNS 检查，未连接恒温器时发出警告\n设备管理器：卡片上的实时状态指示灯（加热、温度、模式、休假、能源、连接）和实例工具栏中的实时状态指示器\n设备管理器：带有恒温器和序列号的紧凑型单页控件；信息选项卡已删除\n设备管理器卡上显示的新状态 setpoint.active（当前事件的计划模式下当前模式的设定点）\n恒温器的本地连接丢失/恢复时发出通知\n新实例的默认客户 ID 为 3"
+			},
+			"0.7.4": {
+				"en": "Fixes for Repo Checker",
+				"de": "Fixes für Repo Checker",
+				"ru": "Обсуждение Repo Checker",
+				"pt": "Correcções para o Verificador de Repo",
+				"nl": "Fixes voor Repo Checker",
+				"fr": "Corrections pour Repo Checker",
+				"it": "Riparazioni per Checker Repo",
+				"es": "Fijas para el Checker Repo",
+				"pl": "Poprawki dla Repo Checker",
+				"uk": "Виправлення для репо-перевірки",
+				"zh-cn": "Repo 检查器的修复"
+			},
+			"0.7.3": {
+				"en": "Fixes for Repo Checker",
+				"de": "Fixes für Repo Checker",
+				"ru": "Обсуждение Repo Checker",
+				"pt": "Correcções para o Verificador de Repo",
+				"nl": "Fixes voor Repo Checker",
+				"fr": "Corrections pour Repo Checker",
+				"it": "Riparazioni per Checker Repo",
+				"es": "Fijas para el Checker Repo",
+				"pl": "Poprawki dla Repo Checker",
+				"uk": "Виправлення для репо-перевірки",
+				"zh-cn": "Repo 检查器的修复"
+			},
+			"0.7.2": {
+				"en": "Add Icons for Notifications",
+				"de": "Icons for Notifications hinzufügen",
+				"ru": "Добавить иконки для уведомлений",
+				"pt": "Adicionar Ícones para Notificações",
+				"nl": "Pictogrammen voor meldingen toevoegen",
+				"fr": "Ajouter des icônes pour les notifications",
+				"it": "Aggiungi icone per le notifiche",
+				"es": "Añadir iconos para las notificaciones",
+				"pl": "Dodaj ikony powiadomień",
+				"uk": "Додати іконки для повідомлень",
+				"zh-cn": "添加通知图标"
+			},
+			"0.7.1": {
+				"en": "Modify notification manager to work with instances\nUpdate Dependencies",
+				"de": "Benachrichtigungsmanager ändern, um mit Instanzen zu arbeiten\nAnpassungsabhängigkeiten",
+				"ru": "Изменить менеджер уведомлений для работы с экземплярами\nОбновление зависимостей",
+				"pt": "Modificar o gerenciador de notificações para trabalhar com instâncias\nAtualizar dependências",
+				"nl": "Notificatiebeheer aanpassen om met instanties te werken\nAfhankelijkheden bijwerken",
+				"fr": "Modifier le gestionnaire de notification pour travailler avec les instances\nMettre à jour les dépendances",
+				"it": "Modificare il gestore di notifiche per lavorare con le istanze\nDipendenze di aggiornamento",
+				"es": "Modificar el administrador de notificación para trabajar con casos\nDependencias de actualización",
+				"pl": "Zmień menedżera powiadomień do pracy z instancjami\nAktualizuj zależności",
+				"uk": "Зміна диспетчера повідомлень для роботи з екземплярами\nОновлення залежності",
+				"zh-cn": "修改通知管理器以配合实例\n更新依赖关系"
+			},
+			"0.7.0": {
+				"en": "Add Notification Manager",
+				"de": "Notification Manager hinzufügen",
+				"ru": "Добавить менеджер уведомлений",
+				"pt": "Adicionar Gerenciador de Notificações",
+				"nl": "Notificatiebeheer toevoegen",
+				"fr": "Ajouter un gestionnaire de notification",
+				"it": "Aggiungi Gestione notifiche",
+				"es": "Añadir administrador de notificaciones",
+				"pl": "Dodaj menedżera powiadomień",
+				"uk": "Додати менеджер повідомлень",
+				"zh-cn": "添加通知管理器"
+			}
+		},
+		"titleLang": {
+			"en": "Schlueter Ditra Heat Thermostat",
+			"de": "Schlüter Ditra Wärmethermostat",
+			"ru": "Тепловой термостат Schlueter Ditra",
+			"pt": "Termostato de calor Schlueter Ditra",
+			"nl": "Schlueter Ditra Heat-thermostaat",
+			"fr": "Thermostat de chaleur Schlueter Ditra",
+			"it": "Termostato termico Schlueter Ditra",
+			"es": "Termostato Schlueter Ditra Heat",
+			"pl": "Termostat grzewczy Schlueter Ditra",
+			"uk": "Тепловий термостат Schlueter Ditra",
+			"zh-cn": "Schlueter Ditra 热恒温器"
+		},
+		"desc": {
+			"en": "Floor heating controlled with Ditra Heat Thermostat",
+			"de": "Fußbodenheizung mit Ditra Heat Thermostat gesteuert",
+			"ru": "Подогрев пола контролируется термостатом Ditra Heat.",
+			"pt": "Aquecimento de piso controlado com termostato Ditra Heat",
+			"nl": "Vloerverwarming geregeld met Ditra Heat Thermostaat",
+			"fr": "Chauffage au sol contrôlé avec le thermostat Ditra Heat",
+			"it": "Riscaldamento a pavimento controllato con Ditra Heat Thermostat",
+			"es": "Calefacción por suelo radiante controlada con termostato Ditra Heat",
+			"pl": "Ogrzewanie podłogowe sterowane za pomocą termostatu Ditra Heat",
+			"uk": "Підігрів підлоги регулюється термостатом Ditra Heat",
+			"zh-cn": "通过 Ditra Heat Thermostat 控制地暖"
+		},
+		"authors": ["patricknitsch <patricknitsch@web.de>"],
+		"keywords": ["ditra heat", "climate-control", "cloud"],
+		"licenseInformation": {
+			"type": "free",
+			"license": "MIT"
+		},
+		"platform": "Javascript/Node.js",
+		"icon": "schlueter-thermostat.jpg",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/patricknitsch/ioBroker.schlueter-thermostat/main/admin/schlueter-thermostat.jpg",
+		"readme": "https://github.com/patricknitsch/ioBroker.schlueter-thermostat/blob/main/README.md",
+		"loglevel": "info",
+		"tier": 3,
+		"mode": "daemon",
+		"type": "climate-control",
+		"compact": true,
+		"connectionType": "cloud",
+		"dataSource": "poll",
+		"adminUI": {
+			"config": "json"
+		},
+		"webComponents": ["webcomponents/thermostat-card.json"],
+		"messagebox": true,
+		"supportedMessages": {
+			"deviceManager": true
+		},
+		"dependencies": [
+			{
+				"js-controller": ">=6.0.11"
+			}
+		],
+		"globalDependencies": [
+			{
+				"admin": ">=7.8.23"
+			}
+		]
+	},
+	"native": {
+		"provider": "owd5",
+		"baseUrlOwd5": "https://owd5-mh015-app.ojelectronics.com",
+		"baseUrlOcd5": "https://ocd5.azurewebsites.net",
+		"username": "",
+		"password": "",
+		"apiKey": "f219aab4-9ac0-4343-8422-b72203e2fac9",
+		"customerId": 3,
+		"pollIntervalSec": 60,
+		"energyHistory": 0,
+		"energyViewType": 2,
+		"notifyEnabled": false,
+		"notifyOnThermostatOffline": true,
+		"notifyOnThermostatOnline": true,
+		"notifyOnCloudOffline": true,
+		"notifyOnCloudRecovered": true,
+		"notifyOnLocalConnectionLost": true,
+		"notifyOnLocalConnectionRestored": true,
+		"notifyUseTelegram": false,
+		"notifyInstanceTelegram": "",
+		"notifyUserTelegram": "",
+		"notifyUsePushover": false,
+		"notifyInstancePushover": "",
+		"notifyDevicePushover": "",
+		"notifyTitlePushover": "Schlüter Thermostat",
+		"notifyUseWhatsapp": false,
+		"notifyInstanceWhatsapp": "",
+		"notifyPhoneWhatsapp": "",
+		"notifyUseEmail": false,
+		"notifyInstanceEmail": "",
+		"notifyEmailTo": "",
+		"notifyEmailSubject": "Schlüter Thermostat",
+		"notifyUseSignal": false,
+		"notifyInstanceSignal": "",
+		"notifyPhoneSignal": "",
+		"notifyUseMatrix": false,
+		"notifyInstanceMatrix": "",
+		"notifyUseSynoChat": false,
+		"notifyInstanceSynoChat": "",
+		"notifyChannelSynoChat": "",
+		"localMode": "off",
+		"localListenPort": 9513,
+		"localUpstreamHost": "owd5-sl003-thermostat.ojelectronics.com",
+		"localUpstreamPort": 9513,
+		"localUpstreamIp": "",
+		"localUpstreamPin": "",
+		"localAllowCommands": false,
+		"localCloudPollSec": 300
+	},
+	"protectedNative": ["username", "password", "customerId"],
+	"encryptedNative": ["password"],
+	"objects": [],
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": "Information"
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"role": "indicator.connected",
+				"name": "Device or service connected",
+				"type": "boolean",
+				"read": true,
+				"write": false,
+				"def": false
+			},
+			"native": {}
+		}
+	]
 }
