@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "schlueter-thermostat",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "news": {
+      "0.9.0": {
+        "en": "Web component `iob-schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts\nUpdate Dependencies",
+        "de": "Web-Komponente `iob-schlueter-thermostat-card` (ioBroker Web-Components): Thermostatkarte im Gerätemanager mit Temperaturen, Status und Steuerung, nutzbar in VIS-2, Geräten, Admin und anderen Hosts\nAbhängigkeiten updaten",
+        "ru": "Веб-компонент `iob-schlueter-thermostat-card` (веб-компоненты IOBroker): карта термостата в виде диспетчера устройств с температурой, состоянием и элементами управления, используемая в vis-2, устройствах, администраторах и других хостах\nОбновить зависимости",
+        "pt": "Componente web `iob-schlueter-thermostat-card`: placa termostática na aparência do Device Manager com temperaturas, status e controles, utilizável em vis-2, dispositivos, admin e outros hosts\nAtualizar dependências",
+        "nl": "Webcomponent `iob-schlueter-thermostat-card` (IOBroker-webcomponenten): thermostaatkaart in de vorm van de apparaatbeheerder met temperaturen, status en bedieningselementen, bruikbaar in vis-2, apparaten, admin en andere hosts\nAfhankelijkheden bijwerken",
+        "fr": "Composant Web « iob-schlueter-thermostat-card » (ioBroker Web-Components) : carte de thermostat au look du Device Manager avec températures, état et commandes, utilisable dans Vis-2, Devices, Admin et autres hôtes\nMettre à jour les dépendances",
+        "it": "Componente web `iob-schlueter-thermostat-card`: scheda termostatica nell'aspetto di Device Manager con temperature, stato e controlli, utilizzabile in vis-2, devices, admin e altri host\nAggiorna dipendenze",
+        "es": "Componente web `iob-schlueter-thermostat-card` (ioBroker webcomponents): tarjeta de termostato con aspecto de administrador de dispositivos con temperatura, estado y controles, utilizable en vis-2, dispositivos, administradores y otros hosts\nActualizar dependencias",
+        "pl": "Komponent sieciowy `iob-schlueter-thermostat-card` (komponenty internetowe ioBroker): karta termostatu w wyglądzie Menedżera urządzeń z temperaturą, stanem i kontrolą, używana w vis-2, urządzeniach, administratorach i innych hostach\nZależności aktualizacji",
+        "uk": "Веб-компонент `iob-schlueter-thermostat-card` (web-компоненти IObroker): карта термостата в зовнішньому вигляді Диспетчера пристроїв з температурами, станом і елементами управління, придатною для використання в vis-2, пристроях, адміністраторах та інших хостах\nОновити залежності",
+        "zh-cn": "网络组件 “iob-schlueter-thermostat-card”（ioBroker 网络组件）：设备管理器外观中的恒温器卡，带有温度、状态和控件，可用于 vis-2、设备、管理员和其他主机\n更新依赖关系"
+      },
       "0.8.0": {
         "en": "Add Node.js 26 in test-and-release.yml\nUpdate Dependencies\nChange icon from png to jpg\nAdd experimental local control (BETA): own device gateway with relay and local-only mode, see docs\nRemove the legacy cleanup (option \"Legacy Cleanup\"); no longer needed since 0.5.2\nDocs: DNS redirect via CNAME\nLocal control: DNS check button, DNS check on start and warning when no thermostat connects\nDevice Manager: live status indicators on the cards (heating, temperatures, mode, vacation, energy, connection) and in the instance toolbar\nDevice Manager: compact single-page controls with thermostat and serial number; information tab removed\nNew state setpoint.active (setpoint of the current mode, in schedule mode of the current event), shown on the Device Manager card\nNotifications when the local connection of a thermostat is lost / restored\nDefault customer ID is 3 for new instances",
         "de": "Füge Node.js 26 in test-and-release.yml hinzu\nAbhängigkeiten updaten\nIcon von PNG zu JPG ändern\nAdd Test Local Control (BETA): eigenes Geräte-Gateway mit Relay und LC-Modus, siehe Dokumente\nEntferne das alte Cleanup (Option „Legacy Cleanup“); seit 0.5.2 nicht mehr nötig\nDocs: DNS-Redirect per CNAME\nLokale Steuerung: DNS-Prüftaste, DNS-Prüfung beim Start und Warnung ohne Thermostat\nGerätemanager: Live-Statusanzeigen auf den Karten (Heizung, Temperatur, Modus, Urlaub, Strom, Verbindung) und in der Instanzleiste\nGerätemanager: kompakte Einseitensteuerung mit Thermostat und Seriennummer; Info-Tab entfernt\nNeuer Status setpoint.active (Sollwert des aktuellen Modus, im Zeitplanmodus), auf der Geräte-Manager-Karte\nMeldungen bei verloren/erneutem lokalen Thermostatanschluss\nStandardkunden-ID ist 3 für neue Instanzen",
@@ -80,19 +93,6 @@
         "pl": "Dodaj menedżera powiadomień",
         "uk": "Додати менеджер повідомлень",
         "zh-cn": "添加通知管理器"
-      },
-      "0.6.3": {
-        "en": "Update Icon and Online State automatically when Folder exists",
-        "de": "Icon und Online-Staat automatisch aktualisieren, wenn Ordner existiert",
-        "ru": "Обновление Icon и Online State автоматически при наличии папки",
-        "pt": "Atualizar o Ícone e o Estado Online automaticamente quando a Pasta existir",
-        "nl": "Pictogram en online status automatisch bijwerken wanneer de map bestaat",
-        "fr": "Mettre à jour automatiquement l'icône et l'état en ligne lorsque le dossier existe",
-        "it": "Aggiorna Icon e Stato online automaticamente quando esiste la cartella",
-        "es": "Actualizar el icono y el estado en línea automáticamente cuando la carpeta existe",
-        "pl": "Aktualizuj ikonę i stan online automatycznie, gdy istnieje folder",
-        "uk": "Оновити ікону і Інтернет-адміністрацію автоматично при складанні",
-        "zh-cn": "当文件夹存在时自动更新图标和在线状态"
       }
     },
     "titleLang": {
@@ -148,7 +148,9 @@
     "adminUI": {
       "config": "json"
     },
-    "webComponents": ["webcomponents/thermostat-card.json"],
+    "webComponents": [
+      "webcomponents/thermostat-card.json"
+    ],
     "messagebox": true,
     "supportedMessages": {
       "deviceManager": true

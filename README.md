@@ -123,7 +123,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.9.0 (2026-11-19)
 
 - (patricknitsch) Web component `iob-schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts
 - (patricknitsch) Update Dependencies
@@ -154,11 +154,6 @@ flowchart TB
 ### 0.7.2 (2026-05-23)
 
 - (copilot) Add Icons for Notifications
-
-### 0.7.1 (2026-05-21)
-
-- (copilot) Modify notification manager to work with instances
-- (copilot) Update Dependencies
 
 **Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).**
 
