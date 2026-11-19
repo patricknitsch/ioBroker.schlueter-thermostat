@@ -109,6 +109,11 @@ Hosts wie vis-2, devices oder admin bieten sie in ihrer Palette an; sie sieht au
 Befehle laufen über dieselben `apply.<modus>.*`-Datenpunkte wie alle anderen Oberflächen. Solange ein Thermostat in
 der Cloud offline ist (und nicht lokal verbunden), ist die Steuerung gesperrt; im Editor eines Hosts schreibt die Karte nichts.
 
+| Host | Hinweis |
+|---|---|
+| Aura | in den Widget-Einstellungen **Klick auf die Komponente** auf **Komponente** stellen; standardmäßig gehört der Klick dem Widget und die Steuerung reagiert nicht |
+| devices | die Karte erscheint unter „Widget hinzufügen“, sobald das Instanzobjekt das neue `common.webComponents` enthält: nach einem Update die Adapterdateien neu hochladen (`iobroker upload schlueter-thermostat`) und die Seite neu laden |
+
 ---
 
 ## 🧩 Datenpunkte

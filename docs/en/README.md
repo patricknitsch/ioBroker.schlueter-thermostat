@@ -109,6 +109,11 @@ Hosts such as vis-2, devices or admin offer it in their palette; it looks like t
 Commands go through the same `apply.<mode>.*` states as all other UIs. While a thermostat is offline in the cloud
 (and not connected locally) the controls are disabled; in the editor of a host the card writes nothing.
 
+| Host | Note |
+|---|---|
+| Aura | set **Click on the component** to **Component** in the widget settings; by default Aura keeps clicks for the widget and the controls do not react |
+| devices | the card appears in "Add widget" once the instance object carries the new `common.webComponents`: after an update, upload the adapter files again (`iobroker upload schlueter-thermostat`) and reload the page |
+
 ---
 
 ## 🧩 States

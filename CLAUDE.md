@@ -17,7 +17,7 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 | `lib/dm-indicators.js` | Live status indicators of the Device Manager cards and toolbar (SVG icons, read states directly) |
 | `lib/icons.js` | SVG icon paths and colours shared by the Device Manager indicators and the web component |
 | `lib/web-components.js` | Backend of the web component: thermostat list for its settings (`getThermostats`) |
-| `src-webcomponents/` | Web component source (browser ESM); `npm run build` bundles it into `admin/webcomponents/` and syncs `common.webComponents` in `io-package.json` – commit the built bundle |
+| `src-webcomponents/` | Web component source (browser ESM); `npm run build` bundles it into `admin/webcomponents/` – commit the built bundle. `common.webComponents` in `io-package.json` lists plain manifest paths: devices 4.4 ignores the object short form, so don't run `iob-web-components sync-io-package` |
 | `admin/webcomponents/*` | Web component manifest (source, hand-written), icon and built module |
 | `lib/notificationManager.js` | Push notifications (Telegram, Pushover, …) |
 | `lib/local-manager.js` | Local control: glue between the gateway and the adapter (config, states, persistence, local apply, energy estimate) |

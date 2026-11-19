@@ -26,13 +26,18 @@ describe('web component: manifest and bundle', () => {
 		assert.ok(fs.existsSync(path.join(ADMIN, 'webcomponents', manifest.icon)));
 	});
 
-	it('is listed in io-package.json with the short form of its manifest', async () => {
-		const { checkWebComponentEntries } = await import('@iobroker/web-components');
+	it('is listed in io-package.json as a plain manifest path, which every host reads', async () => {
+		// devices 4.4 skips entries in the object short form, so the list holds plain paths only
+		const { getWebComponentSources } = await import('@iobroker/web-components');
 		const io = JSON.parse(fs.readFileSync(path.join(ROOT, 'io-package.json'), 'utf8'));
-		const problems = await checkWebComponentEntries(io.common.webComponents, async file =>
-			JSON.parse(readAdmin(file)),
+		const list = io.common.webComponents;
+		assert.deepEqual(list, [MANIFEST]);
+		const sources = getWebComponentSources(
+			[{ _id: 'system.adapter.schlueter-thermostat.0', common: { webComponents: list } }],
+			'http://localhost:8081/',
 		);
-		assert.deepEqual(problems, []);
+		assert.equal(sources.length, 1);
+		assert.match(sources[0].url, /\/adapter\/schlueter-thermostat\/webcomponents\/thermostat-card\.json$/);
 	});
 
 	it('ships a bundle that is built from the current source (run `npm run build`)', async () => {
