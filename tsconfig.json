@@ -29,5 +29,5 @@
 		"types": ["node", "mocha"]
 	},
 	"include": ["**/*.js", "**/*.d.ts"],
-	"exclude": ["node_modules/**", "widgets/**"]
+	"exclude": ["node_modules/**", "widgets/**", "src-webcomponents/**", "admin/webcomponents/**"]
 }

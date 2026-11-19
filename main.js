@@ -46,6 +46,7 @@ const {
 	writeEnergyStates,
 } = require('./lib/writers');
 const { createApplyRouter } = require('./lib/apply-handlers');
+const { getThermostatOptions } = require('./lib/web-components');
 const { SchlueterDeviceManagement } = require('./lib/device-manager');
 const { sendNotification } = require('./lib/notificationManager');
 const { LocalManager } = require('./lib/local-manager');
@@ -282,6 +283,16 @@ class SchlueterThermostat extends utils.Adapter {
 		}
 		if (obj.command === 'checkLocalDns') {
 			this._onCheckLocalDns(obj).catch(e => this.log.warn(`DNS check failed: ${e?.message || e}`));
+			return;
+		}
+		if (obj.command === 'getThermostats') {
+			// settings of the web component (selectSendTo)
+			getThermostatOptions(this)
+				.catch(e => {
+					this.log.warn(`Listing thermostats failed: ${e?.message || e}`);
+					return [];
+				})
+				.then(options => obj.callback && this.sendTo(obj.from, obj.command, options, obj.callback));
 			return;
 		}
 		if (!this.deviceManagement) {

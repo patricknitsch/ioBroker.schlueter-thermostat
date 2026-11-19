@@ -89,6 +89,28 @@ Eine Seite mit Thermostat- und Seriennummer und je Funktion einer Zeile: **Manue
 
 ---
 
+## 🧩 Web Component
+
+Der Adapter bringt die Web Component **Thermostat** (`<schlueter-thermostat-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)) mit.
+Hosts wie vis-2, devices oder admin bieten sie in ihrer Palette an; sie sieht aus wie die Karte im Device Manager.
+
+| Teil | Inhalt |
+|---|---|
+| Kopf | Name, Gruppe, online / offline (rot, wenn offline) |
+| Indikatoren | dieselben Icons wie die Device-Manager-Karte: Verbindung, Heizen, Raum, Boden, Sollwert, Modus, Urlaub, Energie |
+| − / + | ändert den Sollwert in 0,5-°C-Schritten; wird 1,5 s nach dem letzten Klick als **manueller** Modus gesendet |
+| Modus-Buttons | **Zeitplan**, **Eco** sofort; **Komfort**, **Manuell**, **Boost**, **Urlaub** fragen ihre Werte in einem Dialog ab |
+
+| Einstellung | Bedeutung |
+|---|---|
+| Instanz | Adapter-Instanz (leer: `schlueter-thermostat.0`) |
+| Thermostat | Thermostat der Instanz (leer: das erste) |
+
+Befehle laufen über dieselben `apply.<modus>.*`-Datenpunkte wie alle anderen Oberflächen. Solange ein Thermostat in
+der Cloud offline ist (und nicht lokal verbunden), ist die Steuerung gesperrt; im Editor eines Hosts schreibt die Karte nichts.
+
+---
+
 ## 🧩 Datenpunkte
 
 Pro Thermostat: `groups.<Gruppe>.thermostats.<Thermostat>`

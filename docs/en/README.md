@@ -89,6 +89,28 @@ One page with thermostat and serial number and one row per function: **manual**,
 
 ---
 
+## 🧩 Web component
+
+The adapter brings the web component **Thermostat** (`<schlueter-thermostat-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)).
+Hosts such as vis-2, devices or admin offer it in their palette; it looks like the Device Manager card.
+
+| Part | Content |
+|---|---|
+| Header | name, group, online / offline (red when offline) |
+| Indicators | same icons as the Device Manager card: connection, heating, room, floor, setpoint, mode, vacation, energy |
+| − / + | changes the setpoint in 0.5 °C steps; sent as **manual** mode 1.5 s after the last click |
+| Mode buttons | **Schedule**, **Eco** at once; **Comfort**, **Manual**, **Boost**, **Vacation** ask for their values in a dialog |
+
+| Setting | Meaning |
+|---|---|
+| Instance | adapter instance (empty: `schlueter-thermostat.0`) |
+| Thermostat | thermostat of the instance (empty: the first one) |
+
+Commands go through the same `apply.<mode>.*` states as all other UIs. While a thermostat is offline in the cloud
+(and not connected locally) the controls are disabled; in the editor of a host the card writes nothing.
+
+---
+
 ## 🧩 States
 
 Per thermostat: `groups.<group>.thermostats.<thermostat>`

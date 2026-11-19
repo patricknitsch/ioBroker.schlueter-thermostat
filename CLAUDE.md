@@ -15,6 +15,10 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 | `lib/device-manager.js` | Device Manager UI (`@iobroker/dm-utils`) |
 | `lib/active-setpoint.js` | Keeps `setpoint.active` (setpoint of the current regulation mode: comfort/manual/vacation/frost protection from their states, eco 20 °C and boost 35 °C fixed (confirmed on OWD5); in schedule mode the current event, `day1` = Monday – confirmed) up to date, debounced |
 | `lib/dm-indicators.js` | Live status indicators of the Device Manager cards and toolbar (SVG icons, read states directly) |
+| `lib/icons.js` | SVG icon paths and colours shared by the Device Manager indicators and the web component |
+| `lib/web-components.js` | Backend of the web component: thermostat list for its settings (`getThermostats`) |
+| `src-webcomponents/` | Web component source (browser ESM); `npm run build` bundles it into `admin/webcomponents/` and syncs `common.webComponents` in `io-package.json` – commit the built bundle |
+| `admin/webcomponents/*` | Web component manifest (source, hand-written), icon and built module |
 | `lib/notificationManager.js` | Push notifications (Telegram, Pushover, …) |
 | `lib/local-manager.js` | Local control: glue between the gateway and the adapter (config, states, persistence, local apply, energy estimate) |
 | `lib/local/gateway.js` | Gateway core: TLS server, links, login detection, relay, local answering, commands with acknowledgement, pass-through |

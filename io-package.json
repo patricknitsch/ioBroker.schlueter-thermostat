@@ -148,6 +148,21 @@
     "adminUI": {
       "config": "json"
     },
+    "webComponents": [
+      {
+        "manifest": "webcomponents/thermostat-card.json",
+        "tag": "schlueter-thermostat-card",
+        "name": {
+          "en": "Thermostat",
+          "de": "Thermostat"
+        },
+        "icon": "thermostat-card.svg",
+        "size": {
+          "width": 360,
+          "height": 400
+        }
+      }
+    ],
     "messagebox": true,
     "supportedMessages": {
       "deviceManager": true
