@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/ioBroker/web-components/main/schemas/manifest.json",
 	"manifestVersion": 1,
-	"tag": "schlueter-thermostat-card",
+	"tag": "iob-schlueter-thermostat-card",
 	"name": { "en": "Thermostat", "de": "Thermostat" },
 	"description": {
 		"en": "Schlüter DITRA-HEAT thermostat: temperatures, status and controls, like the Device Manager card",

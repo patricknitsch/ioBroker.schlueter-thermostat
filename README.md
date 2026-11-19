@@ -125,7 +125,7 @@ flowchart TB
 -->
 ### **WORK IN PROGRESS**
 
-- (patricknitsch) Web component `schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts
+- (patricknitsch) Web component `iob-schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts
 - (patricknitsch) Update Dependencies
 
 ### 0.8.0 (2026-11-14)
