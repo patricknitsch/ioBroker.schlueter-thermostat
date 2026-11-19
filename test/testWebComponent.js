@@ -9,7 +9,7 @@ const ROOT = path.join(__dirname, '..');
 const ADMIN = path.join(ROOT, 'admin');
 const MANIFEST = 'webcomponents/thermostat-card.json';
 const BASE = 'schlueter-thermostat.0.groups.101254.thermostats.258188';
-const TAG = 'schlueter-thermostat-card';
+const TAG = 'iob-schlueter-thermostat-card';
 /** DOM of happy-dom, registered while the element tests run */
 const dom = () => /** @type {any} */ (globalThis).document;
 

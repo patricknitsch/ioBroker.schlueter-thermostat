@@ -1,4 +1,4 @@
-// Web component <schlueter-thermostat-card>: one thermostat as a card in the
+// Web component <iob-schlueter-thermostat-card>: one thermostat as a card in the
 // look of the Device Manager card (same icons and indicators), with the
 // controls of the details view. Bundled by tasks/build-webcomponents.mjs into
 // admin/webcomponents/thermostat-card.js; its manifest is next to it.
@@ -10,7 +10,7 @@ import { IobWebComponent, defineWebComponent } from '@iobroker/web-components/el
 import { svg } from '../lib/icons.js';
 
 const ADAPTER = 'schlueter-thermostat';
-const TAG = 'schlueter-thermostat-card';
+const TAG = 'iob-schlueter-thermostat-card';
 const STEP = 0.5;
 const MIN_SETPOINT = 5;
 const MAX_SETPOINT = 35;

@@ -91,7 +91,7 @@ Eine Seite mit Thermostat- und Seriennummer und je Funktion einer Zeile: **Manue
 
 ## 🧩 Web Component
 
-Der Adapter bringt die Web Component **Thermostat** (`<schlueter-thermostat-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)) mit.
+Der Adapter bringt die Web Component **Thermostat** (`<iob-schlueter-thermostat-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)) mit.
 Hosts wie vis-2, devices oder admin bieten sie in ihrer Palette an; sie sieht aus wie die Karte im Device Manager.
 
 | Teil | Inhalt |

@@ -91,7 +91,7 @@ One page with thermostat and serial number and one row per function: **manual**,
 
 ## 🧩 Web component
 
-The adapter brings the web component **Thermostat** (`<schlueter-thermostat-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)).
+The adapter brings the web component **Thermostat** (`<iob-schlueter-thermostat-card>`, [ioBroker web-components](https://github.com/ioBroker/web-components)).
 Hosts such as vis-2, devices or admin offer it in their palette; it looks like the Device Manager card.
 
 | Part | Content |
