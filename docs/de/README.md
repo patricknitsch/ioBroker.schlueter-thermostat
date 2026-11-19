@@ -96,7 +96,7 @@ Hosts wie vis-2, devices oder admin bieten sie in ihrer Palette an; sie sieht au
 
 | Teil | Inhalt |
 |---|---|
-| Kopf | Name, Gruppe, online / offline (rot, wenn offline) |
+| Kopf | Name (Thermostat-Nr.), Gruppe (Gruppen-Nr.), Seriennummer, online / offline (rot, wenn offline) |
 | Indikatoren | dieselben Icons wie die Device-Manager-Karte: Verbindung, Heizen, Raum, Boden, Sollwert, Modus, Urlaub, Energie |
 | − / + | ändert den Sollwert in 0,5-°C-Schritten; wird 1,5 s nach dem letzten Klick als **manueller** Modus gesendet |
 | Modus-Buttons | **Zeitplan**, **Eco** sofort; **Komfort**, **Manuell**, **Boost**, **Urlaub** fragen ihre Werte in einem Dialog ab |

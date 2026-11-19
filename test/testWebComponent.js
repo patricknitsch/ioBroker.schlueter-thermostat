@@ -94,7 +94,7 @@ describe('web component: element', function () {
 	});
 
 	/** Socket of a host with the states of one thermostat; records the writes */
-	function mockSocket(values) {
+	function mockSocket(values, objects = {}) {
 		const writes = [];
 		const states = Object.fromEntries(Object.entries(values).map(([k, val]) => [`${BASE}.${k}`, { val }]));
 		return {
@@ -103,7 +103,7 @@ describe('web component: element', function () {
 			subscribeState: async (ids, cb) => ids.forEach(id => cb(id, states[id] || null)),
 			unsubscribeState: () => {},
 			getState: async id => states[id] || null,
-			getObject: async () => null,
+			getObject: async id => objects[id] || null,
 			subscribeObject: async () => {},
 			unsubscribeObject: async () => {},
 			getObjectViewSystem: async () => ({ [BASE]: { _id: BASE } }),
@@ -144,11 +144,35 @@ describe('web component: element', function () {
 	it('shows name, temperatures and the active mode', async () => {
 		const el = await mount(mockSocket(sample));
 		const root = el.shadowRoot;
-		assert.equal(root.querySelector('.name').textContent, 'Bad');
+		assert.equal(root.querySelector('.name').textContent, 'Bad (258188)');
 		assert.match(root.querySelector('.big').textContent, /21,4/);
 		assert.match(root.querySelector('.target .value').textContent, /23,0/);
 		assert.equal(root.querySelector('.btn.active').dataset.apply, 'eco');
 		assert.match(root.querySelector('.indicators').textContent, /Relay/);
+		el.remove();
+	});
+
+	it('shows the numbers of thermostat and group in the header', async () => {
+		const el = await mount(mockSocket(sample));
+		const root = el.shadowRoot;
+		// without objects: from the object id
+		assert.equal(root.querySelector('.name').textContent, 'Bad (258188)');
+		assert.equal(root.querySelector('.sub').textContent, 'Gruppe (101254)');
+		el.remove();
+	});
+
+	it('takes group name and serial number from the objects', async () => {
+		const objects = {
+			[BASE]: {
+				common: { name: 'Bad' },
+				native: { thermostatId: 258188, groupId: 101254, serialNumber: '1234567' },
+			},
+			'schlueter-thermostat.0.groups.101254': { common: { name: 'Erdgeschoss' } },
+		};
+		const el = await mount(mockSocket(sample, objects));
+		const root = el.shadowRoot;
+		assert.equal(root.querySelector('.sub').textContent, 'Erdgeschoss (101254) · SN 1234567');
+		assert.match(root.querySelector('.name').title, /Seriennummer: 1234567/);
 		el.remove();
 	});
 
@@ -212,7 +236,7 @@ describe('web component: element', function () {
 		const el = await mount(mockSocket(sample), {});
 		await tick();
 		await tick();
-		assert.equal(el.shadowRoot.querySelector('.name').textContent, 'Bad');
+		assert.equal(el.shadowRoot.querySelector('.name').textContent, 'Bad (258188)');
 		el.remove();
 	});
 });

@@ -90,6 +90,10 @@ const T = {
 	active: { en: 'Active', de: 'Aktiv' },
 	begin: { en: 'Begin (YYYY-MM-DD)', de: 'Beginn (JJJJ-MM-TT)' },
 	end: { en: 'End (YYYY-MM-DD)', de: 'Ende (JJJJ-MM-TT)' },
+	thermostat: { en: 'Thermostat', de: 'Thermostat' },
+	group: { en: 'Group', de: 'Gruppe' },
+	serial: { en: 'Serial number', de: 'Seriennummer' },
+	serialShort: { en: 'SN', de: 'SN' },
 	noThermostat: { en: 'No thermostat found', de: 'Kein Thermostat gefunden' },
 	readOnly: {
 		en: 'Thermostat offline – controls disabled',
@@ -145,6 +149,7 @@ const STYLE = `
 .title { flex: 1; min-width: 0; }
 .name { font-size: 1.15em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sub { font-size: .85em; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.id { font-weight: 400; opacity: .85; }
 .status { display: flex; align-items: center; gap: 6px; font-size: .85em; flex: none; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: #4caf50; box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
 .offline .dot { background: #9e9e9e; }
@@ -222,6 +227,15 @@ function esc(value) {
 function num(value) {
 	const n = typeof value === 'number' ? value : value === null || value === '' ? NaN : Number(value);
 	return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * @param {string} base full id of a thermostat device
+ * @returns {{groupId: string, thermostatId: string}} numbers of group and thermostat from the object id
+ */
+function idsOf(base) {
+	const m = base.match(/\.groups\.([^.]+)\.thermostats\.([^.]+)$/);
+	return { groupId: m?.[1] || '', thermostatId: m?.[2] || '' };
 }
 
 /**
@@ -368,6 +382,19 @@ class ThermostatCard extends IobWebComponent {
 		const deviceName = this.text(/** @type {any} */ (this.objects[base]?.common?.name));
 		const name = String(this.#val('thermostatName') || deviceName || 'Thermostat');
 		const group = base ? this.text(/** @type {any} */ (this.objects[groupOf(base)]?.common?.name)) : 'Ground floor';
+		// the numbers of the cloud as the device object has them; the object id only as fallback
+		const native = /** @type {Record<string, unknown>} */ (this.objects[base]?.native || {});
+		const ids = base ? idsOf(base) : { groupId: '101254', thermostatId: '258188' };
+		const thermostatId = String(native.thermostatId ?? ids.thermostatId);
+		const groupId = String(native.groupId ?? ids.groupId);
+		const serial = native.serialNumber ? String(native.serialNumber) : base ? '' : '1013W220';
+		const tooltip = [
+			`${this.text(T.thermostat)}: ${thermostatId}`,
+			`${this.text(T.group)}: ${groupId}`,
+			serial ? `${this.text(T.serial)}: ${serial}` : '',
+		]
+			.filter(Boolean)
+			.join('\n');
 		const setpoint = this.#pending ?? num(this.#val('setpoint.active'));
 		const modeInfo = mode !== null ? MODES[/** @type {keyof MODES} */ (mode)] : undefined;
 		const energy = num(
@@ -413,8 +440,8 @@ class ThermostatCard extends IobWebComponent {
 			<div class="header${online ? '' : ' offline'}">
 				<img src="${ICON_URL}" alt="">
 				<div class="title">
-					<div class="name" title="${esc(name)}">${esc(name)}</div>
-					<div class="sub">${esc(group)}</div>
+					<div class="name" title="${esc(`${name}\n${tooltip}`)}">${esc(name)}${thermostatId ? ` <span class="id">(${esc(thermostatId)})</span>` : ''}</div>
+					<div class="sub" title="${esc(tooltip)}">${esc(group || this.text(T.group))}${groupId ? ` (${esc(groupId)})` : ''}${serial ? ` · ${esc(this.text(T.serialShort))} ${esc(serial)}` : ''}</div>
 				</div>
 				<div class="status"><span class="dot"></span>${esc(this.text(online ? T.online : T.offline))}</div>
 			</div>

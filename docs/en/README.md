@@ -96,7 +96,7 @@ Hosts such as vis-2, devices or admin offer it in their palette; it looks like t
 
 | Part | Content |
 |---|---|
-| Header | name, group, online / offline (red when offline) |
+| Header | name (thermostat no.), group (group no.), serial number, online / offline (red when offline) |
 | Indicators | same icons as the Device Manager card: connection, heating, room, floor, setpoint, mode, vacation, energy |
 | − / + | changes the setpoint in 0.5 °C steps; sent as **manual** mode 1.5 s after the last click |
 | Mode buttons | **Schedule**, **Eco** at once; **Comfort**, **Manual**, **Boost**, **Vacation** ask for their values in a dialog |
