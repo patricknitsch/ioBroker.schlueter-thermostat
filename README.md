@@ -123,6 +123,11 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Web component `schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts
+- (patricknitsch) Update Dependencies
+
 ### 0.8.0 (2026-11-14)
 
 - (patricknitsch) Add Node.js 26 in test-and-release.yml

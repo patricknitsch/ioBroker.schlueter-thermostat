@@ -148,6 +148,7 @@
     "adminUI": {
       "config": "json"
     },
+    "webComponents": ["webcomponents/thermostat-card.json"],
     "messagebox": true,
     "supportedMessages": {
       "deviceManager": true
