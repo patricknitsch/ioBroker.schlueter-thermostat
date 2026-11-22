@@ -218,9 +218,7 @@
   "protectedNative": [
     "username",
     "password",
-    "customerId",
-    "apiKey",
-    "localUpstreamPin"
+    "customerId"
   ],
   "encryptedNative": [
     "password"
