@@ -1155,6 +1155,29 @@ describe('local gateway: WD5 vacation', () => {
 		assert.equal(W.decodeTelemetry(heartbeat).roomTemperature, 18.8);
 	});
 
+	it('takes the heating state from 6.5, also when 6.4 stays 0 (firmware 1013W213)', () => {
+		/**
+		 * @param {Buffer[]} fields heartbeat fields
+		 * @returns {Message} heartbeat
+		 */
+		const heartbeat = fields =>
+			Message.parse(
+				Buffer.concat([
+					encodeField(1, 7),
+					encodeField(4, 1),
+					encodeField(6, Buffer.concat([encodeField(1, 847967446), encodeField(2, 2010), ...fields])),
+				]),
+			);
+		// 1013W213 while the floor drew 3.9 kW, and after it reached its setpoint
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 0), encodeField(5, 1)])).heating, true);
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 0), encodeField(5, 0)])).heating, false);
+		// 1013W220: both equal
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 1), encodeField(5, 1)])).heating, true);
+		// without 6.5 the older field is still used
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 1)])).heating, true);
+		assert.equal(W.decodeTelemetry(heartbeat([])).heating, undefined);
+	});
+
 	it('parses vacation days in the formats of the states', () => {
 		assert.deepEqual(W.parseDay('2027-01-01'), { y: 2027, m: 1, d: 1 });
 		assert.deepEqual(W.parseDay('2027-01-02T00:00:00'), { y: 2027, m: 1, d: 2 });

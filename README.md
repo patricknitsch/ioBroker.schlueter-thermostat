@@ -123,6 +123,10 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Local control (WD5): heating status read from the field that follows the heating on all known firmware; on firmware 1013W213 `heating` stayed off locally and the local energy estimate stayed at 0
+
 ### 0.9.0 (2026-11-19)
 
 - (patricknitsch) Web component `iob-schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts
