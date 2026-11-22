@@ -126,6 +126,7 @@ flowchart TB
 ### **WORK IN PROGRESS**
 
 - (patricknitsch) Local control (WD5): heating status read from the field that follows the heating on all known firmware; on firmware 1013W213 `heating` stayed off locally and the local energy estimate stayed at 0
+- (patricknitsch) Repository checker findings: local control settings translated into all admin languages, `apiKey` and `localUpstreamPin` added to `protectedNative`, `@types/mocha` removed (part of `@iobroker/testing`), Dependabot also watches `src-webcomponents`
 
 ### 0.9.0 (2026-11-19)
 
