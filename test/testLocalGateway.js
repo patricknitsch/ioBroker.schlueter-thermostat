@@ -1155,7 +1155,7 @@ describe('local gateway: WD5 vacation', () => {
 		assert.equal(W.decodeTelemetry(heartbeat).roomTemperature, 18.8);
 	});
 
-	it('takes the heating state from 6.5, also when 6.4 stays 0 (firmware 1013W213)', () => {
+	it('takes the heating state from 6.5 and counts only 6.4 = 1 as a fallback', () => {
 		/**
 		 * @param {Buffer[]} fields heartbeat fields
 		 * @returns {Message} heartbeat
@@ -1173,8 +1173,12 @@ describe('local gateway: WD5 vacation', () => {
 		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 0), encodeField(5, 0)])).heating, false);
 		// 1013W220: both equal
 		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 1), encodeField(5, 1)])).heating, true);
-		// without 6.5 the older field is still used
+		// 6.4 = 3 (seen during a long heat-up and with the floor off) is ignored
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 3), encodeField(5, 1)])).heating, true);
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 3), encodeField(5, 0)])).heating, false);
+		// without 6.5 the older field is still used, but only 1 means heating
 		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 1)])).heating, true);
+		assert.equal(W.decodeTelemetry(heartbeat([encodeField(4, 3)])).heating, false);
 		assert.equal(W.decodeTelemetry(heartbeat([])).heating, undefined);
 	});
 
