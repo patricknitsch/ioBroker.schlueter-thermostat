@@ -127,6 +127,7 @@ flowchart TB
 
 - (patricknitsch) Local control (WD5): heating status read from the field that follows the heating on all known firmware; on firmware 1013W213 `heating` stayed off locally and the local energy estimate stayed at 0
 - (patricknitsch) Repository checker findings: local control settings translated into all admin languages, `@types/mocha` removed (part of `@iobroker/testing`), Dependabot also watches `src-webcomponents`
+- (patricknitsch) Local control: the gateway uses the adapter's timers (cleared by ioBroker on unload) instead of plain Node timers
 
 ### 0.9.0 (2026-11-19)
 

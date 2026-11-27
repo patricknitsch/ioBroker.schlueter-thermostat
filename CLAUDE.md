@@ -38,7 +38,7 @@ Guidelines for working on **ioBroker.schlueter-thermostat**, an ioBroker adapter
 - **Modular:** keep `main.js` focused on the adapter lifecycle and wiring. New self-contained logic goes into its own module under `lib/`. The local gateway hooks into `main.js` only at a few points (start/stop, serial registration, local apply, skip set for cloud writes); keep it that way.
 - **Testable modules:** inject dependencies instead of reaching into the adapter. `lib/local/*` must work without ioBroker (no `@iobroker/adapter-core` at module load; `local-manager.js` requires it lazily).
 - **Cloud access only through `OJClient`.** Don't call axios directly from `main.js`.
-- **Timers:** in the adapter use `this.setTimeout` / `this.clearTimeout` and clear them in `onUnload`. Modules under `lib/local/` use plain timers but must clear every timer in `stop()` / when a link closes.
+- **Timers:** in the adapter use `this.setTimeout` / `this.clearTimeout` and clear them in `onUnload`. Modules under `lib/local/` take their timers from `lib/local/timers.js`: the adapter's (passed as `timerHost`), Node's without a host (tests) or while the adapter refuses new timers during unload. They must still clear every timer in `stop()` / when a link closes.
 - **Time:** the cloud expects thermostat-local times without `Z` (`YYYY-MM-DDTHH:MM:SS`), using the thermostat's `TimeZone` in seconds (`lib/time.js`). Device protocol times are seconds since 2000-01-01 UTC; WD5 end times are thermostat-local date/time structs.
 - **Units:** cloud temperatures are 1/100 °C. On the device protocol, setpoints are 1/200 °C, measured temperatures and schedule temperatures 1/100 °C. Convert at the edge; states are always °C.
 - **Error handling:**
