@@ -147,8 +147,8 @@ Pro Thermostat: `groups.<Gruppe>.thermostats.<Thermostat>`
 
 🏠 **Wochenplan** – nur mit lokaler Steuerung (WD5, „Befehle lokal senden“ an). Die Datenpunkte sind mit dem Plan
 vorbelegt, den das Thermostat meldet; Zeiten / Temperaturen / aktiv ändern, dann `apply.scheduleProgram.apply`
-drücken. Gesendet wird die ganze Woche. Aktive Schaltpunkte eines Tages müssen aufsteigend sein. Nachgebaut aus einem
-mitgeschnittenen Befehl des Herstellers, am Thermostat noch nicht bestätigt.
+drücken. Gesendet wird die ganze Woche. Aktive Schaltpunkte eines Tages müssen aufsteigend sein. Von einem echten
+OWD5 angenommen (Relay); ob die App die Änderung zeigt, ist noch nicht bestätigt.
 
 ---
 

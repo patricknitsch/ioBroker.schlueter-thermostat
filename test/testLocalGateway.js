@@ -1523,6 +1523,22 @@ describe('local manager: WD5 weekly schedule', () => {
 		states[`${base}.day1.event0.temperature`] = 24;
 		await m._onState('1021410', { schedule: JSON.stringify(reported) });
 		assert.equal(states[`${base}.day1.event0.temperature`], 24);
+
+		// A changed schedule (after an apply) writes only the values that changed.
+		const writes = [];
+		const set = m.adapter.safeSetState;
+		m.adapter.safeSetState = (id, st) => {
+			writes.push(id);
+			set(id, st);
+		};
+		const changed = JSON.parse(JSON.stringify(reported));
+		changed[0].events[2].temperature = 19;
+		await m._onState('1021410', { schedule: JSON.stringify(changed) });
+		assert.deepEqual(
+			writes.filter(id => id.includes('scheduleProgram')),
+			[`${base}.day1.event2.temperature`],
+		);
+		assert.equal(states[`${base}.day1.event2.temperature`], 19);
 	});
 
 	it('sends the edited week locally, keeping days, events and "next day"', async () => {

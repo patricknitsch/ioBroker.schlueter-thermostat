@@ -147,8 +147,8 @@ Per thermostat: `groups.<group>.thermostats.<thermostat>`
 
 🏠 **Weekly schedule** – only with local control (WD5, "Send commands locally" on). The states are filled with the
 schedule the thermostat reports; change times / temperatures / active, then press `apply.scheduleProgram.apply`. The
-whole week is sent. Active events of a day must be in ascending order. Built from a captured vendor command, not yet
-confirmed on a thermostat.
+whole week is sent. Active events of a day must be in ascending order. Accepted by a real OWD5 (relay); whether the app
+shows the change is not confirmed yet.
 
 ---
 
