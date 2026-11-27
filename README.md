@@ -125,6 +125,8 @@ flowchart TB
 -->
 ### **WORK IN PROGRESS**
 
+- (patricknitsch) Local control (WD5): heating status read from the field that follows the heating on all known firmware; on firmware 1013W213 `heating` stayed off locally and the local energy estimate stayed at 0
+- (patricknitsch) Repository checker findings: local control settings translated into all admin languages, `@types/mocha` removed (part of `@iobroker/testing`), Dependabot also watches `src-webcomponents`
 - (patricknitsch) Local control (WD5): edit the weekly schedule under `apply.scheduleProgram` (filled with the schedule the thermostat reports) and send it locally with `apply.scheduleProgram.apply`
 - (patricknitsch) Web component: pages Overview / Times / Schedule; the mode is chosen from a list (the mode buttons were hidden on small cards); the weekly schedule can be edited and sent
 - (patricknitsch) Device Manager: action "Weekly schedule" opens a page with a tab per day to edit and send the schedule
