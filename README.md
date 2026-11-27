@@ -123,7 +123,7 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.10.0 (2026-11-27)
 
 - (patricknitsch) Local control (WD5): heating status read from the field that follows the heating on all known firmware; on firmware 1013W213 `heating` stayed off locally and the local energy estimate stayed at 0
 - (patricknitsch) Repository checker findings: local control settings translated into all admin languages, `@types/mocha` removed (part of `@iobroker/testing`), Dependabot also watches `src-webcomponents`
@@ -159,10 +159,6 @@ flowchart TB
 ### 0.7.3 (2026-05-25)
 
 - (copilot) Fixes for Repo Checker
-
-### 0.7.2 (2026-05-23)
-
-- (copilot) Add Icons for Notifications
 
 **Older changelog entries can be found in [CHANGELOG_OLD.md](CHANGELOG_OLD.md).**
 

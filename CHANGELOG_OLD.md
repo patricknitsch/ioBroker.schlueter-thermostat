@@ -1,4 +1,8 @@
 # Older changes
+## 0.7.2 (2026-05-23)
+
+- (copilot) Add Icons for Notifications
+
 ## 0.7.1 (2026-05-21)
 
 - (copilot) Modify notification manager to work with instances
