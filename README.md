@@ -123,6 +123,10 @@ flowchart TB
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+
+- (patricknitsch) Local control (WD5): edit the weekly schedule under `apply.scheduleProgram` (filled with the schedule the thermostat reports) and send it locally with `apply.scheduleProgram.apply`
+
 ### 0.9.0 (2026-11-19)
 
 - (patricknitsch) Web component `iob-schlueter-thermostat-card` (ioBroker web-components): thermostat card in the look of the Device Manager with temperatures, status and controls, usable in vis-2, devices, admin and other hosts

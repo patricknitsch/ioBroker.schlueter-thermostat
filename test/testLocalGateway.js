@@ -456,6 +456,24 @@ describe('local gateway: relay', function () {
 		await wait(50);
 		// The answer to an own command is not passed on to the vendor gateway.
 		assert.equal(Buffer.concat(upstream.received).length, before);
+
+		// Weekly schedule: the whole week in field 8, acknowledged like a state.
+		const week = [1, 2, 3, 4, 5, 6, 7].map(day => ({
+			day,
+			events: [
+				{ time: '06:30:00', temperature: 22.5, active: true, nextDay: false },
+				{ time: '22:00:00', temperature: 18, active: true, nextDay: false },
+			],
+		}));
+		const scheduled = gateway.setScheduleWd5('1021410', week);
+		const scheduleCmd = await t.next(m => m.varint(1) === 102);
+		assert.equal(scheduleCmd.varint(4), 1);
+		assert.ok(!scheduleCmd.has(W.FIELD_STATE));
+		assert.deepEqual(W.decodeSchedule(scheduleCmd), week);
+		t.socket.write(encodeFrame(Buffer.concat([encodeField(1, 102), encodeField(3, 1)])));
+		await scheduled;
+		assert.deepEqual(JSON.parse(states.filter(x => x.schedule).pop()?.schedule), week);
+		assert.equal(Buffer.concat(upstream.received).length, before);
 		t.socket.destroy();
 	});
 
@@ -1367,5 +1385,180 @@ describe('local manager: connection state', () => {
 		m.registerThermostat('1021410', dev);
 		await wait(10);
 		assert.deepEqual(written, ['cloud', 'local', 'relay']);
+	});
+});
+
+describe('local gateway: WD5 schedule', () => {
+	const W = require('../lib/local/wd5');
+	/**
+	 * @param {number} h hour
+	 * @param {number} temp temperature in 1/100 °C
+	 * @param {number} active 3 (active flag)
+	 * @returns {Buffer} event as the vendor gateway encodes it
+	 */
+	const event = (h, temp, active) =>
+		encodeField(
+			2,
+			Buffer.concat([
+				encodeField(1, Buffer.concat([encodeField(1, h), encodeField(2, 0), encodeField(3, 0)])),
+				encodeField(2, temp),
+				encodeField(3, active),
+				encodeField(4, 0),
+			]),
+		);
+	const weekday = [
+		event(5, 2300, 1),
+		event(9, 2000, 0),
+		event(12, 2500, 0),
+		event(13, 1200, 0),
+		event(16, 2000, 0),
+		event(23, 2000, 1),
+	];
+	const weekend = [
+		event(5, 2500, 1),
+		event(9, 2300, 1),
+		event(12, 2500, 0),
+		event(13, 1200, 0),
+		event(16, 2000, 0),
+		event(23, 2000, 1),
+	];
+	const days = [1, 2, 3, 4, 5, 6, 7].map(d =>
+		encodeField(1, Buffer.concat([encodeField(1, d), ...(d <= 5 ? weekday : weekend)])),
+	);
+	// Captured on a real OWD5 (1013W220): the vendor gateway sends a schedule changed in the app.
+	const schedule = Buffer.concat([encodeField(1, 849124576), encodeField(2, Buffer.concat(days)), encodeField(3, 0)]);
+	const captured = Buffer.concat([encodeField(1, 1), encodeField(4, 1), encodeField(8, schedule)]);
+	const moment = new Date(Date.UTC(2000, 0, 1) + 849124576 * 1000);
+
+	it('decodes the captured schedule command', () => {
+		const week = W.decodeSchedule(Message.parse(captured));
+		assert.equal(week?.length, 7);
+		assert.deepEqual(week?.[0].events[0], { time: '05:00:00', temperature: 23, active: true, nextDay: false });
+		assert.deepEqual(week?.[6].events[1], { time: '09:00:00', temperature: 23, active: true, nextDay: false });
+		assert.equal(week?.[6].day, 7);
+	});
+
+	it('builds the schedule command byte for byte like the vendor gateway', () => {
+		const week = /** @type {any[]} */ (W.decodeSchedule(Message.parse(captured)));
+		// without a schedule seen before
+		assert.equal(
+			W.scheduleCommand(1, W.changedSchedule(week, null, moment)).toString('hex'),
+			captured.toString('hex'),
+		);
+		// based on the last schedule seen: fields not understood (8.3) are kept
+		const base = setField(schedule, 3, 7);
+		const built = Message.parse(W.scheduleCommand(1, W.changedSchedule(week, base, moment)));
+		assert.equal(built.message(8)?.varint(3), 7);
+		assert.equal(built.message(8)?.varint(1), 849124576);
+	});
+
+	it('parses schedule times', () => {
+		assert.deepEqual(W.parseClock('5:30'), { h: 5, m: 30, s: 0 });
+		assert.deepEqual(W.parseClock('23:00:15'), { h: 23, m: 0, s: 15 });
+		assert.equal(W.parseClock('24:00'), null);
+		assert.equal(W.parseClock('12:60'), null);
+		assert.equal(W.parseClock('noon'), null);
+		assert.throws(() =>
+			W.encodeWeek([{ day: 1, events: [{ time: 'x', temperature: 20, active: true, nextDay: false }] }]),
+		);
+	});
+});
+
+describe('local manager: WD5 weekly schedule', () => {
+	const { LocalManager } = require('../lib/local-manager');
+	const dev = 'groups.1.thermostats.2';
+	const reported = [
+		{
+			day: 1,
+			events: [
+				{ time: '05:00:00', temperature: 23, active: true, nextDay: false },
+				{ time: '09:00:00', temperature: 20, active: false, nextDay: false },
+				{ time: '23:00:00', temperature: 20, active: true, nextDay: false },
+			],
+		},
+	];
+
+	/**
+	 * @returns {{m: any, states: Record<string, any>, objects: Record<string, any>, sent: any[]}} manager with a fake adapter and gateway
+	 */
+	const setup = () => {
+		const states = {};
+		const objects = {};
+		const sent = [];
+		const adapter = {
+			config: { localMode: 'relay', localAllowCommands: true },
+			namespace: 'schlueter-thermostat.0',
+			log: { debug() {}, info() {}, warn() {}, error() {} },
+			safeSetState: (id, st) => (states[id] = st.val),
+			safeSetObjectNotExists: async (id, obj) => (objects[id] = objects[id] || obj),
+			safeGetObject: async id => objects[id] || null,
+			safeSetObject: async (id, obj) => (objects[id] = obj),
+			getStateAsync: async id => (id in states ? { val: states[id] } : null),
+		};
+		const m = new LocalManager(adapter);
+		m.gateway = /** @type {any} */ ({
+			connected: ['1021410'],
+			isRelayed: () => true,
+			allowedSerials: new Set(),
+			stop: async () => {},
+			canCommand: () => true,
+			info: () => ({ variant: 'wd5', timeZoneSec: 3600 }),
+			setModeWd5: async (serial, change) => sent.push({ serial, change }),
+		});
+		m.registerThermostat('1021410', dev);
+		return { m, states, objects, sent };
+	};
+
+	it('offers the reported schedule as editable states', async () => {
+		const { m, states, objects } = setup();
+		await m._onState('1021410', { schedule: JSON.stringify(reported) });
+		const base = `${dev}.apply.scheduleProgram`;
+		assert.equal(states[`${base}.day1.event0.time`], '05:00');
+		assert.equal(states[`${base}.day1.event0.temperature`], 23);
+		assert.equal(states[`${base}.day1.event1.active`], false);
+		assert.equal(objects[`${base}.day1.event0.time`]?.common.write, true);
+		assert.equal(objects[`${base}.apply`]?.common.role, 'button');
+
+		// Edits not applied yet survive the same schedule being reported again (reconnect).
+		states[`${base}.day1.event0.temperature`] = 24;
+		await m._onState('1021410', { schedule: JSON.stringify(reported) });
+		assert.equal(states[`${base}.day1.event0.temperature`], 24);
+	});
+
+	it('sends the edited week locally, keeping days, events and "next day"', async () => {
+		const { m, states, sent } = setup();
+		await m._onState('1021410', { schedule: JSON.stringify(reported) });
+		const base = `${dev}.apply.scheduleProgram.day1`;
+		states[`${base}.event0.time`] = '6:15';
+		states[`${base}.event0.temperature`] = 22.3;
+		states[`${base}.event1.active`] = true;
+		states[`${base}.event1.temperature`] = 99;
+		assert.equal(await m.apply('scheduleProgram', '1021410', dev), true);
+		assert.deepEqual(sent[0].change.schedule, [
+			{
+				day: 1,
+				events: [
+					{ time: '06:15:00', temperature: 22.5, active: true, nextDay: false },
+					{ time: '09:00:00', temperature: 35, active: true, nextDay: false },
+					{ time: '23:00:00', temperature: 20, active: true, nextDay: false },
+				],
+			},
+		]);
+	});
+
+	it('refuses invalid times and active events out of order', async () => {
+		const { m, states, sent } = setup();
+		await assert.rejects(m.apply('scheduleProgram', '1021410', dev), /not reported its schedule/);
+		await m._onState('1021410', { schedule: JSON.stringify(reported) });
+		const base = `${dev}.apply.scheduleProgram.day1`;
+		states[`${base}.event0.time`] = '25:00';
+		await assert.rejects(m.apply('scheduleProgram', '1021410', dev), /invalid time "25:00"/);
+		states[`${base}.event0.time`] = '23:30';
+		await assert.rejects(m.apply('scheduleProgram', '1021410', dev), /ascending order/);
+		// an inactive event may stay anywhere
+		states[`${base}.event0.time`] = '05:00';
+		states[`${base}.event1.time`] = '01:00';
+		await m.apply('scheduleProgram', '1021410', dev);
+		assert.equal(sent.length, 1);
 	});
 });

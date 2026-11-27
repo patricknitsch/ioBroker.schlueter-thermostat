@@ -143,6 +143,12 @@ Pro Thermostat: `groups.<Gruppe>.thermostats.<Thermostat>`
 | Boost | 8 | `apply.boost` | 35 °C, mit Dauer |
 | Eco | 9 | `apply.eco` | 20 °C |
 | Name | – | `apply.name` | – |
+| Wochenplan 🏠 | – | `apply.scheduleProgram` | je Schaltpunkt: `dayN.eventM.time` (HH:MM), `.temperature`, `.active` |
+
+🏠 **Wochenplan** – nur mit lokaler Steuerung (WD5, „Befehle lokal senden“ an). Die Datenpunkte sind mit dem Plan
+vorbelegt, den das Thermostat meldet; Zeiten / Temperaturen / aktiv ändern, dann `apply.scheduleProgram.apply`
+drücken. Gesendet wird die ganze Woche. Aktive Schaltpunkte eines Tages müssen aufsteigend sein. Nachgebaut aus einem
+mitgeschnittenen Befehl des Herstellers, am Thermostat noch nicht bestätigt.
 
 ---
 
@@ -209,9 +215,9 @@ eigenem DNS, kann dort „Cloud“ stehen, obwohl die Umleitung für das Thermos
 
 ### Gut zu wissen
 
-- **Lokal ausführbar:** Zeitplan, Manuell, Komfort, Boost, Eco, Urlaub. Der Name geht immer über die Cloud
-  (im Modus „Nur lokal“ wird er abgelehnt).
-- **Fehlschlag eines lokalen Befehls** → automatisch über die Cloud.
+- **Lokal ausführbar:** Zeitplan, Manuell, Komfort, Boost, Eco, Urlaub, Wochenplan (WD5). Der Name geht immer über
+  die Cloud (im Modus „Nur lokal“ wird er abgelehnt).
+- **Fehlschlag eines lokalen Befehls** → automatisch über die Cloud. Ausnahme: Der Wochenplan geht nur lokal.
 - **Energie im Modus „Nur lokal“** kommt nicht aus der Cloud, sondern wird aus Heizzeit × Heizlast geschätzt.
 - **Port 9513** muss frei und vom Thermostat erreichbar sein (Docker: Port freigeben, VLAN: Firewall).
 - **Mehrere Thermostate:** ein DNS-Eintrag für alle (noch nicht an mehreren echten Geräten getestet).
