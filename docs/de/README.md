@@ -176,7 +176,7 @@ Synology Chat). Ohne ausgewählte Instanz wird automatisch eine laufende genutzt
 ## 🏠 Lokale Steuerung
 
 > **In Erprobung** – für Nutzer, die sich mit DNS und Hostnamen auskennen.
-> Bestätigt an einem **OWD5** (Firmware 1013W220) in allen Modi. Die WG4-Serie (Nordamerika) ist unterstützt,
+> Bestätigt an einem **OWD5** (Firmware 1013W220) in allen Modi; Heizstatus auch an Firmware 1013W213 geprüft. Die WG4-Serie (Nordamerika) ist unterstützt,
 > aber nicht an echter Hardware getestet. Rückmeldungen willkommen.
 
 Das Thermostat hält eine eigene Verbindung zum **Geräte-Gateway** des Herstellers. Ein DNS-Eintrag leitet sie auf

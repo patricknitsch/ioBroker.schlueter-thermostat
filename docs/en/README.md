@@ -176,7 +176,7 @@ Without a selected instance a running one is used automatically.
 ## 🏠 Local control
 
 > **In testing** – for users who know DNS and hostnames.
-> Confirmed on an **OWD5** (firmware 1013W220) in all modes. The WG4 series (North America) is supported but not
+> Confirmed on an **OWD5** (firmware 1013W220) in all modes; heating status also checked on firmware 1013W213. The WG4 series (North America) is supported but not
 > tested on real hardware. Feedback welcome.
 
 The thermostat keeps its own connection to the vendor's **device gateway**. A DNS record redirects it to the ioBroker
