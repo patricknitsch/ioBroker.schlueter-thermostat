@@ -126,6 +126,8 @@ flowchart TB
 ### **WORK IN PROGRESS**
 
 - (patricknitsch) Local control (WD5): edit the weekly schedule under `apply.scheduleProgram` (filled with the schedule the thermostat reports) and send it locally with `apply.scheduleProgram.apply`
+- (patricknitsch) Web component: pages Overview / Times / Schedule; the mode is chosen from a list (the mode buttons were hidden on small cards); the weekly schedule can be edited and sent
+- (patricknitsch) Device Manager: action "Weekly schedule" opens a page with a tab per day to edit and send the schedule
 
 ### 0.9.0 (2026-11-19)
 

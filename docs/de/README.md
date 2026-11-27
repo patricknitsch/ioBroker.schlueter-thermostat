@@ -72,6 +72,10 @@ Drei-Punkte-Menü öffnet die Steuerung.
 
 Jeder Indikator lässt sich in der Toolbar ein- und ausblenden.
 
+<img src="../images/schedule.svg" width="20"> **Wochenplan** (Aktion der Karte): eigene Seite mit einem Tab je Tag und den
+sechs Schaltpunkten (Zeit, Temperatur, aktiv). „OK“ schickt die Änderungen sofort ans Thermostat und meldet, ob es sie
+übernommen hat. Nur mit lokaler Steuerung (WD5).
+
 ### Toolbar der Instanz
 
 | Symbol | Bedeutung |
@@ -97,9 +101,9 @@ Hosts wie vis-2, devices oder admin bieten sie in ihrer Palette an; sie sieht au
 | Teil | Inhalt |
 |---|---|
 | Kopf | Name (Thermostat-Nr.), Gruppe (Gruppen-Nr.), Seriennummer, online / offline (rot, wenn offline) |
-| Indikatoren | dieselben Icons wie die Device-Manager-Karte: Verbindung, Heizen, Raum, Boden, Sollwert, Modus, Urlaub, Energie |
-| − / + | ändert den Sollwert in 0,5-°C-Schritten; wird 1,5 s nach dem letzten Klick als **manueller** Modus gesendet |
-| Modus-Buttons | **Zeitplan**, **Eco** sofort; **Komfort**, **Manuell**, **Boost**, **Urlaub** fragen ihre Werte in einem Dialog ab |
+| Seite **Übersicht** | Verbindung, Heizen, Modus, Energie; Raum- und Bodentemperatur; − / + ändert den Sollwert in 0,5-°C-Schritten (1,5 s nach dem letzten Klick als **manueller** Modus gesendet); **Modus-Liste**: Zeitplan, Eco sofort – Komfort, Manuell, Boost, Urlaub fragen ihre Werte in einem Dialog ab |
+| Seite **Zeiten** | Modus, Ende Komfort / Boost, Urlaubsdaten, Verbindung, Energie |
+| Seite **Zeitplan** | Tag Mo–So, sechs Schaltpunkte (Zeit, Temperatur, aktiv); „Zeitplan senden“ schickt die Änderungen (lokale Steuerung, WD5; sonst nur Anzeige) |
 
 | Einstellung | Bedeutung |
 |---|---|

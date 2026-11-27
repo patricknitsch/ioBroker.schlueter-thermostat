@@ -72,6 +72,10 @@ the controls.
 
 Each indicator can be shown or hidden in the toolbar.
 
+<img src="../images/schedule.svg" width="20"> **Weekly schedule** (card action): own page with a tab per day and the six
+events (time, temperature, active). "OK" sends the changes to the thermostat at once and reports whether it took them.
+Only with local control (WD5).
+
 ### Instance toolbar
 
 | Icon | Meaning |
@@ -97,9 +101,9 @@ Hosts such as vis-2, devices or admin offer it in their palette; it looks like t
 | Part | Content |
 |---|---|
 | Header | name (thermostat no.), group (group no.), serial number, online / offline (red when offline) |
-| Indicators | same icons as the Device Manager card: connection, heating, room, floor, setpoint, mode, vacation, energy |
-| − / + | changes the setpoint in 0.5 °C steps; sent as **manual** mode 1.5 s after the last click |
-| Mode buttons | **Schedule**, **Eco** at once; **Comfort**, **Manual**, **Boost**, **Vacation** ask for their values in a dialog |
+| Page **Overview** | connection, heating, mode, energy; room and floor temperature; − / + changes the setpoint in 0.5 °C steps (sent as **manual** mode 1.5 s after the last click); **mode list**: schedule, eco at once – comfort, manual, boost, vacation ask for their values in a dialog |
+| Page **Times** | mode, comfort / boost end, vacation dates, connection, energy |
+| Page **Schedule** | day Mon–Sun, six events (time, temperature, active); "Send schedule" sends the changes (local control, WD5; otherwise read-only) |
 
 | Setting | Meaning |
 |---|---|
