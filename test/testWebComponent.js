@@ -117,6 +117,19 @@ describe('web component: element', function () {
 	const tick = () => new Promise(resolve => setTimeout(resolve, 10));
 
 	/**
+	 * Pick a mode in the list of the overview
+	 *
+	 * @param {any} el element
+	 * @param {string} apply apply folder of the mode
+	 */
+	const choose = async (el, apply) => {
+		const select = el.shadowRoot.querySelector('select[data-mode]');
+		select.value = apply;
+		select.dispatchEvent(new /** @type {any} */ (globalThis).Event('change', { bubbles: true }));
+		await tick();
+	};
+
+	/**
 	 * @param {any} socket mock socket
 	 * @param {Record<string, string>} [settings] settings of the host
 	 */
@@ -147,7 +160,7 @@ describe('web component: element', function () {
 		assert.equal(root.querySelector('.name').textContent, 'Bad (258188)');
 		assert.match(root.querySelector('.big').textContent, /21,4/);
 		assert.match(root.querySelector('.target .value').textContent, /23,0/);
-		assert.equal(root.querySelector('.btn.active').dataset.apply, 'eco');
+		assert.equal(root.querySelector('select[data-mode]').value, 'eco');
 		assert.match(root.querySelector('.indicators').textContent, /Relay/);
 		el.remove();
 	});
@@ -176,11 +189,10 @@ describe('web component: element', function () {
 		el.remove();
 	});
 
-	it('applies schedule and eco at once through the apply buttons', async () => {
+	it('applies schedule and eco at once from the mode list', async () => {
 		const socket = mockSocket(sample);
 		const el = await mount(socket);
-		el.shadowRoot.querySelector('[data-apply="schedule"]').click();
-		await tick();
+		await choose(el, 'schedule');
 		assert.deepEqual(socket.writes, [['apply.schedule.apply', true]]);
 		el.remove();
 	});
@@ -189,8 +201,7 @@ describe('web component: element', function () {
 		const socket = mockSocket(sample);
 		const el = await mount(socket);
 		el.dialogs = { open: async () => ({ setpoint: 24.5, durationMinutes: 90 }) };
-		el.shadowRoot.querySelector('[data-apply="comfort"]').click();
-		await tick();
+		await choose(el, 'comfort');
 		assert.deepEqual(socket.writes, [
 			['apply.comfort.setpoint', 24.5],
 			['apply.comfort.durationMinutes', 90],
@@ -203,8 +214,7 @@ describe('web component: element', function () {
 		const socket = mockSocket(sample);
 		const el = await mount(socket);
 		el.dialogs = { open: async () => null };
-		el.shadowRoot.querySelector('[data-apply="boost"]').click();
-		await tick();
+		await choose(el, 'boost');
 		assert.deepEqual(socket.writes, []);
 		el.remove();
 	});
@@ -214,9 +224,8 @@ describe('web component: element', function () {
 		const el = await mount(socket);
 		const root = el.shadowRoot;
 		assert.ok(root.querySelector('.header.offline'));
-		assert.ok(root.querySelector('[data-apply="eco"]').disabled);
-		root.querySelector('[data-apply="eco"]').click();
-		await tick();
+		assert.ok(root.querySelector('select[data-mode]').disabled);
+		await choose(el, 'eco');
 		assert.deepEqual(socket.writes, []);
 		el.remove();
 	});
@@ -226,8 +235,7 @@ describe('web component: element', function () {
 		const el = await mount(socket);
 		el.editMode = true;
 		await tick();
-		el.shadowRoot.querySelector('[data-apply="eco"]').click();
-		await tick();
+		await choose(el, 'eco');
 		assert.deepEqual(socket.writes, []);
 		el.remove();
 	});
@@ -237,6 +245,104 @@ describe('web component: element', function () {
 		await tick();
 		await tick();
 		assert.equal(el.shadowRoot.querySelector('.name').textContent, 'Bad (258188)');
+		el.remove();
+	});
+
+	it('shows a mode without a choice of its own (frost protection) without offering it', async () => {
+		const el = await mount(mockSocket({ ...sample, regulationMode: 6 }));
+		const select = el.shadowRoot.querySelector('select[data-mode]');
+		assert.equal(select.value, '');
+		assert.match(select.selectedOptions[0].textContent, /Frostschutz/);
+		el.remove();
+	});
+
+	it('shows end times and vacation on the times page', async () => {
+		const el = await mount(
+			mockSocket({
+				...sample,
+				regulationMode: 2,
+				'endTime.comfort': '2027-01-02T18:30:00',
+				'vacation.enabled': true,
+				'vacation.begin': '2027-02-01T00:00:00',
+				'vacation.end': '2027-02-08T00:00:00',
+			}),
+		);
+		el.shadowRoot.querySelector('[data-page="times"]').click();
+		await tick();
+		const text = el.shadowRoot.querySelector('.rows').textContent;
+		assert.match(text, /Komfort bis\s*2027-01-02 18:30/);
+		assert.match(text, /2027-02-01 – 2027-02-08/);
+		assert.ok(!el.shadowRoot.querySelector('select[data-mode]'));
+		el.remove();
+	});
+
+	/** @returns {Record<string, unknown>} a week with the editable copy of local control */
+	const week = () => {
+		/** @type {Record<string, unknown>} */
+		const values = { ...sample };
+		for (let d = 1; d <= 7; d++) {
+			for (let e = 0; e < 6; e++) {
+				const time = `${String(5 + e * 3).padStart(2, '0')}:00`;
+				values[`schedule.day${d}.event${e}.time`] = `${time}:00`;
+				values[`schedule.day${d}.event${e}.temperature`] = 20;
+				values[`schedule.day${d}.event${e}.active`] = e === 0;
+				values[`apply.scheduleProgram.day${d}.event${e}.time`] = time;
+				values[`apply.scheduleProgram.day${d}.event${e}.temperature`] = 20;
+				values[`apply.scheduleProgram.day${d}.event${e}.active`] = e === 0;
+			}
+		}
+		return values;
+	};
+
+	it('subscribes the schedule only on its page and sends the edited events', async () => {
+		const socket = mockSocket(week());
+		/** @type {string[]} */
+		const subscribed = [];
+		const subscribe = socket.subscribeState;
+		socket.subscribeState = async (ids, cb) => {
+			subscribed.push(...ids);
+			return subscribe(ids, cb);
+		};
+		const el = await mount(socket);
+		assert.ok(!subscribed.some(id => id.includes('.schedule.')));
+		el.shadowRoot.querySelector('[data-page="schedule"]').click();
+		await tick();
+		await tick();
+		assert.ok(subscribed.includes(`${BASE}.apply.scheduleProgram.day7.event5.active`));
+		const root = el.shadowRoot;
+		assert.ok(root.querySelector('[data-send]').disabled);
+		root.querySelector('[data-day="6"]').click();
+		await tick();
+		const temp = root.querySelector('input[data-k="6.0.temperature"]');
+		temp.value = '24';
+		temp.dispatchEvent(new /** @type {any} */ (globalThis).Event('input', { bubbles: true }));
+		const active = root.querySelector('input[data-k="6.1.active"]');
+		active.checked = true;
+		active.dispatchEvent(new /** @type {any} */ (globalThis).Event('change', { bubbles: true }));
+		assert.ok(!root.querySelector('[data-send]').disabled);
+		root.querySelector('[data-send]').click();
+		await tick();
+		assert.deepEqual(socket.writes, [
+			['apply.scheduleProgram.day6.event0.temperature', 24],
+			['apply.scheduleProgram.day6.event1.active', true],
+			['apply.scheduleProgram.apply', true],
+		]);
+		el.remove();
+	});
+
+	it('shows the schedule read-only without local control', async () => {
+		const values = Object.fromEntries(
+			Object.entries(week()).filter(([k]) => !k.startsWith('apply.scheduleProgram')),
+		);
+		const el = await mount(mockSocket(values));
+		el.shadowRoot.querySelector('[data-page="schedule"]').click();
+		await tick();
+		await tick();
+		const root = el.shadowRoot;
+		assert.equal(root.querySelector('input[data-k="1.0.time"]').value, '05:00');
+		assert.ok(root.querySelector('input[data-k="1.0.time"]').disabled);
+		assert.ok(!root.querySelector('[data-send]'));
+		assert.match(root.querySelector('.hint').textContent, /lokaler Steuerung/);
 		el.remove();
 	});
 });

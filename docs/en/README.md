@@ -72,6 +72,10 @@ the controls.
 
 Each indicator can be shown or hidden in the toolbar.
 
+<img src="../images/schedule.svg" width="20"> **Weekly schedule** (card action): own page with a tab per day and the six
+events (time, temperature, active). "OK" sends the changes to the thermostat at once and reports whether it took them.
+Only with local control (WD5).
+
 ### Instance toolbar
 
 | Icon | Meaning |
@@ -97,9 +101,9 @@ Hosts such as vis-2, devices or admin offer it in their palette; it looks like t
 | Part | Content |
 |---|---|
 | Header | name (thermostat no.), group (group no.), serial number, online / offline (red when offline) |
-| Indicators | same icons as the Device Manager card: connection, heating, room, floor, setpoint, mode, vacation, energy |
-| − / + | changes the setpoint in 0.5 °C steps; sent as **manual** mode 1.5 s after the last click |
-| Mode buttons | **Schedule**, **Eco** at once; **Comfort**, **Manual**, **Boost**, **Vacation** ask for their values in a dialog |
+| Page **Overview** | connection, heating, mode, energy; room and floor temperature; − / + changes the setpoint in 0.5 °C steps (sent as **manual** mode 1.5 s after the last click); **mode list**: schedule, eco at once – comfort, manual, boost, vacation ask for their values in a dialog |
+| Page **Times** | mode, comfort / boost end, vacation dates, connection, energy |
+| Page **Schedule** | day Mon–Sun, six events (time, temperature, active); "Send schedule" sends the changes (local control, WD5; otherwise read-only) |
 
 | Setting | Meaning |
 |---|---|
@@ -143,6 +147,12 @@ Per thermostat: `groups.<group>.thermostats.<thermostat>`
 | Boost | 8 | `apply.boost` | 35 °C, with duration |
 | Eco | 9 | `apply.eco` | 20 °C |
 | Name | – | `apply.name` | – |
+| Weekly schedule 🏠 | – | `apply.scheduleProgram` | per event: `dayN.eventM.time` (HH:MM), `.temperature`, `.active` |
+
+🏠 **Weekly schedule** – only with local control (WD5, "Send commands locally" on). The states are filled with the
+schedule the thermostat reports; change times / temperatures / active, then press `apply.scheduleProgram.apply`. The
+whole week is sent. Active events of a day must be in ascending order. Accepted by a real OWD5 (relay); whether the app
+shows the change is not confirmed yet.
 
 ---
 
@@ -209,9 +219,9 @@ its own DNS, it may say "cloud" although the redirect works for the thermostat.
 
 ### Good to know
 
-- **Runs locally:** schedule, manual, comfort, boost, eco, vacation. The name always goes via the cloud (refused in
-  local-only mode).
-- **A local command fails** → it is sent via the cloud automatically.
+- **Runs locally:** schedule, manual, comfort, boost, eco, vacation, weekly schedule (WD5). The name always goes via the
+  cloud (refused in local-only mode).
+- **A local command fails** → it is sent via the cloud automatically. Exception: the weekly schedule is local only.
 - **Energy in local-only mode** does not come from the cloud; it is estimated from heating time × load.
 - **Port 9513** must be free and reachable by the thermostat (Docker: publish the port, VLAN: firewall).
 - **Several thermostats:** one DNS record for all (not yet tested with several real devices).
