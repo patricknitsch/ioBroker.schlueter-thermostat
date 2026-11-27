@@ -72,6 +72,10 @@ Drei-Punkte-Menü öffnet die Steuerung.
 
 Jeder Indikator lässt sich in der Toolbar ein- und ausblenden.
 
+<img src="../images/schedule.svg" width="20"> **Wochenplan** (Aktion der Karte): eigene Seite mit einem Tab je Tag und den
+sechs Schaltpunkten (Zeit, Temperatur, aktiv). „OK“ schickt die Änderungen sofort ans Thermostat und meldet, ob es sie
+übernommen hat. Nur mit lokaler Steuerung (WD5).
+
 ### Toolbar der Instanz
 
 | Symbol | Bedeutung |
@@ -97,9 +101,9 @@ Hosts wie vis-2, devices oder admin bieten sie in ihrer Palette an; sie sieht au
 | Teil | Inhalt |
 |---|---|
 | Kopf | Name (Thermostat-Nr.), Gruppe (Gruppen-Nr.), Seriennummer, online / offline (rot, wenn offline) |
-| Indikatoren | dieselben Icons wie die Device-Manager-Karte: Verbindung, Heizen, Raum, Boden, Sollwert, Modus, Urlaub, Energie |
-| − / + | ändert den Sollwert in 0,5-°C-Schritten; wird 1,5 s nach dem letzten Klick als **manueller** Modus gesendet |
-| Modus-Buttons | **Zeitplan**, **Eco** sofort; **Komfort**, **Manuell**, **Boost**, **Urlaub** fragen ihre Werte in einem Dialog ab |
+| Seite **Übersicht** | Verbindung, Heizen, Modus, Energie; Raum- und Bodentemperatur; − / + ändert den Sollwert in 0,5-°C-Schritten (1,5 s nach dem letzten Klick als **manueller** Modus gesendet); **Modus-Liste**: Zeitplan, Eco sofort – Komfort, Manuell, Boost, Urlaub fragen ihre Werte in einem Dialog ab |
+| Seite **Zeiten** | Modus, Ende Komfort / Boost, Urlaubsdaten, Verbindung, Energie |
+| Seite **Zeitplan** | Tag Mo–So, sechs Schaltpunkte (Zeit, Temperatur, aktiv); „Zeitplan senden“ schickt die Änderungen (lokale Steuerung, WD5; sonst nur Anzeige) |
 
 | Einstellung | Bedeutung |
 |---|---|
@@ -143,6 +147,12 @@ Pro Thermostat: `groups.<Gruppe>.thermostats.<Thermostat>`
 | Boost | 8 | `apply.boost` | 35 °C, mit Dauer |
 | Eco | 9 | `apply.eco` | 20 °C |
 | Name | – | `apply.name` | – |
+| Wochenplan 🏠 | – | `apply.scheduleProgram` | je Schaltpunkt: `dayN.eventM.time` (HH:MM), `.temperature`, `.active` |
+
+🏠 **Wochenplan** – nur mit lokaler Steuerung (WD5, „Befehle lokal senden“ an). Die Datenpunkte sind mit dem Plan
+vorbelegt, den das Thermostat meldet; Zeiten / Temperaturen / aktiv ändern, dann `apply.scheduleProgram.apply`
+drücken. Gesendet wird die ganze Woche. Aktive Schaltpunkte eines Tages müssen aufsteigend sein. Von einem echten
+OWD5 angenommen (Relay); ob die App die Änderung zeigt, ist noch nicht bestätigt.
 
 ---
 
@@ -209,9 +219,9 @@ eigenem DNS, kann dort „Cloud“ stehen, obwohl die Umleitung für das Thermos
 
 ### Gut zu wissen
 
-- **Lokal ausführbar:** Zeitplan, Manuell, Komfort, Boost, Eco, Urlaub. Der Name geht immer über die Cloud
-  (im Modus „Nur lokal“ wird er abgelehnt).
-- **Fehlschlag eines lokalen Befehls** → automatisch über die Cloud.
+- **Lokal ausführbar:** Zeitplan, Manuell, Komfort, Boost, Eco, Urlaub, Wochenplan (WD5). Der Name geht immer über
+  die Cloud (im Modus „Nur lokal“ wird er abgelehnt).
+- **Fehlschlag eines lokalen Befehls** → automatisch über die Cloud. Ausnahme: Der Wochenplan geht nur lokal.
 - **Energie im Modus „Nur lokal“** kommt nicht aus der Cloud, sondern wird aus Heizzeit × Heizlast geschätzt.
 - **Port 9513** muss frei und vom Thermostat erreichbar sein (Docker: Port freigeben, VLAN: Firewall).
 - **Mehrere Thermostate:** ein DNS-Eintrag für alle (noch nicht an mehreren echten Geräten getestet).
